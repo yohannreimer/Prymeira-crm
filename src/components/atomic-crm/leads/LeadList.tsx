@@ -50,16 +50,26 @@ export const LeadList = () => {
   ];
 
   return (
-    <List
-      title={false}
-      perPage={25}
-      sort={{ field: "created_at", order: "DESC" }}
-      filters={filters}
-      actions={<LeadListActions />}
-      pagination={<ListPagination rowsPerPageOptions={[10, 25, 50, 100]} />}
-    >
-      <LeadListContent />
-    </List>
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          Pipeline
+        </p>
+        <h1 className="text-[18px] font-bold text-foreground leading-tight">
+          {translate("resources.leads.name", { smart_count: 2 })}
+        </h1>
+      </div>
+      <List
+        title={false}
+        perPage={25}
+        sort={{ field: "created_at", order: "DESC" }}
+        filters={filters}
+        actions={<LeadListActions />}
+        pagination={<ListPagination rowsPerPageOptions={[10, 25, 50, 100]} />}
+      >
+        <LeadListContent />
+      </List>
+    </div>
   );
 };
 
@@ -96,7 +106,21 @@ const LeadListContent = () => {
 
   return (
     <Card className="py-0">
-      <div className="divide-y">
+      <div className="hidden md:grid md:grid-cols-[1.4fr_1fr_0.8fr_0.8fr] gap-3 px-4 py-2.5 border-b border-border/50">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Nome
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Interesse / Fonte
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Status
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
+          Próxima ação
+        </p>
+      </div>
+      <div className="divide-y divide-border/40">
         {leadRecords.map((lead) => (
           <LeadRow key={lead.id} lead={lead} />
         ))}
