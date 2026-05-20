@@ -5,28 +5,30 @@ import { Error } from "@/components/admin/error";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
-import Header from "./Header";
+import { Sidebar } from "./Sidebar";
 
 export const Layout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
   return (
-    <>
-      <div className="print:hidden">
-        <Header />
-      </div>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar />
       <main
-        className="mx-auto max-w-screen-xl px-4 pt-4 print:max-w-none print:px-0 print:pt-0"
+        className="flex-1 overflow-y-auto print:max-w-none print:px-0 print:pt-0"
         id="main-content"
       >
-        <ErrorBoundary FallbackComponent={Error}>
-          <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
-            {children}
-          </Suspense>
-        </ErrorBoundary>
+        <div className="mx-auto max-w-screen-xl px-8 py-6">
+          <ErrorBoundary FallbackComponent={Error}>
+            <Suspense
+              fallback={<Skeleton className="h-12 w-12 rounded-full" />}
+            >
+              {children}
+            </Suspense>
+          </ErrorBoundary>
+        </div>
       </main>
       <div className="print:hidden">
         <Notification />
       </div>
-    </>
+    </div>
   );
 };
