@@ -34,6 +34,7 @@ import {
 import { createClerkAuthProvider } from "../providers/supabase/clerkAuthProvider";
 import { usePrymeiraAccess } from "../prymeira/PrymeiraAccessContext";
 import sales from "../sales";
+import { SettingsPageMobile } from "../settings/SettingsPageMobile";
 import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
 import {
@@ -345,9 +346,10 @@ const MobileAdmin = (
         {...props}
       >
         <CustomRoutes>
-          <Route path={ProfilePage.path} element={<ProfilePage />} />
-          <Route path={SettingsPage.path} element={<SettingsPage />} />
-          <Route path={ImportPage.path} element={<ImportPage />} />
+          <Route
+            path={SettingsPageMobile.path}
+            element={<SettingsPageMobile />}
+          />
           <Route path={ChangelogPage.path} element={<ChangelogPage />} />
         </CustomRoutes>
         <Resource name="agenda" {...agenda} />
