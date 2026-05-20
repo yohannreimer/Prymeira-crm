@@ -121,14 +121,11 @@ export const SellerDailyCockpit = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <CalendarClock className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.seller_cockpit.title")}
-        </h2>
-      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+
+        {translate("crm.dashboard.seller_cockpit.title")}
+
+      </p>
       <Card className="p-2">
         <Link
           to="/agenda"

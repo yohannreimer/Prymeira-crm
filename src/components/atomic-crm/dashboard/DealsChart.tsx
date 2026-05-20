@@ -91,14 +91,9 @@ export const DealsChart = memo(() => {
   );
   return (
     <div className="flex flex-col">
-      <div className="flex items-center mb-4">
-        <div className="mr-3 flex">
-          <TrendingUp className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.deals_chart")}
-        </h2>
-      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-2">
+        {translate("crm.dashboard.deals_chart")}
+      </p>
       <div className="h-[400px]">
         <ResponsiveBar
           data={months}

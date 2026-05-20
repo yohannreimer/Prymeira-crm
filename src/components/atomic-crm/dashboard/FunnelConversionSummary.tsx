@@ -90,16 +90,13 @@ export const FunnelConversionSummary = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <GitFork className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.advanced.funnel_conversion.title", {
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+
+        {translate("crm.dashboard.advanced.funnel_conversion.title", {
             _: "Conversão do funil",
           })}
-        </h2>
-      </div>
+
+      </p>
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {metrics.map((metric) => (

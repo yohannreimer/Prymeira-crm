@@ -59,14 +59,11 @@ export const ProposalSummary = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <FileText className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.proposals.title")}
-        </h2>
-      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+
+        {translate("crm.dashboard.proposals.title")}
+
+      </p>
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3">
           {metrics.map((metric) => (

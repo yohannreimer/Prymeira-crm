@@ -84,16 +84,13 @@ export const AdvancedSellerRanking = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <Trophy className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.advanced.seller_ranking.title", {
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+
+        {translate("crm.dashboard.advanced.seller_ranking.title", {
             _: "Ranking comercial",
           })}
-        </h2>
-      </div>
+
+      </p>
       <Card className="p-4">
         {ranking.length ? (
           <div className="space-y-3">

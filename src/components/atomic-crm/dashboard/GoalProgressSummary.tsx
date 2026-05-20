@@ -121,16 +121,13 @@ export const GoalProgressSummary = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <Target className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.advanced.goal_progress.title", {
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+
+        {translate("crm.dashboard.advanced.goal_progress.title", {
             _: "Progresso de metas",
           })}
-        </h2>
-      </div>
+
+      </p>
       <Card className="p-4">
         {rows.length ? (
           <div className="space-y-4">

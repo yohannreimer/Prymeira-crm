@@ -49,14 +49,9 @@ export const LatestNotes = () => {
 
   return (
     <div>
-      <div className="flex items-center mb-4">
-        <div className="ml-8 mr-8 flex">
-          <FileText className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.latest_notes")}
-        </h2>
-      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-2">
+        {translate("crm.dashboard.latest_notes")}
+      </p>
       <Card>
         <CardContent>
           {allNotes.map((note) => (

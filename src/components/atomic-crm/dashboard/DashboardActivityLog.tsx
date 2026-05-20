@@ -10,16 +10,11 @@ export function DashboardActivityLog() {
   const translate = useTranslate();
   return (
     <div className="flex flex-col">
-      <div className="flex items-center mb-4 md:mb-2">
-        <div className="mr-3 flex">
-          <Clock className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.latest_activity", {
-            _: "Latest Activity",
-          })}
-        </h2>
-      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-2">
+        {translate("crm.dashboard.latest_activity", {
+          _: "Latest Activity",
+        })}
+      </p>
       {isMobile ? (
         <ActivityLog pageSize={10} />
       ) : (

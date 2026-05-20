@@ -54,14 +54,11 @@ export const DealRiskSummary = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <AlertTriangle className="text-muted-foreground h-6 w-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.deal_risk.title")}
-        </h2>
-      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+
+        {translate("crm.dashboard.deal_risk.title")}
+
+      </p>
       <Card className="p-4">
         <Link
           to="/agenda"
