@@ -7,6 +7,7 @@ import type {
   Deal,
   DealNote,
   Lead,
+  Pipeline,
   Proposal,
   ProposalItem,
   ProposalTemplate,
@@ -23,6 +24,7 @@ export interface Db {
   contacts: Contact[];
   contact_notes: ContactNote[];
   deals: Deal[];
+  pipelines: Pipeline[];
   deal_notes: DealNote[];
   leads: Lead[];
   proposal_templates: ProposalTemplate[];
@@ -35,5 +37,9 @@ export interface Db {
   tags: Tag[];
   automation_runs: AutomationRun[];
   tasks: Task[];
-  configuration: Array<{ id: number; config: ConfigurationContextValue }>;
+  configuration: Array<{
+    id: number;
+    workspace_id?: string;
+    config: ConfigurationContextValue;
+  }>;
 }

@@ -125,6 +125,13 @@ export type ContactNote = {
 } & TenantRecord &
   Pick<RaRecord, "id">;
 
+export type Pipeline = {
+  name: string;
+  stages: { value: string; label: string }[];
+  created_at: string;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
+
 export type Deal = {
   name: string;
   company_id: Identifier;

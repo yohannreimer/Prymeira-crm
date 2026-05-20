@@ -2,6 +2,7 @@ import {
   withLifecycleCallbacks,
   type CreateParams,
   type DataProvider,
+  type GetListParams,
   type Identifier,
   type ResourceCallbacks,
   type UpdateParams,
@@ -24,6 +25,10 @@ import type {
   Task,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import {
+  addWorkspaceToCreateParams,
+  isTenantResource,
+} from "../../prymeira/tenantResources";
 import { getActivityLog } from "../commons/activity";
 import {
   runDealCreatedAutomations,
@@ -44,7 +49,10 @@ import {
   authProvider as defaultAuthProvider,
   USER_STORAGE_KEY,
 } from "./authProvider";
-import generateData from "./dataGenerator";
+import generateData, {
+  addDefaultWorkspaceId,
+  DEFAULT_WORKSPACE_ID,
+} from "./dataGenerator";
 import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
 
@@ -263,13 +271,31 @@ const preserveAttachmentMimeType = <
   })),
 });
 
+const withDemoWorkspaceFilter = (resource: string, params: GetListParams) => {
+  if (!isTenantResource(resource)) {
+    return params;
+  }
+
+  return {
+    ...params,
+    filter: {
+      ...params.filter,
+      workspace_id: DEFAULT_WORKSPACE_ID,
+    },
+  };
+};
+
 export const createDataProvider = ({
   db = generateData(),
   latency = 300,
   authProvider,
   silent = false,
 }: CreateFakeRestDataProviderOptions = {}): CrmDataProvider => {
-  const baseDataProvider = fakeRestDataProvider(db, !silent, latency);
+  const baseDataProvider = fakeRestDataProvider(
+    addDefaultWorkspaceId(db),
+    !silent,
+    latency,
+  );
   const taskUpdateTypes = new Map<Identifier, string>();
   const previousDealsForAutomation = new Map<Identifier, Deal>();
   const previousProposalsForAutomation = new Map<Identifier, Proposal>();
@@ -296,8 +322,12 @@ export const createDataProvider = ({
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
     async getList(resource: string, params: any) {
+      const scopedParams = withDemoWorkspaceFilter(resource, params);
       if (resource === "activity_log") {
-        const { filter = {}, pagination } = params;
+        const {
+          filter = {},
+          pagination = { page: 1, perPage: 10 },
+        } = scopedParams;
         const all = await getActivityLog(
           withSupabaseFilterAdapter(baseDataProvider),
           filter.company_id,
@@ -307,7 +337,13 @@ export const createDataProvider = ({
         const start = (page - 1) * perPage;
         return { data: all.slice(start, start + perPage), total: all.length };
       }
-      return baseDataProvider.getList(resource, params);
+      return baseDataProvider.getList(resource, scopedParams);
+    },
+    async create(resource: string, params: CreateParams) {
+      return baseDataProvider.create(
+        resource,
+        addWorkspaceToCreateParams(resource, params, DEFAULT_WORKSPACE_ID),
+      );
     },
     unarchiveDeal: async (deal: Deal) => {
       // get all deals where stage is the same as the deal to unarchive
