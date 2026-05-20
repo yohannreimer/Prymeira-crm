@@ -27,8 +27,10 @@ export type SalesFormData = {
 };
 
 export type TenantRecord = {
-  workspace_id: string;
+  workspace_id?: string;
 };
+
+type OptionalTenantRecord = TenantRecord | Record<never, never>;
 
 export type Sale = {
   id: Identifier;
@@ -44,7 +46,7 @@ export type Sale = {
   disabled?: boolean;
   user_id?: string;
   password?: string;
-};
+} & TenantRecord;
 
 export type SalesGoal = {
   sales_id: Identifier;
@@ -54,7 +56,8 @@ export type SalesGoal = {
   sent_proposals_goal: number;
   created_at: string;
   updated_at: string;
-} & Pick<RaRecord, "id">;
+} & Pick<RaRecord, "id"> &
+  OptionalTenantRecord;
 
 export type Company = {
   name: string;
@@ -77,7 +80,8 @@ export type Company = {
   context_links?: string[];
   nb_contacts?: number;
   nb_deals?: number;
-} & Pick<RaRecord, "id">;
+} & Pick<RaRecord, "id"> &
+  OptionalTenantRecord;
 
 export type EmailAndType = {
   email: string;
@@ -108,7 +112,8 @@ export type Contact = {
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
   company_name?: string;
-} & Pick<RaRecord, "id">;
+} & Pick<RaRecord, "id"> &
+  OptionalTenantRecord;
 
 export type ContactNote = {
   contact_id: Identifier;
@@ -117,7 +122,8 @@ export type ContactNote = {
   sales_id: Identifier;
   status: string;
   attachments?: AttachmentNote[];
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type Deal = {
   name: string;
@@ -139,7 +145,8 @@ export type Deal = {
   expected_closing_date: string;
   sales_id: Identifier;
   index: number;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type LeadStatus =
   | "new"
@@ -167,7 +174,8 @@ export type Lead = {
   created_at: string;
   updated_at: string;
   sales_id?: Identifier;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type ConvertLeadInput = {
   lead: Lead;
@@ -192,13 +200,14 @@ export type DealNote = {
 
   // This is defined for compatibility with `ContactNote`
   status?: undefined;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type Tag = {
   id: number;
   name: string;
   color: string;
-};
+} & TenantRecord;
 
 export type Task = {
   contact_id?: Identifier | null;
@@ -210,7 +219,8 @@ export type Task = {
   due_date: string;
   done_date?: string | null;
   sales_id?: Identifier;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type ProposalStatus =
   | "draft"
@@ -227,7 +237,8 @@ export type ProposalTemplate = {
   active: boolean;
   created_at: string;
   updated_at: string;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type ProposalTemplateItem = {
   template_id: Identifier;
@@ -236,7 +247,8 @@ export type ProposalTemplateItem = {
   unit_price: number;
   discount_amount: number;
   index: number;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type Proposal = {
   deal_id: Identifier;
@@ -263,7 +275,8 @@ export type Proposal = {
   rejected_at?: string | null;
   created_at: string;
   updated_at: string;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type ProposalItem = {
   proposal_id: Identifier;
@@ -273,7 +286,8 @@ export type ProposalItem = {
   discount_amount: number;
   total: number;
   index: number;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type AutomationRule = {
   rule_key: string;
@@ -287,7 +301,8 @@ export type AutomationRule = {
   params: AutomationRuleParams;
   created_at: string;
   updated_at: string;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type AutomationRuleParams = {
   dueInDays?: number;
@@ -309,7 +324,8 @@ export type AutomationRun = {
   status: AutomationRunStatus;
   message?: string | null;
   sales_id?: Identifier | null;
-} & Pick<RaRecord, "id">;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {
   type: typeof COMPANY_CREATED;
