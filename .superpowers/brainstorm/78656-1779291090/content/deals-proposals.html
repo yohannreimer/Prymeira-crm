@@ -1,0 +1,2200 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deals & Proposals — Redesign</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          "DM Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      /* ─── Layout shell ────────────────────────────────── */
+      .shell {
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        width: 52px;
+        background: #1e293b;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 0;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
+      .sidebar-logo {
+        width: 28px;
+        height: 28px;
+        background: #14b8a6;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+      }
+
+      .sidebar-logo svg {
+        width: 16px;
+        height: 16px;
+        stroke: white;
+        fill: none;
+      }
+
+      .nav-item {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .nav-item svg {
+        width: 16px;
+        height: 16px;
+        stroke: rgba(255, 255, 255, 0.3);
+        fill: none;
+      }
+      .nav-item.active {
+        background: rgba(20, 184, 166, 0.15);
+      }
+      .nav-item.active svg {
+        stroke: #14b8a6;
+      }
+
+      .sidebar-footer {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .avatar-bubble {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #334155;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+        color: #94a3b8;
+      }
+
+      /* ─── Main content ────────────────────────────────── */
+      .main {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ─── Page header ─────────────────────────────────── */
+      .page-header {
+        padding: 20px 28px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .page-title-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .page-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #14b8a6;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .page-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* ─── Buttons ─────────────────────────────────────── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+      }
+      .btn svg {
+        width: 14px;
+        height: 14px;
+        stroke: currentColor;
+        fill: none;
+      }
+      .btn-primary {
+        background: #14b8a6;
+        color: white;
+      }
+      .btn-secondary {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: #64748b;
+        border: 1px solid transparent;
+      }
+
+      /* ─── Kanban filters bar ──────────────────────────── */
+      .filter-bar {
+        padding: 14px 28px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .search-input {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 7px 12px;
+        width: 200px;
+      }
+
+      .search-input svg {
+        width: 14px;
+        height: 14px;
+        stroke: #94a3b8;
+        fill: none;
+      }
+      .search-input span {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      .filter-select {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 7px 12px;
+        font-size: 12px;
+        color: #475569;
+        cursor: pointer;
+      }
+
+      .filter-select svg {
+        width: 12px;
+        height: 12px;
+        stroke: #94a3b8;
+        fill: none;
+      }
+
+      .filter-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: #64748b;
+        cursor: pointer;
+      }
+
+      .toggle-dot {
+        width: 28px;
+        height: 16px;
+        background: #e2e8f0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        padding: 2px;
+      }
+
+      .toggle-dot-inner {
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+      }
+
+      /* ─── Kanban Board ────────────────────────────────── */
+      .kanban-wrapper {
+        flex: 1;
+        padding: 0 28px 28px;
+        overflow-x: auto;
+      }
+
+      .kanban-board {
+        display: flex;
+        gap: 16px;
+        min-width: max-content;
+        padding-bottom: 12px;
+      }
+
+      .kanban-col {
+        width: 240px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .col-header {
+        padding: 8px 4px;
+        text-align: center;
+      }
+
+      .col-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+
+      .col-meta {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 2px;
+      }
+
+      .col-drop-zone {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-height: 80px;
+        border-radius: 12px;
+        padding: 4px;
+        transition: background 0.15s;
+      }
+
+      .col-drop-zone.drag-over {
+        background: #f1f5f9;
+      }
+
+      /* ─── Deal cards ──────────────────────────────────── */
+      .deal-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.08),
+          0 1px 2px rgba(0, 0, 0, 0.04);
+        padding: 12px;
+        cursor: pointer;
+        transition:
+          box-shadow 0.15s,
+          transform 0.15s;
+      }
+
+      .deal-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .deal-card.dragging {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: rotate(1.5deg);
+        opacity: 0.92;
+      }
+
+      .deal-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+
+      .deal-name {
+        flex: 1;
+        font-size: 12px;
+        font-weight: 600;
+        color: #0f172a;
+        line-height: 1.4;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .company-avatar-sm {
+        width: 20px;
+        height: 20px;
+        border-radius: 5px;
+        background: #ccfbf1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 700;
+        color: #0f766e;
+        flex-shrink: 0;
+      }
+
+      .deal-amount {
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 8px;
+      }
+
+      .deal-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      /* ─── Badges ──────────────────────────────────────── */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 500;
+      }
+
+      .badge svg {
+        width: 10px;
+        height: 10px;
+        stroke: currentColor;
+        fill: none;
+      }
+
+      .badge-secondary {
+        background: #f1f5f9;
+        color: #475569;
+      }
+      .badge-outline {
+        background: transparent;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+      }
+      .badge-teal {
+        background: #ccfbf1;
+        color: #0f766e;
+      }
+      .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .badge-destructive {
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+      .badge-purple {
+        background: #ede9fe;
+        color: #6d28d9;
+      }
+      .badge-draft {
+        background: #f1f5f9;
+        color: #475569;
+      }
+      .badge-sent {
+        background: #ccfbf1;
+        color: #0f766e;
+      }
+      .badge-accepted {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .badge-rejected {
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+      .badge-expired {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+      }
+
+      /* ─── Archived strip ──────────────────────────────── */
+      .archived-strip {
+        margin: 0 28px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .archived-strip-header {
+        background: #f8fafc;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+      }
+
+      .archived-strip-header svg {
+        width: 14px;
+        height: 14px;
+        stroke: currentColor;
+        fill: none;
+      }
+
+      /* ─── Section label ───────────────────────────────── */
+      .section-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #14b8a6;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 2px;
+      }
+
+      /* ─── Deal modal ──────────────────────────────────── */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.35);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 48px;
+        z-index: 50;
+      }
+
+      .modal {
+        background: white;
+        border-radius: 14px;
+        width: 760px;
+        max-height: 82vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+      }
+
+      .modal-header {
+        padding: 20px 24px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .modal-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .company-avatar-lg {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #ccfbf1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f766e;
+      }
+
+      .modal-deal-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 8px;
+        margin-right: 32px;
+      }
+
+      .modal-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        padding: 16px 24px;
+        border-bottom: 1px solid #f8fafc;
+      }
+
+      .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-right: 28px;
+        margin-bottom: 12px;
+      }
+
+      .meta-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+      }
+
+      .meta-value {
+        font-size: 13px;
+        color: #0f172a;
+      }
+
+      .meta-value-accent {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .modal-section {
+        padding: 16px 24px;
+        border-bottom: 1px solid #f8fafc;
+      }
+
+      .modal-section-title {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #14b8a6;
+        margin-bottom: 10px;
+      }
+
+      .contact-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 4px 10px;
+        margin-right: 6px;
+        margin-bottom: 6px;
+        font-size: 12px;
+        color: #0f172a;
+      }
+
+      .contact-avatar {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 700;
+        color: white;
+      }
+
+      .description-text {
+        font-size: 13px;
+        color: #475569;
+        line-height: 1.6;
+      }
+
+      .note-item {
+        display: flex;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f8fafc;
+      }
+
+      .note-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #ccfbf1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: #0f766e;
+        flex-shrink: 0;
+      }
+
+      .note-content {
+        flex: 1;
+      }
+      .note-author {
+        font-size: 12px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .note-text {
+        font-size: 12px;
+        color: #475569;
+        margin-top: 2px;
+        line-height: 1.5;
+      }
+      .note-time {
+        font-size: 10px;
+        color: #94a3b8;
+        margin-top: 4px;
+      }
+
+      /* ─── Proposals ───────────────────────────────────── */
+      .proposals-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.08),
+          0 1px 2px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+        margin: 0 28px 28px;
+      }
+
+      .proposals-table-header {
+        display: grid;
+        grid-template-columns: 1.5fr 0.8fr 0.7fr 0.8fr;
+        gap: 12px;
+        padding: 10px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        background: #f8fafc;
+      }
+
+      .th {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+      }
+
+      .th.right {
+        text-align: right;
+      }
+
+      .proposal-row {
+        display: grid;
+        grid-template-columns: 1.5fr 0.8fr 0.7fr 0.8fr;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid #f8fafc;
+        cursor: pointer;
+        transition: background 0.1s;
+        align-items: center;
+      }
+
+      .proposal-row:hover {
+        background: #f8fafc;
+      }
+      .proposal-row:last-child {
+        border-bottom: none;
+      }
+
+      .proposal-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .proposal-number {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 2px;
+      }
+
+      .proposal-date {
+        font-size: 12px;
+        color: #64748b;
+      }
+
+      .proposal-total {
+        font-size: 13px;
+        font-weight: 600;
+        color: #0f172a;
+        text-align: right;
+      }
+
+      /* ─── ProposalShow ────────────────────────────────── */
+      .proposal-show-layout {
+        display: flex;
+        gap: 24px;
+        padding: 20px 28px;
+      }
+
+      .proposal-actions-col {
+        width: 200px;
+        flex-shrink: 0;
+      }
+
+      .proposal-doc-col {
+        flex: 1;
+      }
+
+      .proposal-action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .proposal-preview {
+        background: white;
+        border-radius: 10px;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.08),
+          0 4px 16px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+
+      .proposal-preview-header {
+        padding: 32px 40px 24px;
+        border-bottom: 3px solid #14b8a6;
+      }
+
+      .proposal-company-name {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .proposal-number-doc {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 4px;
+      }
+
+      .proposal-meta-row {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 16px;
+      }
+
+      .proposal-meta-col {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .proposal-meta-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+      }
+      .proposal-meta-val {
+        font-size: 13px;
+        color: #0f172a;
+      }
+
+      .proposal-preview-body {
+        padding: 32px 40px;
+      }
+
+      .proposal-items-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .proposal-items-table th {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+        padding: 8px 0;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+      }
+
+      .proposal-items-table th:last-child {
+        text-align: right;
+      }
+
+      .proposal-items-table td {
+        padding: 10px 0;
+        font-size: 13px;
+        border-bottom: 1px solid #f8fafc;
+        color: #0f172a;
+      }
+
+      .proposal-items-table td:last-child {
+        text-align: right;
+        font-weight: 600;
+      }
+
+      .proposal-total-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .proposal-total-label {
+        font-size: 13px;
+        color: #64748b;
+        margin-right: 32px;
+      }
+      .proposal-total-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      /* ─── Page tabs ───────────────────────────────────── */
+      .page-tabs {
+        display: flex;
+        gap: 2px;
+        margin: 16px 28px 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .page-tab {
+        padding: 8px 16px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #64748b;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+      }
+
+      .page-tab.active {
+        color: #14b8a6;
+        border-bottom-color: #14b8a6;
+        font-weight: 600;
+      }
+
+      /* ─── Divider ─────────────────────────────────────── */
+      hr {
+        border: none;
+        border-top: 1px solid #f1f5f9;
+      }
+
+      /* ─── Pagination ──────────────────────────────────── */
+      .pagination {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 12px 16px;
+        border-top: 1px solid #f1f5f9;
+        justify-content: flex-end;
+      }
+
+      .page-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+      }
+
+      .page-btn.active {
+        background: #14b8a6;
+        color: white;
+        border-color: #14b8a6;
+      }
+
+      /* ─── Section divider ─────────────────────────────── */
+      .screen-divider {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin: 32px 0 24px;
+        padding: 0 28px;
+      }
+
+      .screen-divider-line {
+        flex: 1;
+        height: 1px;
+        background: #e2e8f0;
+      }
+
+      .screen-divider-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: #f8fafc;
+        padding: 0 12px;
+      }
+
+      /* ─── Stage progress bar ──────────────────────────── */
+      .stage-progress {
+        display: flex;
+        gap: 4px;
+        padding: 0 28px;
+        margin-bottom: 16px;
+      }
+
+      .stage-pip {
+        height: 3px;
+        flex: 1;
+        border-radius: 2px;
+        background: #e2e8f0;
+      }
+
+      .stage-pip.active {
+        background: #14b8a6;
+      }
+      .stage-pip.done {
+        background: #5eead4;
+      }
+
+      /* ─── Close button ────────────────────────────────── */
+      .close-btn {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .close-btn svg {
+        width: 14px;
+        height: 14px;
+        stroke: #64748b;
+        fill: none;
+      }
+
+      /* ─── Two-screen layout for the mockup ───────────── */
+      .mockup-page {
+        background: #f8fafc;
+        min-height: 100vh;
+      }
+
+      .mockup-title {
+        text-align: center;
+        padding: 20px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #14b8a6;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ════════════════════════════════════════
+     SCREEN 1: DEALS — KANBAN BOARD
+════════════════════════════════════════ -->
+    <div class="mockup-title">Negócios — Kanban Board</div>
+
+    <div class="shell" style="height: auto; min-height: 820px">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87" />
+            <path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" />
+            <line x1="3" y1="12" x2="3.01" y2="12" />
+            <line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+        </div>
+        <div class="sidebar-footer">
+          <div class="nav-item">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M21 12h-3M6 12H3M12 21v-3M12 6V3"
+              />
+            </svg>
+          </div>
+          <div class="avatar-bubble">YR</div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="main">
+        <!-- Page header -->
+        <div class="page-header">
+          <div class="page-title-group">
+            <div class="page-label">Pipeline</div>
+            <div class="page-title">Negócios</div>
+          </div>
+          <div class="toolbar">
+            <button class="btn btn-secondary">
+              <svg viewBox="0 0 24 24">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              Filtros
+            </button>
+            <button class="btn btn-secondary">
+              <svg viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Exportar
+            </button>
+            <button class="btn btn-primary">
+              <svg viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Novo Negócio
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <div class="search-input">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <span>Buscar negócios…</span>
+          </div>
+          <div class="filter-select">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"
+              />
+            </svg>
+            Empresa
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>
+          </div>
+          <div class="filter-select">
+            Categoria
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>
+          </div>
+          <div class="filter-select">
+            Tipo
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg>
+          </div>
+          <div class="filter-toggle">
+            <div class="toggle-dot"><div class="toggle-dot-inner"></div></div>
+            Apenas meus
+          </div>
+        </div>
+
+        <!-- Kanban board -->
+        <div class="kanban-wrapper">
+          <div class="kanban-board">
+            <!-- Col 1: Qualificação -->
+            <div class="kanban-col">
+              <div class="col-header">
+                <div class="col-title">Qualificação</div>
+                <div class="col-meta">R$ 124k / R$ 68k pond.</div>
+              </div>
+              <div class="col-drop-zone">
+                <div class="deal-card dragging">
+                  <div class="deal-card-header">
+                    <div class="deal-name">
+                      Acme Corp — Expansão licença anual
+                    </div>
+                    <div class="company-avatar-sm">AC</div>
+                  </div>
+                  <div class="deal-amount">R$ 48k · Recorrente</div>
+                  <div class="deal-badges">
+                    <span class="badge badge-secondary">SaaS</span>
+                    <span class="badge badge-outline">72%</span>
+                    <span class="badge badge-outline">Pond. R$ 34k</span>
+                  </div>
+                </div>
+
+                <div class="deal-card">
+                  <div class="deal-card-header">
+                    <div class="deal-name">TechBr — Integração API</div>
+                    <div
+                      class="company-avatar-sm"
+                      style="background: #ede9fe; color: #6d28d9"
+                    >
+                      TB
+                    </div>
+                  </div>
+                  <div class="deal-amount">R$ 22k · Serviço</div>
+                  <div class="deal-badges">
+                    <span class="badge badge-secondary">Consultoria</span>
+                    <span class="badge badge-outline">45%</span>
+                    <span class="badge badge-outline">Pond. R$ 9,9k</span>
+                  </div>
+                </div>
+
+                <div class="deal-card">
+                  <div class="deal-card-header">
+                    <div class="deal-name">Nexus Solutions — Onboarding</div>
+                    <div
+                      class="company-avatar-sm"
+                      style="background: #fef3c7; color: #92400e"
+                    >
+                      NS
+                    </div>
+                  </div>
+                  <div class="deal-amount">R$ 54k · Recorrente</div>
+                  <div class="deal-badges">
+                    <span class="badge badge-secondary">Enterprise</span>
+                    <span class="badge badge-outline">60%</span>
+                    <span class="badge badge-destructive">
+                      <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      Sem próxima ação
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Col 2: Proposta -->
+            <div class="kanban-col">
+              <div class="col-header">
+                <div class="col-title">Proposta</div>
+                <div class="col-meta">R$ 89k / R$ 58k pond.</div>
+              </div>
+              <div class="col-drop-zone">
+                <div class="deal-card">
+                  <div class="deal-card-header">
+                    <div class="deal-name">Globex — Módulo RH</div>
+                    <div
+                      class="company-avatar-sm"
+                      style="background: #dbeafe; color: #1d4ed8"
+                    >
+                      GL
+                    </div>
+                  </div>
+                  <div class="deal-amount">R$ 67k · Licença</div>
+                  <div class="deal-badges">
+                    <span class="badge badge-secondary">SaaS</span>
+                    <span class="badge badge-outline">80%</span>
+                    <span class="badge badge-outline">Pond. R$ 53k</span>
+                  </div>
+                </div>
+
+                <div class="deal-card">
+                  <div class="deal-card-header">
+                    <div class="deal-name">Initech — Suporte Premium</div>
+                    <div
+                      class="company-avatar-sm"
+                      style="background: #f0fdf4; color: #15803d"
+                    >
+                      IN
+                    </div>
+                  </div>
+                  <div class="deal-amount">R$ 22k · Recorrente</div>
+                  <div class="deal-badges">
+                    <span class="badge badge-secondary">Suporte</span>
+                    <span class="badge badge-outline">25%</span>
+                    <span class="badge badge-outline">Pond. R$ 5,5k</span>
+                    <span
+                      class="badge badge-outline"
+                      style="color: #f59e0b; border-color: #fde68a"
+                    >
+                      <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                      Inativo há 30d
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Col 3: Negociação -->
+            <div class="kanban-col">
+              <div class="col-header">
+                <div class="col-title">Negociação</div>
+                <div class="col-meta">R$ 210k / R$ 168k pond.</div>
+              </div>
+              <div class="col-drop-zone">
+                <div class="deal-card">
+                  <div class="deal-card-header">
+                    <div class="deal-name">
+                      Umbrella Corp — Plataforma completa
+                    </div>
+                    <div
+                      class="company-avatar-sm"
+                      style="background: #fce7f3; color: #9d174d"
+                    >
+                      UC
+                    </div>
+                  </div>
+                  <div class="deal-amount">R$ 130k · Recorrente</div>
+                  <div class="deal-badges">
+                    <span class="badge badge-secondary">Enterprise</span>
+                    <span class="badge badge-outline">90%</span>
+                    <span class="badge badge-outline">Pond. R$ 117k</span>
+                  </div>
+                </div>
+
+                <div class="deal-card">
+                  <div class="deal-card-header">
+                    <div class="deal-name">Sirius — Migração dados</div>
+                    <div
+                      class="company-avatar-sm"
+                      style="background: #ccfbf1; color: #0f766e"
+                    >
+                      SI
+                    </div>
+                  </div>
+                  <div class="deal-amount">R$ 80k · Serviço</div>
+                  <div class="deal-badges">
+                    <span class="badge badge-secondary">Consultoria</span>
+                    <span class="badge badge-outline">64%</span>
+                    <span class="badge badge-outline">Pond. R$ 51k</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Col 4: Fechamento -->
+            <div class="kanban-col">
+              <div class="col-header">
+                <div class="col-title">Fechamento</div>
+                <div class="col-meta">R$ 95k / R$ 90k pond.</div>
+              </div>
+              <div class="col-drop-zone">
+                <div class="deal-card">
+                  <div class="deal-card-header">
+                    <div class="deal-name">Stark Industries — Renovação</div>
+                    <div
+                      class="company-avatar-sm"
+                      style="background: #fef3c7; color: #92400e"
+                    >
+                      SI
+                    </div>
+                  </div>
+                  <div class="deal-amount">R$ 95k · Recorrente</div>
+                  <div class="deal-badges">
+                    <span class="badge badge-secondary">SaaS</span>
+                    <span class="badge badge-outline">95%</span>
+                    <span class="badge badge-outline">Pond. R$ 90k</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Col 5: Ganho -->
+            <div class="kanban-col">
+              <div class="col-header">
+                <div class="col-title">Ganho</div>
+                <div class="col-meta">R$ 0 / R$ 0 pond.</div>
+              </div>
+              <div
+                class="col-drop-zone"
+                style="
+                  border: 1.5px dashed #e2e8f0;
+                  border-radius: 12px;
+                  padding: 24px;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <div
+                  style="text-align: center; color: #94a3b8; font-size: 11px"
+                >
+                  Nenhum negócio ganho ainda
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /main -->
+    </div>
+
+    <!-- Archived strip -->
+    <div class="archived-strip" style="margin-top: 0">
+      <div class="archived-strip-header">
+        <svg viewBox="0 0 24 24">
+          <polyline points="21 8 21 21 3 21 3 8" />
+          <rect x="1" y="3" width="22" height="5" />
+          <line x1="10" y1="12" x2="14" y2="12" />
+        </svg>
+        Negócios arquivados (3)
+        <svg viewBox="0 0 24 24" style="margin-left: auto">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+     DEAL SHOW — MODAL OVERLAY
+════════════════════════════════════════ -->
+    <div class="screen-divider">
+      <div class="screen-divider-line"></div>
+      <div class="screen-divider-label">Negócio — Detalhe (Modal)</div>
+      <div class="screen-divider-line"></div>
+    </div>
+
+    <div style="background: #0f172a22; padding: 40px 28px; position: relative">
+      <div class="modal" style="margin: 0 auto; position: relative">
+        <!-- Close button -->
+        <div class="close-btn">
+          <svg viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </div>
+
+        <!-- Modal header -->
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div class="company-avatar-lg">UC</div>
+            <div>
+              <div class="section-label">Negócio</div>
+              <div class="modal-deal-name">
+                Umbrella Corp — Plataforma completa
+              </div>
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary">
+              <svg
+                viewBox="0 0 24 24"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  stroke: currentColor;
+                  fill: none;
+                "
+              >
+                <polyline points="21 8 21 21 3 21 3 8" />
+                <rect x="1" y="3" width="22" height="5" />
+                <line x1="10" y1="12" x2="14" y2="12" />
+              </svg>
+              Arquivar
+            </button>
+            <button class="btn btn-secondary">
+              <svg
+                viewBox="0 0 24 24"
+                style="
+                  width: 14px;
+                  height: 14px;
+                  stroke: currentColor;
+                  fill: none;
+                "
+              >
+                <path
+                  d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                />
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                />
+              </svg>
+              Editar
+            </button>
+          </div>
+        </div>
+
+        <!-- Metadata row -->
+        <div class="modal-meta">
+          <div class="meta-item">
+            <span class="meta-label">Fechamento Previsto</span>
+            <div style="display: flex; align-items: center; gap: 6px">
+              <span class="meta-value">15 jun 2026</span>
+            </div>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Valor</span>
+            <span class="meta-value-accent">R$ 130.000</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Valor Ponderado</span>
+            <span class="meta-value">R$ 117.000</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Probabilidade</span>
+            <span class="meta-value">90%</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Categoria</span>
+            <span class="meta-value">Recorrente</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Tipo</span>
+            <span class="meta-value">Enterprise</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Estágio</span>
+            <span class="meta-value">Negociação</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Origem</span>
+            <span class="meta-value">Inbound</span>
+          </div>
+        </div>
+
+        <!-- Contacts -->
+        <div class="modal-section">
+          <div class="modal-section-title">Contatos</div>
+          <div>
+            <div class="contact-chip">
+              <div class="contact-avatar" style="background: #14b8a6">AJ</div>
+              Ana Jardim
+            </div>
+            <div class="contact-chip">
+              <div class="contact-avatar" style="background: #6366f1">MR</div>
+              Marco Ramos
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="modal-section">
+          <div class="modal-section-title">Descrição</div>
+          <p class="description-text">
+            Expansão da plataforma para todos os departamentos. Inclui módulos
+            de RH, Financeiro e Operações. Reunião de alinhamento com C-level
+            agendada para 20/06.
+          </p>
+        </div>
+
+        <!-- Proposals panel -->
+        <div class="modal-section">
+          <div class="modal-section-title">Propostas</div>
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              flex-wrap: wrap;
+              align-items: center;
+            "
+          >
+            <div
+              style="
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 8px 12px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+              "
+            >
+              <div>
+                <div style="font-size: 12px; font-weight: 600; color: #0f172a">
+                  Proposta Inicial · PRO-00024
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 1px">
+                  Válida até 30 jun 2026 · R$ 130.000
+                </div>
+              </div>
+              <span class="badge badge-sent">Enviada</span>
+            </div>
+            <button class="btn btn-secondary" style="font-size: 11px">
+              + Nova Proposta
+            </button>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="modal-section">
+          <div class="modal-section-title">Notas & Atividade</div>
+
+          <!-- Note composer -->
+          <div
+            style="
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 10px;
+              padding: 10px 12px;
+              margin-bottom: 12px;
+            "
+          >
+            <div style="font-size: 12px; color: #94a3b8">
+              Adicione uma nota…
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+                margin-top: 8px;
+              "
+            >
+              <button
+                class="btn btn-ghost"
+                style="font-size: 11px; padding: 5px 10px"
+              >
+                Cancelar
+              </button>
+              <button
+                class="btn btn-primary"
+                style="font-size: 11px; padding: 5px 12px"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+
+          <!-- Notes feed -->
+          <div class="note-item">
+            <div class="note-avatar">YR</div>
+            <div class="note-content">
+              <span class="note-author">Yohann Reimer</span>
+              <p class="note-text">
+                Reunião de kick-off agendada. Equipe de implementação confirmada
+                para início em julho.
+              </p>
+              <div class="note-time">Hoje, 14h32</div>
+            </div>
+          </div>
+
+          <div class="note-item">
+            <div class="note-avatar">YR</div>
+            <div class="note-content">
+              <span class="note-author">Yohann Reimer</span>
+              <p class="note-text">
+                Legal aprovou os termos do contrato. Aguardando assinatura do
+                CFO.
+              </p>
+              <div class="note-time">Ontem, 10h15</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+     SCREEN 2: PROPOSALS LIST
+════════════════════════════════════════ -->
+    <div class="screen-divider">
+      <div class="screen-divider-line"></div>
+      <div class="screen-divider-label">Propostas — Lista</div>
+      <div class="screen-divider-line"></div>
+    </div>
+
+    <div class="shell" style="height: auto; min-height: 600px">
+      <!-- Sidebar (compact repeat) -->
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+          </svg>
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+        </div>
+        <div class="sidebar-footer">
+          <div class="nav-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /></svg>
+          </div>
+          <div class="avatar-bubble">YR</div>
+        </div>
+      </div>
+
+      <div class="main">
+        <!-- Page header -->
+        <div class="page-header">
+          <div class="page-title-group">
+            <div class="page-label">Comercial</div>
+            <div class="page-title">Propostas</div>
+          </div>
+          <div class="toolbar">
+            <div class="filter-select">
+              Status
+              <svg viewBox="0 0 24 24">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            <button class="btn btn-secondary">
+              <svg viewBox="0 0 24 24">
+                <line x1="12" y1="2" x2="12" y2="6" />
+                <line x1="12" y1="18" x2="12" y2="22" />
+                <line x1="4.93" y1="4.93" x2="7.76" y2="7.76" />
+                <line x1="16.24" y1="16.24" x2="19.07" y2="19.07" />
+              </svg>
+              Ordenar
+            </button>
+            <button class="btn btn-primary">
+              <svg viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nova Proposta
+            </button>
+          </div>
+        </div>
+
+        <!-- Proposals list -->
+        <div style="padding: 16px 28px">
+          <div class="proposals-card">
+            <!-- Table header -->
+            <div class="proposals-table-header">
+              <div class="th">Proposta</div>
+              <div class="th">Status</div>
+              <div class="th">Validade</div>
+              <div class="th right">Total</div>
+            </div>
+
+            <!-- Rows -->
+            <div class="proposal-row">
+              <div>
+                <div class="proposal-title">
+                  Plataforma Completa — Umbrella Corp
+                </div>
+                <div class="proposal-number">PRO-00024</div>
+              </div>
+              <div><span class="badge badge-sent">Enviada</span></div>
+              <div class="proposal-date">30 jun 2026</div>
+              <div class="proposal-total">R$ 130.000</div>
+            </div>
+
+            <div class="proposal-row">
+              <div>
+                <div class="proposal-title">
+                  Expansão Licença Anual — Acme Corp
+                </div>
+                <div class="proposal-number">PRO-00023</div>
+              </div>
+              <div><span class="badge badge-draft">Rascunho</span></div>
+              <div class="proposal-date">—</div>
+              <div class="proposal-total">R$ 48.000</div>
+            </div>
+
+            <div class="proposal-row">
+              <div>
+                <div class="proposal-title">Módulo RH — Globex</div>
+                <div class="proposal-number">PRO-00022</div>
+              </div>
+              <div><span class="badge badge-accepted">Aceita</span></div>
+              <div class="proposal-date">15 mai 2026</div>
+              <div class="proposal-total">R$ 67.000</div>
+            </div>
+
+            <div class="proposal-row">
+              <div>
+                <div class="proposal-title">Suporte Premium — Initech</div>
+                <div class="proposal-number">PRO-00021</div>
+              </div>
+              <div><span class="badge badge-rejected">Recusada</span></div>
+              <div class="proposal-date">01 mai 2026</div>
+              <div class="proposal-total">R$ 22.000</div>
+            </div>
+
+            <div class="proposal-row">
+              <div>
+                <div class="proposal-title">Integração API — TechBr</div>
+                <div class="proposal-number">PRO-00020</div>
+              </div>
+              <div><span class="badge badge-expired">Expirada</span></div>
+              <div class="proposal-date">10 abr 2026</div>
+              <div class="proposal-total">R$ 22.000</div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+              <span style="font-size: 11px; color: #94a3b8; margin-right: 8px"
+                >1–5 de 18</span
+              >
+              <div class="page-btn">‹</div>
+              <div class="page-btn active">1</div>
+              <div class="page-btn">2</div>
+              <div class="page-btn">3</div>
+              <div class="page-btn">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+     SCREEN 3: PROPOSAL SHOW
+════════════════════════════════════════ -->
+    <div class="screen-divider">
+      <div class="screen-divider-line"></div>
+      <div class="screen-divider-label">Proposta — Detalhe + Preview</div>
+      <div class="screen-divider-line"></div>
+    </div>
+
+    <div class="shell" style="height: auto; min-height: 700px">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+          </svg>
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+        </div>
+        <div class="sidebar-footer">
+          <div class="nav-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /></svg>
+          </div>
+          <div class="avatar-bubble">YR</div>
+        </div>
+      </div>
+
+      <div class="main">
+        <!-- Breadcrumb + header -->
+        <div class="page-header">
+          <div class="page-title-group">
+            <div
+              class="page-label"
+              style="display: flex; align-items: center; gap: 4px"
+            >
+              <a
+                href="#"
+                style="color: #94a3b8; text-decoration: none; font-weight: 500"
+                >← Propostas</a
+              >
+              <span style="color: #cbd5e1">·</span>
+              Proposta
+            </div>
+            <div class="page-title">Plataforma Completa — Umbrella Corp</div>
+          </div>
+        </div>
+
+        <div class="proposal-show-layout">
+          <!-- Actions sidebar -->
+          <div class="proposal-actions-col">
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #94a3b8;
+                margin-bottom: 10px;
+              "
+            >
+              Ações
+            </div>
+            <div class="proposal-action-buttons">
+              <button
+                class="btn btn-secondary"
+                style="justify-content: flex-start"
+              >
+                <svg viewBox="0 0 24 24">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path
+                    d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
+                  />
+                </svg>
+                Duplicar
+              </button>
+              <button
+                class="btn btn-secondary"
+                style="justify-content: flex-start"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
+                  />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                Exportar PDF
+              </button>
+              <button
+                class="btn btn-secondary"
+                style="justify-content: flex-start"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                  />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                  />
+                </svg>
+                Editar
+              </button>
+            </div>
+
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #94a3b8;
+                margin: 16px 0 10px;
+              "
+            >
+              Status
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <span
+                class="badge badge-sent"
+                style="justify-content: center; padding: 6px 10px"
+                >Enviada</span
+              >
+            </div>
+
+            <div
+              style="
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #94a3b8;
+                margin: 16px 0 10px;
+              "
+            >
+              Resumo
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div>
+                <div style="font-size: 10px; color: #94a3b8">Número</div>
+                <div style="font-size: 12px; font-weight: 600; color: #0f172a">
+                  PRO-00024
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 10px; color: #94a3b8">Validade</div>
+                <div style="font-size: 12px; font-weight: 600; color: #0f172a">
+                  30 jun 2026
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 10px; color: #94a3b8">Total</div>
+                <div style="font-size: 16px; font-weight: 700; color: #14b8a6">
+                  R$ 130.000
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document preview -->
+          <div class="proposal-doc-col">
+            <div class="proposal-preview">
+              <div class="proposal-preview-header">
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                  "
+                >
+                  <div>
+                    <div
+                      style="
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #14b8a6;
+                        text-transform: uppercase;
+                        letter-spacing: 0.1em;
+                        margin-bottom: 4px;
+                      "
+                    >
+                      Proposta Comercial
+                    </div>
+                    <div class="proposal-company-name">
+                      Umbrella Corporation
+                    </div>
+                    <div class="proposal-number-doc">PRO-00024</div>
+                  </div>
+                  <div style="text-align: right">
+                    <div
+                      style="font-size: 20px; font-weight: 700; color: #0f172a"
+                    >
+                      Atomic CRM
+                    </div>
+                    <div style="font-size: 11px; color: #94a3b8">
+                      contato@atomiccrm.io
+                    </div>
+                  </div>
+                </div>
+                <div class="proposal-meta-row">
+                  <div class="proposal-meta-col">
+                    <span class="proposal-meta-label">Emitida em</span>
+                    <span class="proposal-meta-val">20 mai 2026</span>
+                  </div>
+                  <div class="proposal-meta-col">
+                    <span class="proposal-meta-label">Válida até</span>
+                    <span class="proposal-meta-val">30 jun 2026</span>
+                  </div>
+                  <div class="proposal-meta-col">
+                    <span class="proposal-meta-label">Para</span>
+                    <span class="proposal-meta-val"
+                      >Umbrella Corp · Marco Ramos</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div class="proposal-preview-body">
+                <table class="proposal-items-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 40%">Descrição</th>
+                      <th>Qtd</th>
+                      <th>Preço unit.</th>
+                      <th>Desconto</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div style="font-weight: 600; color: #0f172a">
+                          Licença Plataforma Enterprise
+                        </div>
+                        <div
+                          style="
+                            font-size: 11px;
+                            color: #94a3b8;
+                            margin-top: 2px;
+                          "
+                        >
+                          Acesso completo por 12 meses
+                        </div>
+                      </td>
+                      <td style="color: #475569">12</td>
+                      <td style="color: #475569">R$ 8.000</td>
+                      <td style="color: #475569">—</td>
+                      <td>R$ 96.000</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div style="font-weight: 600; color: #0f172a">
+                          Implementação & Onboarding
+                        </div>
+                        <div
+                          style="
+                            font-size: 11px;
+                            color: #94a3b8;
+                            margin-top: 2px;
+                          "
+                        >
+                          Setup, migração e treinamento
+                        </div>
+                      </td>
+                      <td style="color: #475569">1</td>
+                      <td style="color: #475569">R$ 24.000</td>
+                      <td style="color: #475569">—</td>
+                      <td>R$ 24.000</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div style="font-weight: 600; color: #0f172a">
+                          Suporte Dedicado (12 meses)
+                        </div>
+                        <div
+                          style="
+                            font-size: 11px;
+                            color: #94a3b8;
+                            margin-top: 2px;
+                          "
+                        >
+                          SLA 4h, atendimento humano
+                        </div>
+                      </td>
+                      <td style="color: #475569">1</td>
+                      <td style="color: #475569">R$ 10.000</td>
+                      <td style="color: #475569">10%</td>
+                      <td>R$ 10.000</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="proposal-total-row">
+                  <div>
+                    <div
+                      style="
+                        font-size: 11px;
+                        color: #94a3b8;
+                        text-align: right;
+                        margin-bottom: 4px;
+                      "
+                    >
+                      Subtotal
+                    </div>
+                    <div
+                      style="
+                        font-size: 13px;
+                        color: #475569;
+                        text-align: right;
+                        margin-bottom: 8px;
+                      "
+                    >
+                      R$ 130.000
+                    </div>
+                    <div
+                      style="
+                        font-size: 11px;
+                        color: #94a3b8;
+                        text-align: right;
+                        margin-bottom: 4px;
+                      "
+                    >
+                      Total
+                    </div>
+                    <div class="proposal-total-value">R$ 130.000</div>
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    margin-top: 24px;
+                    padding: 16px;
+                    background: #f8fafc;
+                    border-radius: 8px;
+                    font-size: 12px;
+                    color: #64748b;
+                    line-height: 1.6;
+                  "
+                >
+                  <strong style="color: #0f172a">Condições:</strong> Proposta
+                  válida por 40 dias. Pagamento: 50% na assinatura, 50% na
+                  entrega. Preços em BRL, sem impostos.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

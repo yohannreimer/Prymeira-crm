@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agenda — lista de ações</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap");
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: #e2e8f0;
+        padding: 20px;
+      }
+      .frame-label {
+        font-size: 12px;
+        color: #64748b;
+        text-align: center;
+        margin-bottom: 8px;
+      }
+      .card {
+        background: white;
+        border-radius: 10px;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.08),
+          0 1px 2px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+      }
+
+      .sidebar {
+        width: 48px;
+        background: #1e293b;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 0;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+      .sidebar-logo {
+        width: 28px;
+        height: 28px;
+        background: #14b8a6;
+        border-radius: 7px;
+        margin-bottom: 14px;
+      }
+      .nav-i {
+        width: 32px;
+        height: 32px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .nav-i.active {
+        background: rgba(20, 184, 166, 0.15);
+      }
+      .nav-i svg {
+        width: 14px;
+        height: 14px;
+      }
+      .nav-i.active svg {
+        stroke: #14b8a6;
+      }
+      .nav-i:not(.active) svg {
+        stroke: rgba(255, 255, 255, 0.3);
+      }
+      .sidebar-spacer {
+        flex: 1;
+      }
+      .avatar-xs {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #14b8a6, #0f766e);
+        font-size: 9px;
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fafafa;
+      }
+      .section-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .section-count {
+        font-size: 10px;
+        color: #94a3b8;
+      }
+
+      .agenda-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #f8fafc;
+        text-decoration: none;
+        transition: background 0.1s;
+      }
+      .agenda-item:last-child {
+        border-bottom: none;
+      }
+      .agenda-item:hover {
+        background: #f8fafc;
+      }
+
+      .item-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 7px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .item-icon svg {
+        width: 13px;
+        height: 13px;
+      }
+
+      .item-title {
+        font-size: 12px;
+        font-weight: 500;
+        color: #0f172a;
+      }
+      .item-meta {
+        font-size: 10px;
+        color: #94a3b8;
+        margin-top: 1px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        font-size: 9px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .badge-overdue {
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+      .badge-today {
+        background: #ccfbf1;
+        color: #0f766e;
+      }
+      .badge-risk {
+        background: #fef9c3;
+        color: #854d0e;
+      }
+      .badge-upcoming {
+        background: #f1f5f9;
+        color: #475569;
+      }
+      .badge-stale {
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+      .badge-missing {
+        background: #fff7ed;
+        color: #9a3412;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 7px;
+        border: none;
+        cursor: pointer;
+        font-family: "DM Sans", sans-serif;
+      }
+      .btn-primary {
+        background: #14b8a6;
+        color: white;
+      }
+      .btn-secondary {
+        background: white;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="max-width: 960px; margin: 0 auto">
+      <div class="frame-label">
+        Tela — Agenda (lista inteligente de ações: tarefas + leads + deals +
+        propostas)
+      </div>
+      <div
+        style="
+          background: #f8fafc;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+          display: flex;
+          height: 580px;
+        "
+      >
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <div class="sidebar-logo"></div>
+          <div class="nav-i">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+            </svg>
+          </div>
+          <div class="nav-i active">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
+          <div class="nav-i">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          </div>
+          <div class="nav-i">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+            </svg>
+          </div>
+          <div class="nav-i">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            </svg>
+          </div>
+          <div class="nav-i">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="12" y1="1" x2="12" y2="23" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </div>
+          <div class="nav-i">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+          </div>
+          <div class="sidebar-spacer"></div>
+          <div class="nav-i">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="rgba(255,255,255,0.3)"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+              />
+            </svg>
+          </div>
+          <div class="avatar-xs" style="margin-top: 4px">YR</div>
+        </div>
+
+        <!-- Main content -->
+        <div
+          style="
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 12px;
+            overflow: hidden;
+          "
+        >
+          <!-- Page header -->
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <div>
+              <div
+                style="
+                  font-size: 10px;
+                  font-weight: 500;
+                  color: #14b8a6;
+                  margin-bottom: 2px;
+                "
+              >
+                Visão geral
+              </div>
+              <div style="font-size: 18px; font-weight: 700; color: #0f172a">
+                Agenda
+              </div>
+              <div style="font-size: 11px; color: #94a3b8; margin-top: 1px">
+                Tarefas, leads, deals e propostas que precisam da sua atenção
+              </div>
+            </div>
+            <button class="btn btn-primary">+ Nova Tarefa</button>
+          </div>
+
+          <!-- 2-col grid of sections -->
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 12px;
+              flex: 1;
+              overflow: hidden;
+            "
+          >
+            <!-- ATRASADOS -->
+            <div
+              class="card"
+              style="display: flex; flex-direction: column; overflow: hidden"
+            >
+              <div class="section-header">
+                <div style="display: flex; align-items: center; gap: 7px">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#ef4444"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span class="section-title" style="color: #ef4444"
+                    >Atrasados</span
+                  >
+                </div>
+                <span class="section-count">3</span>
+              </div>
+              <div style="flex: 1; overflow-y: auto">
+                <a class="agenda-item" href="#">
+                  <div
+                    class="item-icon"
+                    style="border-color: #fecaca; background: #fef2f2"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#ef4444"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="9 11 12 14 22 4" />
+                      <path
+                        d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                      />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Enviar contrato revisado</div>
+                    <div class="item-meta">
+                      Tarefa · Acme Corp · venceu 17 mai
+                    </div>
+                  </div>
+                  <span class="badge badge-overdue">Atrasado</span>
+                </a>
+                <a class="agenda-item" href="#">
+                  <div
+                    class="item-icon"
+                    style="border-color: #fecaca; background: #fef2f2"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#ef4444"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Bruno Faria · Logix</div>
+                    <div class="item-meta">Lead · sem ação há 12 dias</div>
+                  </div>
+                  <span class="badge badge-stale">Estagnado</span>
+                </a>
+                <a class="agenda-item" href="#" style="border: none">
+                  <div
+                    class="item-icon"
+                    style="border-color: #fecaca; background: #fef2f2"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#ef4444"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Proposta #43 · CorpSA</div>
+                    <div class="item-meta">Proposta · válida até 15 mai</div>
+                  </div>
+                  <span class="badge badge-overdue">Expirada</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- HOJE -->
+            <div
+              class="card"
+              style="display: flex; flex-direction: column; overflow: hidden"
+            >
+              <div class="section-header">
+                <div style="display: flex; align-items: center; gap: 7px">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#14b8a6"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span class="section-title" style="color: #14b8a6">Hoje</span>
+                </div>
+                <span class="section-count">4</span>
+              </div>
+              <div style="flex: 1; overflow-y: auto">
+                <a class="agenda-item" href="#">
+                  <div
+                    class="item-icon"
+                    style="border-color: #99f6e4; background: #f0fdf9"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#0f766e"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="9 11 12 14 22 4" />
+                      <path
+                        d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                      />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Follow-up Sarah Kowalski</div>
+                    <div class="item-meta">Tarefa · Acme Corp · 09:00</div>
+                  </div>
+                  <span class="badge badge-today">Hoje</span>
+                </a>
+                <a class="agenda-item" href="#">
+                  <div
+                    class="item-icon"
+                    style="border-color: #99f6e4; background: #f0fdf9"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#0f766e"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="9 11 12 14 22 4" />
+                      <path
+                        d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                      />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Ligar para Ana Souza</div>
+                    <div class="item-meta">Tarefa · StartupX · 16:30</div>
+                  </div>
+                  <span class="badge badge-today">Hoje</span>
+                </a>
+                <a class="agenda-item" href="#">
+                  <div
+                    class="item-icon"
+                    style="border-color: #99f6e4; background: #f0fdf9"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#0f766e"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="2" y="7" width="20" height="14" rx="2" />
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Deal TechBrasil · Negociação</div>
+                    <div class="item-meta">Deal · próxima ação vence hoje</div>
+                  </div>
+                  <span class="badge badge-today">Hoje</span>
+                </a>
+                <a class="agenda-item" href="#" style="border: none">
+                  <div
+                    class="item-icon"
+                    style="border-color: #99f6e4; background: #f0fdf9"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#0f766e"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Proposta #45 · Acme Corp</div>
+                    <div class="item-meta">Proposta · válida até hoje</div>
+                  </div>
+                  <span class="badge badge-today">Vence hoje</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- RISCOS -->
+            <div
+              class="card"
+              style="display: flex; flex-direction: column; overflow: hidden"
+            >
+              <div class="section-header">
+                <div style="display: flex; align-items: center; gap: 7px">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#d97706"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                    />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <span class="section-title" style="color: #d97706"
+                    >Riscos</span
+                  >
+                </div>
+                <span class="section-count">5</span>
+              </div>
+              <div style="flex: 1; overflow-y: auto">
+                <a class="agenda-item" href="#">
+                  <div
+                    class="item-icon"
+                    style="border-color: #fde68a; background: #fffbeb"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#d97706"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="2" y="7" width="20" height="14" rx="2" />
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Deal CorpSA · Proposta</div>
+                    <div class="item-meta">
+                      Deal · sem atualização há 8 dias
+                    </div>
+                  </div>
+                  <span class="badge badge-missing">Sem ação</span>
+                </a>
+                <a class="agenda-item" href="#">
+                  <div
+                    class="item-icon"
+                    style="border-color: #fde68a; background: #fffbeb"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#d97706"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Rafael Nunes · InovaCorp</div>
+                    <div class="item-meta">
+                      Lead · contato há 7 dias, sem resposta
+                    </div>
+                  </div>
+                  <span class="badge badge-risk">Em risco</span>
+                </a>
+                <a class="agenda-item" href="#" style="border: none">
+                  <div
+                    class="item-icon"
+                    style="border-color: #fde68a; background: #fffbeb"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#d97706"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="2" y="7" width="20" height="14" rx="2" />
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Deal Design Co. · Qualificação</div>
+                    <div class="item-meta">
+                      Deal · sem próxima ação definida
+                    </div>
+                  </div>
+                  <span class="badge badge-missing">Sem ação</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- PRÓXIMOS -->
+            <div
+              class="card"
+              style="display: flex; flex-direction: column; overflow: hidden"
+            >
+              <div class="section-header">
+                <div style="display: flex; align-items: center; gap: 7px">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#64748b"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                  <span class="section-title">Próximos</span>
+                </div>
+                <span class="section-count">6</span>
+              </div>
+              <div style="flex: 1; overflow-y: auto">
+                <a class="agenda-item" href="#">
+                  <div class="item-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#64748b"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="9 11 12 14 22 4" />
+                      <path
+                        d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                      />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">
+                      Enviar proposta revisada TechBR
+                    </div>
+                    <div class="item-meta">Tarefa · vence 22 mai</div>
+                  </div>
+                  <span class="badge badge-upcoming">Em 2 dias</span>
+                </a>
+                <a class="agenda-item" href="#">
+                  <div class="item-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#64748b"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                      />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Proposta #46 · StartupX</div>
+                    <div class="item-meta">Proposta · válida até 25 mai</div>
+                  </div>
+                  <span class="badge badge-upcoming">Em 5 dias</span>
+                </a>
+                <a class="agenda-item" href="#" style="border: none">
+                  <div class="item-icon">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#64748b"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0">
+                    <div class="item-title">Camila Torres · MMedia</div>
+                    <div class="item-meta">Lead · próximo follow-up 24 mai</div>
+                  </div>
+                  <span class="badge badge-upcoming">Em 4 dias</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
