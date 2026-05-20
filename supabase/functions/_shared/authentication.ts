@@ -1,14 +1,13 @@
 // Based on https://github.com/supabase/supabase/blob/master/examples/edge-functions/supabase/functions/_shared/jwt/default.ts
 import * as jose from "jsr:@panva/jose@6";
-import { createClient, type User } from "jsr:@supabase/supabase-js@2";
 import { createErrorResponse } from "./utils.ts";
 
-const SUPABASE_JWT_ISSUER =
-  Deno.env.get("SB_JWT_ISSUER") ?? Deno.env.get("SUPABASE_URL") + "/auth/v1";
+export type AuthenticatedUser = {
+  id: string;
+  email?: string;
+};
 
-const SUPABASE_JWT_KEYS = jose.createRemoteJWKSet(
-  new URL(Deno.env.get("SUPABASE_URL")! + "/auth/v1/.well-known/jwks.json"),
-);
+let clerkJwtKeys: ReturnType<typeof jose.createRemoteJWKSet> | null = null;
 
 function getAuthToken(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -23,11 +22,51 @@ function getAuthToken(req: Request) {
   return token;
 }
 
-function verifySupabaseJWT(jwt: string) {
-  return jose.jwtVerify(jwt, SUPABASE_JWT_KEYS, {
-    issuer: SUPABASE_JWT_ISSUER,
+const getClerkJwtIssuer = () => {
+  const issuer = Deno.env.get("CLERK_JWT_ISSUER");
+  if (!issuer) {
+    throw new Error("Missing CLERK_JWT_ISSUER");
+  }
+  return issuer;
+};
+
+const getClerkJwksUrl = () => {
+  const configuredUrl = Deno.env.get("CLERK_JWKS_URL");
+  if (configuredUrl) return configuredUrl;
+
+  return `${getClerkJwtIssuer().replace(/\/$/, "")}/.well-known/jwks.json`;
+};
+
+const getClerkJwtKeys = () => {
+  if (!clerkJwtKeys) {
+    clerkJwtKeys = jose.createRemoteJWKSet(new URL(getClerkJwksUrl()));
+  }
+  return clerkJwtKeys;
+};
+
+export async function verifyClerkJWT(jwt: string) {
+  return await jose.jwtVerify(jwt, getClerkJwtKeys(), {
+    issuer: getClerkJwtIssuer(),
   });
 }
+
+const userFromJwtPayload = (payload: jose.JWTPayload): AuthenticatedUser => {
+  if (!payload.sub) {
+    throw new Error("Missing JWT subject");
+  }
+
+  const email =
+    typeof payload.email === "string"
+      ? payload.email
+      : typeof payload.primary_email_address === "string"
+        ? payload.primary_email_address
+        : undefined;
+
+  return {
+    id: payload.sub,
+    email,
+  };
+};
 
 /**
  * Validates the Authorization header to ensure that a user is authenticated.
@@ -40,11 +79,9 @@ export const AuthMiddleware = async (
 
   try {
     const token = getAuthToken(req);
-    const isValidJWT = await verifySupabaseJWT(token);
+    await verifyClerkJWT(token);
 
-    if (isValidJWT) return await next(req);
-
-    return createErrorResponse(401, "Invalid authentication");
+    return await next(req);
   } catch (e) {
     return createErrorResponse(401, e?.toString() || "Unauthorized");
   }
@@ -56,24 +93,15 @@ export const AuthMiddleware = async (
  */
 export const UserMiddleware = async (
   req: Request,
-  next: (req: Request, user?: User) => Promise<Response>,
+  next: (req: Request, user?: AuthenticatedUser) => Promise<Response>,
 ) => {
   if (req.method === "OPTIONS") return await next(req);
 
   try {
-    const authHeader = req.headers.get("Authorization")!;
-    const localClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SB_PUBLISHABLE_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } },
-    );
+    const token = getAuthToken(req);
+    const { payload } = await verifyClerkJWT(token);
 
-    const { data, error: authError } = await localClient.auth.getUser();
-    if (!data?.user || authError) {
-      return createErrorResponse(401, "Unauthorized");
-    }
-
-    return next(req, data.user);
+    return next(req, userFromJwtPayload(payload));
   } catch (err) {
     return createErrorResponse(401, err?.toString() || "Unauthorized");
   }

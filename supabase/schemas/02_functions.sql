@@ -312,6 +312,127 @@ begin
 end;
 $$;
 
+CREATE OR REPLACE FUNCTION "public"."storage_workspace_id"("object_name" text) RETURNS uuid
+    LANGUAGE "plpgsql"
+    IMMUTABLE
+    SET "search_path" TO ''
+    AS $$
+declare
+  workspace_segment text;
+begin
+  workspace_segment := split_part(object_name, '/', 1);
+  if workspace_segment is null or workspace_segment = '' then
+    return null;
+  end if;
+
+  return workspace_segment::uuid;
+exception
+  when invalid_text_representation then
+    return null;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_company"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.companies
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_contact"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.contacts
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_contacts"("target_workspace_id" uuid, "target_ids" bigint[]) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_ids is null or not exists (
+    select 1
+    from unnest(target_ids) as contact_id
+    where not public.workspace_has_contact(target_workspace_id, contact_id)
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_deal"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.deals
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_lead"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.leads
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_pipeline"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.pipelines
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_sale"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.sales
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_automation_run"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.automation_runs
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_proposal_template"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.proposal_templates
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."workspace_has_proposal"("target_workspace_id" uuid, "target_id" bigint) RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  select target_id is null or exists (
+    select 1 from public.proposals
+    where id = target_id and workspace_id = target_workspace_id
+  );
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."merge_contacts"("loser_id" bigint, "winner_id" bigint) RETURNS bigint
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'

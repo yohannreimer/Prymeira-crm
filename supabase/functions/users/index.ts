@@ -2,278 +2,257 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
-import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
+import {
+  AuthMiddleware,
+  type AuthenticatedUser,
+  UserMiddleware,
+} from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 
-async function updateSaleDisabled(user_id: string, disabled: boolean) {
-  return await supabaseAdmin
-    .from("sales")
-    .update({ disabled: disabled ?? false })
-    .eq("user_id", user_id);
-}
+type SaleBody = {
+  action?: string;
+  sales_id?: number | string;
+  id?: number | string;
+  workspace_id?: string;
+  clerk_user_id?: string;
+  email?: string;
+  name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  avatar?: unknown;
+  disabled?: boolean;
+  administrator?: boolean;
+  workspace_role?: string | null;
+  product_role?: string | null;
+};
 
-async function updateSaleAdministrator(
-  user_id: string,
-  administrator: boolean,
-) {
-  const { data: sales, error: salesError } = await supabaseAdmin
-    .from("sales")
-    .update({ administrator })
-    .eq("user_id", user_id)
-    .select("*");
+const adminRoles = new Set(["admin", "administrator", "owner"]);
 
-  if (!sales?.length || salesError) {
-    console.error("Error updating user:", salesError);
-    throw salesError ?? new Error("Failed to update sale");
+const jsonResponse = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders },
+  });
+
+const isAdminSale = (sale: any) =>
+  sale?.administrator === true ||
+  adminRoles.has(sale?.workspace_role) ||
+  adminRoles.has(sale?.product_role);
+
+const splitName = (body: SaleBody) => {
+  if (body.first_name || body.last_name) {
+    return {
+      first_name: body.first_name || "Pending",
+      last_name: body.last_name || " ",
+    };
   }
-  return sales.at(0);
-}
 
-async function createSale(
-  user_id: string,
-  data: {
-    email: string;
-    password: string;
-    first_name: string;
-    last_name: string;
-    disabled: boolean;
-    administrator: boolean;
-  },
-) {
-  const { data: sales, error: salesError } = await supabaseAdmin
-    .from("sales")
-    .insert({ ...data, user_id })
-    .select("*");
+  const [first_name, ...rest] = (body.name || body.email || "Pending").split(
+    " ",
+  );
+  return {
+    first_name: first_name || "Pending",
+    last_name: rest.join(" ") || " ",
+  };
+};
 
-  if (!sales?.length || salesError) {
-    console.error("Error creating user:", salesError);
-    throw salesError ?? new Error("Failed to create sale");
+const salePayloadFromBody = (
+  body: SaleBody,
+  currentUser?: AuthenticatedUser,
+) => {
+  const workspace_role = body.workspace_role || "member";
+  const product_role = body.product_role || "member";
+
+  return {
+    ...splitName(body),
+    workspace_id: body.workspace_id,
+    clerk_user_id: body.clerk_user_id || body.email,
+    email: body.email || currentUser?.email,
+    workspace_role,
+    product_role,
+    administrator:
+      body.administrator ??
+      (adminRoles.has(workspace_role) || adminRoles.has(product_role)),
+    disabled: body.disabled ?? false,
+  };
+};
+
+const validateWorkspaceId = (body: SaleBody) => {
+  if (!body.workspace_id) {
+    return createErrorResponse(400, "Missing workspace_id");
   }
-  return sales.at(0);
-}
+  return null;
+};
 
-async function updateSaleAvatar(user_id: string, avatar: string) {
-  const { data: sales, error: salesError } = await supabaseAdmin
-    .from("sales")
-    .update({ avatar })
-    .eq("user_id", user_id)
-    .select("*");
+async function syncCurrentUser(body: SaleBody, user: AuthenticatedUser) {
+  const workspaceError = validateWorkspaceId(body);
+  if (workspaceError) return workspaceError;
 
-  if (!sales?.length || salesError) {
-    console.error("Error updating user:", salesError);
-    throw salesError ?? new Error("Failed to update sale");
+  if (!body.clerk_user_id || body.clerk_user_id !== user.id) {
+    return createErrorResponse(403, "Cannot sync another user");
   }
-  return sales.at(0);
+
+  const payload = salePayloadFromBody(body, user);
+  if (!payload.email) {
+    return createErrorResponse(400, "Missing email");
+  }
+
+  const { data: claimedPlaceholder, error: claimError } = await supabaseAdmin
+    .from("sales")
+    .update(payload)
+    .eq("workspace_id", body.workspace_id)
+    .eq("email", payload.email)
+    .eq("clerk_user_id", payload.email)
+    .select("*")
+    .maybeSingle();
+
+  if (claimError) {
+    console.error("Error claiming placeholder sale:", claimError);
+    return createErrorResponse(500, "Failed to sync current user");
+  }
+
+  if (claimedPlaceholder) {
+    return jsonResponse({ data: claimedPlaceholder });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("sales")
+    .upsert(payload, { onConflict: "workspace_id,clerk_user_id" })
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    console.error("Error syncing current sale:", error);
+    return createErrorResponse(500, "Failed to sync current user");
+  }
+
+  return jsonResponse({ data });
 }
 
-async function inviteUser(req: Request, currentUserSale: any) {
-  const { email, password, first_name, last_name, disabled, administrator } =
-    await req.json();
+async function createSale(body: SaleBody, currentUserSale: any) {
+  const workspaceError = validateWorkspaceId(body);
+  if (workspaceError) return workspaceError;
 
-  if (!currentUserSale.administrator) {
+  if (!isAdminSale(currentUserSale)) {
     return createErrorResponse(401, "Not Authorized");
   }
 
-  const { data, error: userError } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    user_metadata: { first_name, last_name },
-  });
-
-  let user = data?.user;
-
-  if (!user && userError?.code === "email_exists") {
-    // This may happen if users cleared their database but not the users
-    // We have to create the sale directly
-    const { data, error } = await supabaseAdmin.rpc("get_user_id_by_email", {
-      email,
-    });
-
-    if (!data || error) {
-      console.error(
-        `Error inviting user: error=${error ?? "could not fetch users for email"}`,
-      );
-      return createErrorResponse(500, "Internal Server Error");
-    }
-
-    user = data[0];
-    try {
-      const { data: existingSale, error: salesError } = await supabaseAdmin
-        .from("sales")
-        .select("*")
-        .eq("user_id", user.id);
-      if (salesError) {
-        return createErrorResponse(salesError.status, salesError.message, {
-          code: salesError.code,
-        });
-      }
-      if (existingSale.length > 0) {
-        return createErrorResponse(
-          400,
-          "A sales for this email already exists",
-        );
-      }
-
-      const sale = await createSale(user.id, {
-        email,
-        password,
-        first_name,
-        last_name,
-        disabled,
-        administrator,
-      });
-
-      return new Response(
-        JSON.stringify({
-          data: sale,
-        }),
-        {
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        },
-      );
-    } catch (error) {
-      return createErrorResponse(
-        (error as any).status ?? 500,
-        (error as Error).message,
-        {
-          code: (error as any).code,
-        },
-      );
-    }
-  } else {
-    if (userError) {
-      console.error(`Error inviting user: user_error=${userError}`);
-      return createErrorResponse(userError.status, userError.message, {
-        code: userError.code,
-      });
-    }
-    if (!data?.user) {
-      console.error("Error inviting user: undefined user");
-      return createErrorResponse(500, "Internal Server Error");
-    }
-    const { error: emailError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
-
-    if (emailError) {
-      console.error(`Error inviting user, email_error=${emailError}`);
-      return createErrorResponse(500, "Failed to send invitation mail");
-    }
+  if (!body.email) {
+    return createErrorResponse(400, "Missing email");
   }
 
-  try {
-    await updateSaleDisabled(user.id, disabled);
-    const sale = await updateSaleAdministrator(user.id, administrator);
-
-    return new Response(
-      JSON.stringify({
-        data: sale,
-      }),
-      {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      },
-    );
-  } catch (e) {
-    console.error("Error patching sale:", e);
-    return createErrorResponse(500, "Internal Server Error");
-  }
-}
-
-async function patchUser(req: Request, currentUserSale: any) {
-  const {
-    sales_id,
-    email,
-    first_name,
-    last_name,
-    avatar,
-    administrator,
-    disabled,
-  } = await req.json();
-  const { data: sale } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("sales")
+    .insert(salePayloadFromBody(body))
     .select("*")
-    .eq("id", sales_id)
     .single();
 
-  if (!sale) {
+  if (error || !data) {
+    console.error("Error creating sale:", error);
+    return createErrorResponse(500, "Failed to create sale", {
+      code: error?.code,
+    });
+  }
+
+  return jsonResponse({ data });
+}
+
+async function patchSale(body: SaleBody, currentUserSale: any) {
+  const workspaceError = validateWorkspaceId(body);
+  if (workspaceError) return workspaceError;
+
+  const saleId = body.sales_id ?? body.id;
+  if (!saleId) {
+    return createErrorResponse(400, "Missing sales_id");
+  }
+
+  const { data: sale, error: fetchError } = await supabaseAdmin
+    .from("sales")
+    .select("*")
+    .eq("id", saleId)
+    .eq("workspace_id", body.workspace_id)
+    .single();
+
+  if (fetchError || !sale) {
     return createErrorResponse(404, "Not Found");
   }
 
-  // Users can only update their own profile unless they are an administrator
-  if (!currentUserSale.administrator && currentUserSale.id !== sale.id) {
+  const isOwnProfile = currentUserSale.id === sale.id;
+  const isAdmin = isAdminSale(currentUserSale);
+
+  if (!isAdmin && !isOwnProfile) {
     return createErrorResponse(401, "Not Authorized");
   }
 
-  const { data, error: userError } =
-    await supabaseAdmin.auth.admin.updateUserById(sale.user_id, {
-      email,
-      ban_duration: disabled ? "87600h" : "none",
-      user_metadata: { first_name, last_name },
+  const profileFields: Record<string, unknown> = {};
+  for (const field of ["email", "first_name", "last_name", "avatar"] as const) {
+    if (body[field] !== undefined) {
+      profileFields[field] = body[field];
+    }
+  }
+
+  const adminFields = isAdmin
+    ? {
+        administrator: body.administrator,
+        disabled: body.disabled,
+        workspace_role: body.workspace_role,
+        product_role: body.product_role,
+        clerk_user_id: body.clerk_user_id,
+      }
+    : {};
+
+  const updatePayload = Object.fromEntries(
+    Object.entries({ ...profileFields, ...adminFields }).filter(
+      ([, value]) => value !== undefined,
+    ),
+  );
+
+  const { data, error } = await supabaseAdmin
+    .from("sales")
+    .update(updatePayload)
+    .eq("id", saleId)
+    .eq("workspace_id", body.workspace_id)
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    console.error("Error patching sale:", error);
+    return createErrorResponse(500, "Failed to update sale", {
+      code: error?.code,
     });
-
-  if (!data?.user || userError) {
-    console.error("Error patching user:", userError);
-    return createErrorResponse(500, "Internal Server Error");
   }
 
-  if (avatar) {
-    await updateSaleAvatar(data.user.id, avatar);
-  }
-
-  // Only administrators can update the administrator and disabled status
-  if (!currentUserSale.administrator) {
-    const { data: new_sale } = await supabaseAdmin
-      .from("sales")
-      .select("*")
-      .eq("id", sales_id)
-      .single();
-    return new Response(
-      JSON.stringify({
-        data: new_sale,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      },
-    );
-  }
-
-  try {
-    await updateSaleDisabled(data.user.id, disabled);
-    const sale = await updateSaleAdministrator(data.user.id, administrator);
-    return new Response(
-      JSON.stringify({
-        data: sale,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      },
-    );
-  } catch (e) {
-    console.error("Error patching sale:", e);
-    return createErrorResponse(500, "Internal Server Error");
-  }
+  return jsonResponse({ data });
 }
 
 Deno.serve(async (req: Request) =>
   OptionsMiddleware(req, async (req) =>
     AuthMiddleware(req, async (req) =>
       UserMiddleware(req, async (req, user) => {
-        const currentUserSale = await getUserSale(user);
+        if (!user) {
+          return createErrorResponse(401, "Unauthorized");
+        }
+
+        const body = (await req.json()) as SaleBody;
+
+        if (req.method === "POST" && body.action === "sync_current") {
+          return syncCurrentUser(body, user);
+        }
+
+        const workspaceError = validateWorkspaceId(body);
+        if (workspaceError) return workspaceError;
+
+        const currentUserSale = await getUserSale(user, body.workspace_id!);
         if (!currentUserSale) {
           return createErrorResponse(401, "Unauthorized");
         }
 
         if (req.method === "POST") {
-          return inviteUser(req, currentUserSale);
+          return createSale(body, currentUserSale);
         }
 
         if (req.method === "PATCH") {
-          return patchUser(req, currentUserSale);
+          return patchSale(body, currentUserSale);
         }
 
         return createErrorResponse(405, "Method Not Allowed");

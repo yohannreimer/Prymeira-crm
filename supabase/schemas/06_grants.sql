@@ -58,6 +58,50 @@ grant all on function public.is_admin_for_workspace(uuid) to anon;
 grant all on function public.is_admin_for_workspace(uuid) to authenticated;
 grant all on function public.is_admin_for_workspace(uuid) to service_role;
 
+grant all on function public.storage_workspace_id(text) to anon;
+grant all on function public.storage_workspace_id(text) to authenticated;
+grant all on function public.storage_workspace_id(text) to service_role;
+
+grant all on function public.workspace_has_company(uuid, bigint) to anon;
+grant all on function public.workspace_has_company(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_company(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_contact(uuid, bigint) to anon;
+grant all on function public.workspace_has_contact(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_contact(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_contacts(uuid, bigint[]) to anon;
+grant all on function public.workspace_has_contacts(uuid, bigint[]) to authenticated;
+grant all on function public.workspace_has_contacts(uuid, bigint[]) to service_role;
+
+grant all on function public.workspace_has_deal(uuid, bigint) to anon;
+grant all on function public.workspace_has_deal(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_deal(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_lead(uuid, bigint) to anon;
+grant all on function public.workspace_has_lead(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_lead(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_pipeline(uuid, bigint) to anon;
+grant all on function public.workspace_has_pipeline(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_pipeline(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_sale(uuid, bigint) to anon;
+grant all on function public.workspace_has_sale(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_sale(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_automation_run(uuid, bigint) to anon;
+grant all on function public.workspace_has_automation_run(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_automation_run(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_proposal_template(uuid, bigint) to anon;
+grant all on function public.workspace_has_proposal_template(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_proposal_template(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_proposal(uuid, bigint) to anon;
+grant all on function public.workspace_has_proposal(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_proposal(uuid, bigint) to service_role;
+
 grant all on function public.lowercase_email_jsonb() to anon;
 grant all on function public.lowercase_email_jsonb() to authenticated;
 grant all on function public.lowercase_email_jsonb() to service_role;

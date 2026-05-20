@@ -69,6 +69,48 @@ export type SyncCurrentSaleInput = {
   product_role: string;
 };
 
+export const buildSyncCurrentSaleRequestBody = (
+  input: SyncCurrentSaleInput,
+) => {
+  const [first_name, ...rest] = (input.name || input.email).split(" ");
+
+  return {
+    action: "sync_current",
+    clerk_user_id: input.clerk_user_id,
+    email: input.email,
+    first_name,
+    last_name: rest.join(" ") || " ",
+    workspace_id: input.workspace_id,
+    workspace_role: input.workspace_role,
+    product_role: input.product_role,
+  };
+};
+
+export const buildAttachmentStoragePath = ({
+  fileName,
+  randomValue,
+  workspaceId,
+}: {
+  fileName: string;
+  randomValue: number;
+  workspaceId: string;
+}) => {
+  const fileParts = fileName.split(".");
+  const fileExt = fileParts.length > 1 ? `.${fileName.split(".").pop()}` : "";
+  return `${workspaceId}/${randomValue}${fileExt}`;
+};
+
+const getCurrentWorkspaceId = () =>
+  window.localStorage.getItem("prymeira.workspace_id");
+
+const requireCurrentWorkspaceId = () => {
+  const workspaceId = getCurrentWorkspaceId();
+  if (!workspaceId) {
+    throw new Error("Missing Prymeira workspace context");
+  }
+  return workspaceId;
+};
+
 const processCompanyLogo = async (params: any) => {
   const logo = params.data.logo;
 
@@ -155,11 +197,17 @@ const getDataProviderWithCustomMethods = () => {
       };
     },
     async salesCreate(body: SalesFormData) {
+      const workspace_id =
+        (body as SalesFormData & { workspace_id?: string }).workspace_id ??
+        requireCurrentWorkspaceId();
       const { data, error } = await getSupabaseClient().functions.invoke<{
         data: Sale;
       }>("users", {
         method: "POST",
-        body,
+        body: {
+          ...body,
+          workspace_id,
+        },
       });
 
       if (!data || error) {
@@ -182,6 +230,8 @@ const getDataProviderWithCustomMethods = () => {
     ) {
       const { email, first_name, last_name, administrator, avatar, disabled } =
         data;
+      const workspace_id =
+        (data as Partial<Sale>).workspace_id ?? requireCurrentWorkspaceId();
 
       const { data: updatedData, error } =
         await getSupabaseClient().functions.invoke<{
@@ -196,6 +246,7 @@ const getDataProviderWithCustomMethods = () => {
             administrator,
             disabled,
             avatar,
+            workspace_id,
           },
         });
 
@@ -207,34 +258,19 @@ const getDataProviderWithCustomMethods = () => {
       return updatedData.data;
     },
     async syncCurrentSale(input: SyncCurrentSaleInput) {
-      const [first_name, ...rest] = (input.name || input.email).split(" ");
-      const last_name = rest.join(" ") || " ";
-      const { data, error } = await getSupabaseClient()
-        .from("sales")
-        .upsert(
-          {
-            clerk_user_id: input.clerk_user_id,
-            email: input.email,
-            first_name,
-            last_name,
-            workspace_id: input.workspace_id,
-            workspace_role: input.workspace_role,
-            product_role: input.product_role,
-            administrator:
-              input.workspace_role === "owner" ||
-              input.product_role === "admin",
-            disabled: false,
-          },
-          { onConflict: "workspace_id,clerk_user_id" },
-        )
-        .select("*")
-        .single();
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: Sale;
+      }>("users", {
+        method: "POST",
+        body: buildSyncCurrentSaleRequestBody(input),
+      });
 
-      if (error || !data) {
-        throw error ?? new Error("Failed to sync current CRM user");
+      if (!data || error) {
+        console.error("syncCurrentSale.error", error);
+        throw new Error("Failed to sync current CRM user");
       }
 
-      return data;
+      return data.data;
     },
     async updatePassword(id: Identifier) {
       const { data: passwordUpdated, error } =
@@ -285,7 +321,11 @@ const getDataProviderWithCustomMethods = () => {
         "merge_contacts",
         {
           method: "POST",
-          body: { loserId: sourceId, winnerId: targetId },
+          body: {
+            loserId: sourceId,
+            winnerId: targetId,
+            workspace_id: requireCurrentWorkspaceId(),
+          },
         },
       );
 
@@ -666,9 +706,7 @@ export const getDataProvider = (): SupabaseCrmDataProvider => {
     lifeCycleCallbacks,
   ) as SupabaseCrmDataProvider;
 
-  return withTenantDataProvider(dataProvider, () =>
-    window.localStorage.getItem("prymeira.workspace_id"),
-  );
+  return withTenantDataProvider(dataProvider, () => getCurrentWorkspaceId());
 };
 
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
@@ -735,10 +773,11 @@ const uploadToBucket = async (fi: RAFile) => {
   }
 
   const file = fi.rawFile;
-  const fileParts = file.name.split(".");
-  const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
-  const fileName = `${Math.random()}${fileExt}`;
-  const filePath = `${fileName}`;
+  const filePath = buildAttachmentStoragePath({
+    fileName: file.name,
+    randomValue: Math.random(),
+    workspaceId: requireCurrentWorkspaceId(),
+  });
   const { error: uploadError } = await getSupabaseClient()
     .storage.from(ATTACHMENTS_BUCKET)
     .upload(filePath, dataContent);

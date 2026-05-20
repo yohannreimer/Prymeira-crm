@@ -52,6 +52,7 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
     let active = true;
     const clerkUser = user;
     setState({ status: "loading" });
+    window.localStorage.removeItem("prymeira.workspace_id");
 
     async function loadAccess() {
       const token = await getToken();
@@ -76,10 +77,6 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
         return;
       }
 
-      window.localStorage.setItem(
-        "prymeira.workspace_id",
-        decision.workspace_id,
-      );
       await getDataProvider().syncCurrentSale({
         clerk_user_id: clerkUser.id,
         email,
@@ -89,6 +86,11 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
         product_role: decision.product_role ?? "member",
       });
       if (!active) return;
+
+      window.localStorage.setItem(
+        "prymeira.workspace_id",
+        decision.workspace_id,
+      );
 
       setState({
         status: "allowed",
