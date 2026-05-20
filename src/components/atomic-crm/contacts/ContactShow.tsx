@@ -241,62 +241,76 @@ const ContactShowContent = () => {
   if (isPending || !record) return null;
 
   return (
-    <div className="mt-2 mb-2 flex gap-8">
-      <div className="flex-1">
-        <Card>
-          <CardContent>
-            <div className="flex">
-              <Avatar />
-              <div className="ml-2 flex-1">
-                <h5 className="text-xl font-semibold">
-                  <RecordRepresentation />
-                </h5>
-                <div className="inline-flex text-sm text-muted-foreground">
-                  {record.title && record.company_id != null
-                    ? `${translate("resources.contacts.position_at", {
-                        title: record.title,
-                      })} `
-                    : record.title}
-                  {record.company_id != null && (
-                    <ReferenceField
-                      source="company_id"
-                      reference="companies"
-                      link="show"
-                    >
-                      &nbsp;
-                      <TextField source="name" />
-                    </ReferenceField>
-                  )}
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          Pessoas
+        </p>
+        <h1 className="text-[18px] font-bold text-foreground leading-tight">
+          {record.first_name} {record.last_name}
+        </h1>
+      </div>
+      <div className="mb-2 flex gap-8">
+        <div className="flex-1">
+          <Card>
+            <CardContent>
+              <div className="flex">
+                <Avatar />
+                <div className="ml-2 flex-1">
+                  <h5 className="text-xl font-semibold">
+                    <RecordRepresentation />
+                  </h5>
+                  <div className="inline-flex text-sm text-muted-foreground">
+                    {record.title && record.company_id != null
+                      ? `${translate("resources.contacts.position_at", {
+                          title: record.title,
+                        })} `
+                      : record.title}
+                    {record.company_id != null && (
+                      <ReferenceField
+                        source="company_id"
+                        reference="companies"
+                        link="show"
+                      >
+                        &nbsp;
+                        <TextField source="name" />
+                      </ReferenceField>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <ReferenceField
+                    source="company_id"
+                    reference="companies"
+                    link="show"
+                    className="no-underline"
+                  >
+                    <CompanyAvatar />
+                  </ReferenceField>
                 </div>
               </div>
-              <div>
-                <ReferenceField
-                  source="company_id"
-                  reference="companies"
-                  link="show"
-                  className="no-underline"
-                >
-                  <CompanyAvatar />
-                </ReferenceField>
-              </div>
-            </div>
-            <InfiniteListBase
-              resource="contact_notes"
-              filter={{ contact_id: record.id }}
-              sort={{ field: "date", order: "DESC" }}
-              perPage={25}
-              disableSyncWithLocation
-              storeKey={false}
-              empty={
-                <NoteCreate reference="contacts" showStatus className="mt-4" />
-              }
-            >
-              <NotesIterator reference="contacts" showStatus />
-            </InfiniteListBase>
-          </CardContent>
-        </Card>
+              <InfiniteListBase
+                resource="contact_notes"
+                filter={{ contact_id: record.id }}
+                sort={{ field: "date", order: "DESC" }}
+                perPage={25}
+                disableSyncWithLocation
+                storeKey={false}
+                empty={
+                  <NoteCreate
+                    reference="contacts"
+                    showStatus
+                    className="mt-4"
+                  />
+                }
+              >
+                <NotesIterator reference="contacts" showStatus />
+              </InfiniteListBase>
+            </CardContent>
+          </Card>
+        </div>
+        <ContactAside />
       </div>
-      <ContactAside />
     </div>
   );
 };
