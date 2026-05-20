@@ -319,6 +319,16 @@ export const createDataProvider = ({
     });
   };
 
+  const workspaceScopedBaseDataProvider = {
+    ...baseDataProvider,
+    getList(resource: string, params: GetListParams) {
+      return baseDataProvider.getList(
+        resource,
+        withDemoWorkspaceFilter(resource, params),
+      );
+    },
+  } as DataProvider;
+
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
     async getList(resource: string, params: any) {
@@ -329,7 +339,7 @@ export const createDataProvider = ({
           pagination = { page: 1, perPage: 10 },
         } = scopedParams;
         const all = await getActivityLog(
-          withSupabaseFilterAdapter(baseDataProvider),
+          withSupabaseFilterAdapter(workspaceScopedBaseDataProvider),
           filter.company_id,
           filter.sales_id,
         );
@@ -348,7 +358,7 @@ export const createDataProvider = ({
     unarchiveDeal: async (deal: Deal) => {
       // get all deals where stage is the same as the deal to unarchive
       const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
-        filter: { stage: deal.stage },
+        filter: { stage: deal.stage, workspace_id: DEFAULT_WORKSPACE_ID },
         pagination: { page: 1, perPage: 1000 },
         sort: { field: "index", order: "ASC" },
       });
@@ -380,7 +390,7 @@ export const createDataProvider = ({
       email: string;
       password: string;
     }> => {
-      const user = await baseDataProvider.create("sales", {
+      const user = await dataProvider.create("sales", {
         data: {
           email,
           first_name,
