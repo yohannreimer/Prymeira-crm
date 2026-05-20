@@ -34,7 +34,7 @@ export function addWorkspaceToCreateParams<TData extends Record<string, any>>(
   workspaceId: string,
 ): CreateParams<TData> {
   if (!isTenantResource(resource)) return params;
-  if (params.data.workspace_id) return params;
+  if (Object.hasOwn(params.data, "workspace_id")) return params;
 
   return {
     ...params,

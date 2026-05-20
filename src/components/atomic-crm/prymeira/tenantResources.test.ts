@@ -35,4 +35,18 @@ describe("tenantResources", () => {
       } as any, "workspace-1"),
     ).toEqual({ data: { workspace_id: "workspace-2", first_name: "Ana" } });
   });
+
+  it("does not overwrite an explicit falsy workspace_id", () => {
+    expect(
+      addWorkspaceToCreateParams("contacts", {
+        data: { workspace_id: null, first_name: "Ana" },
+      } as any, "workspace-1"),
+    ).toEqual({ data: { workspace_id: null, first_name: "Ana" } });
+
+    expect(
+      addWorkspaceToCreateParams("contacts", {
+        data: { workspace_id: "", first_name: "Ana" },
+      } as any, "workspace-1"),
+    ).toEqual({ data: { workspace_id: "", first_name: "Ana" } });
+  });
 });
