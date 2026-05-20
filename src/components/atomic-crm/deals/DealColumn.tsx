@@ -32,13 +32,13 @@ export const DealColumn = ({
     });
 
   return (
-    <div className="flex-1 pb-8">
-      <div className="flex flex-col items-center">
-        <h3 className="text-base font-medium">
+    <div className="flex-1 min-w-[220px] pb-8">
+      <div className="border-b border-border/40 pb-2 mb-3">
+        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-foreground/70">
           {findDealLabel(dealStages, stage)}
         </h3>
-        <p className="text-sm text-muted-foreground">
-          {formatAmount(totalAmount)} / {formatAmount(weightedAmount)}{" "}
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          {formatAmount(totalAmount)} · {formatAmount(weightedAmount)}{" "}
           {translate("resources.deals.weighted_short")}
         </p>
       </div>
@@ -47,8 +47,8 @@ export const DealColumn = ({
           <div
             ref={droppableProvided.innerRef}
             {...droppableProvided.droppableProps}
-            className={`flex flex-col rounded-2xl mt-2 gap-2 ${
-              snapshot.isDraggingOver ? "bg-muted" : ""
+            className={`flex flex-col rounded-xl gap-2 transition-colors ${
+              snapshot.isDraggingOver ? "bg-primary/5" : ""
             }`}
           >
             {deals.map((deal, index) => (

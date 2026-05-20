@@ -111,11 +111,13 @@ const DealShowContent = () => {
 
           <div className="flex flex-wrap gap-8 m-4">
             <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {translate("resources.deals.fields.expected_closing_date")}
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-sm">{expectedClosingDate.label}</span>
+                <span className="text-[13px] text-foreground">
+                  {expectedClosingDate.label}
+                </span>
                 {expectedClosingDate.isPast ? (
                   <Badge variant="destructive">
                     {translate("crm.common.past")}
@@ -125,38 +127,40 @@ const DealShowContent = () => {
             </div>
 
             <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {translate("resources.deals.fields.amount")}
               </span>
-              <span className="text-sm">
+              <span className="text-[13px] text-foreground">
                 {record.amount.toLocaleString(locale, currencyFormatOptions)}
               </span>
             </div>
 
             <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {translate("resources.deals.fields.weighted_amount")}
               </span>
-              <span className="text-sm">
+              <span className="text-[13px] text-foreground">
                 {weightedAmount.toLocaleString(locale, currencyFormatOptions)}
               </span>
             </div>
 
             {typeof record.probability === "number" && (
               <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {translate("resources.deals.fields.probability")}
                 </span>
-                <span className="text-sm">{record.probability}%</span>
+                <span className="text-[13px] text-foreground">
+                  {record.probability}%
+                </span>
               </div>
             )}
 
             {record.category && (
               <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {translate("resources.deals.fields.category")}
                 </span>
-                <span className="text-sm">
+                <span className="text-[13px] text-foreground">
                   {dealCategories.find((c) => c.value === record.category)
                     ?.label ?? record.category}
                 </span>
@@ -165,37 +169,43 @@ const DealShowContent = () => {
 
             {record.deal_type && (
               <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {translate("resources.deals.fields.deal_type")}
                 </span>
-                <span className="text-sm">{dealTypeLabel}</span>
+                <span className="text-[13px] text-foreground">
+                  {dealTypeLabel}
+                </span>
               </div>
             )}
 
             <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {translate("resources.deals.fields.stage")}
               </span>
-              <span className="text-sm">
+              <span className="text-[13px] text-foreground">
                 {findDealLabel(dealStages, record.stage)}
               </span>
             </div>
 
             {record.source && (
               <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {translate("resources.deals.fields.source")}
                 </span>
-                <span className="text-sm">{record.source}</span>
+                <span className="text-[13px] text-foreground">
+                  {record.source}
+                </span>
               </div>
             )}
 
             {record.lost_reason && (
               <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {translate("resources.deals.fields.lost_reason")}
                 </span>
-                <span className="text-sm">{lostReasonLabel}</span>
+                <span className="text-[13px] text-foreground">
+                  {lostReasonLabel}
+                </span>
               </div>
             )}
           </div>
@@ -203,7 +213,7 @@ const DealShowContent = () => {
           {!!record.contact_ids?.length && (
             <div className="m-4">
               <div className="flex flex-col min-h-12 mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {translate("resources.deals.fields.contact_ids")}
                 </span>
                 <ReferenceArrayField
@@ -218,7 +228,7 @@ const DealShowContent = () => {
 
           {record.description && (
             <div className="m-4 whitespace-pre-line">
-              <span className="text-xs text-muted-foreground tracking-wide">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {translate("resources.deals.fields.description")}
               </span>
               <p className="text-sm leading-6">{record.description}</p>

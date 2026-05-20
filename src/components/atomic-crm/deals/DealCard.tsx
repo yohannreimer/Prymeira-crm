@@ -95,13 +95,13 @@ export const DealCardContent = ({
         >
           <CardContent className="px-3 flex flex-col">
             <div className="flex-1 flex gap-2">
-              <p className="flex-1 min-w-0 text-sm font-medium mb-2 truncate">
+              <p className="flex-1 min-w-0 text-[12px] font-semibold mb-1.5 truncate">
                 <ReferenceField
                   source="company_id"
                   reference="companies"
                   link={false}
                 />
-                {" - "}
+                {" — "}
                 {deal.name}
               </p>
               <ReferenceField
@@ -112,7 +112,7 @@ export const DealCardContent = ({
                 <CompanyAvatar width={20} height={20} />
               </ReferenceField>
             </div>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-[11px] text-muted-foreground truncate">
               <NumberField
                 source="amount"
                 options={{
@@ -136,30 +136,39 @@ export const DealCardContent = ({
               {deal.deal_type && (
                 <Badge
                   variant="secondary"
-                  className="max-w-full truncate px-1.5 font-normal"
+                  className="max-w-full truncate h-4 text-[10px] py-0 px-1.5 font-normal"
                   title={dealTypeLabel}
                 >
                   {dealTypeLabel}
                 </Badge>
               )}
               {typeof deal.probability === "number" && (
-                <Badge variant="outline" className="px-1.5 font-normal">
+                <Badge
+                  variant="outline"
+                  className="h-4 text-[10px] py-0 px-1.5 font-normal"
+                >
                   {deal.probability}%
                 </Badge>
               )}
-              <Badge variant="outline" className="px-1.5 font-normal">
+              <Badge
+                variant="outline"
+                className="h-4 text-[10px] py-0 px-1.5 font-normal"
+              >
                 {translate("resources.deals.weighted_short_compact")}{" "}
                 {formattedWeightedAmount}
               </Badge>
               {riskState === "missing_next_action" && (
-                <Badge variant="destructive" className="px-1.5 font-normal">
-                  <CalendarClock />
+                <Badge
+                  variant="destructive"
+                  className="h-4 text-[10px] py-0 px-1.5 font-normal"
+                >
+                  <CalendarClock className="size-3" />
                   {translate("resources.deals.risk.no_next_action")}
                 </Badge>
               )}
               {riskState === "stale" && (
-                <Badge variant="outline" className="px-1.5 font-normal">
-                  <AlertCircle />
+                <Badge className="h-4 text-[10px] py-0 px-1.5 font-normal bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800">
+                  <AlertCircle className="size-3" />
                   {translate("resources.deals.risk.stale")}
                 </Badge>
               )}

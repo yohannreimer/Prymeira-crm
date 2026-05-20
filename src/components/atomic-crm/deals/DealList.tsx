@@ -64,17 +64,27 @@ const DealList = () => {
   ];
 
   return (
-    <List
-      perPage={100}
-      filter={{ "archived_at@is": null }}
-      title={false}
-      sort={{ field: "index", order: "DESC" }}
-      filters={dealFilters}
-      actions={<DealActions />}
-      pagination={null}
-    >
-      <DealLayout />
-    </List>
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          Pipeline
+        </p>
+        <h1 className="text-[18px] font-bold text-foreground leading-tight">
+          {translate("resources.deals.name", { smart_count: 2 })}
+        </h1>
+      </div>
+      <List
+        perPage={100}
+        filter={{ "archived_at@is": null }}
+        title={false}
+        sort={{ field: "index", order: "DESC" }}
+        filters={dealFilters}
+        actions={<DealActions />}
+        pagination={null}
+      >
+        <DealLayout />
+      </List>
+    </div>
   );
 };
 
