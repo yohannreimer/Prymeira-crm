@@ -5,9 +5,11 @@ import { createErrorResponse } from "../_shared/utils.ts";
 import {
   AuthMiddleware,
   type AuthenticatedUser,
+  getAuthToken,
   UserMiddleware,
 } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
+import { getTrustedPrymeiraAccess } from "../_shared/prymeiraAccess.ts";
 
 type SaleBody = {
   action?: string;
@@ -84,7 +86,11 @@ const validateWorkspaceId = (body: SaleBody) => {
   return null;
 };
 
-async function syncCurrentUser(body: SaleBody, user: AuthenticatedUser) {
+async function syncCurrentUser(
+  req: Request,
+  body: SaleBody,
+  user: AuthenticatedUser,
+) {
   const workspaceError = validateWorkspaceId(body);
   if (workspaceError) return workspaceError;
 
@@ -92,34 +98,83 @@ async function syncCurrentUser(body: SaleBody, user: AuthenticatedUser) {
     return createErrorResponse(403, "Cannot sync another user");
   }
 
-  const payload = salePayloadFromBody(body, user);
-  if (!payload.email) {
-    return createErrorResponse(400, "Missing email");
+  let access;
+  try {
+    access = await getTrustedPrymeiraAccess(getAuthToken(req), user);
+  } catch (error) {
+    console.error("Prymeira access verification failed:", error);
+    return createErrorResponse(403, "Prymeira access denied");
   }
 
-  const { data: claimedPlaceholder, error: claimError } = await supabaseAdmin
+  if (body.workspace_id !== access.workspace_id) {
+    return createErrorResponse(403, "Workspace mismatch");
+  }
+
+  const payload = {
+    ...splitName({ ...body, email: access.email, name: access.name }),
+    workspace_id: access.workspace_id,
+    clerk_user_id: user.id,
+    email: access.email,
+    workspace_role: access.workspace_role,
+    product_role: access.product_role,
+    administrator:
+      adminRoles.has(access.workspace_role) || adminRoles.has(access.product_role),
+    disabled: false,
+  };
+
+  const { data: existingSale, error: existingSaleError } = await supabaseAdmin
     .from("sales")
-    .update(payload)
-    .eq("workspace_id", body.workspace_id)
-    .eq("email", payload.email)
-    .eq("clerk_user_id", payload.email)
     .select("*")
+    .eq("workspace_id", access.workspace_id)
+    .eq("clerk_user_id", user.id)
     .maybeSingle();
 
-  if (claimError) {
-    console.error("Error claiming placeholder sale:", claimError);
+  if (existingSaleError) {
+    console.error("Error fetching current sale:", existingSaleError);
     return createErrorResponse(500, "Failed to sync current user");
   }
 
-  if (claimedPlaceholder) {
-    return jsonResponse({ data: claimedPlaceholder });
+  if (existingSale?.disabled) {
+    return createErrorResponse(403, "Account disabled");
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("sales")
-    .upsert(payload, { onConflict: "workspace_id,clerk_user_id" })
-    .select("*")
-    .single();
+  if (!existingSale) {
+    const { data: claimedPlaceholder, error: claimError } = await supabaseAdmin
+      .from("sales")
+      .update(payload)
+      .eq("workspace_id", access.workspace_id)
+      .eq("email", payload.email)
+      .eq("clerk_user_id", payload.email)
+      .eq("disabled", false)
+      .select("*")
+      .maybeSingle();
+
+    if (claimError) {
+      console.error("Error claiming placeholder sale:", claimError);
+      return createErrorResponse(500, "Failed to sync current user");
+    }
+
+    if (claimedPlaceholder) {
+      return jsonResponse({ data: claimedPlaceholder });
+    }
+  }
+
+  const query = existingSale
+    ? supabaseAdmin
+        .from("sales")
+        .update(payload)
+        .eq("workspace_id", access.workspace_id)
+        .eq("clerk_user_id", user.id)
+        .eq("disabled", false)
+        .select("*")
+        .single()
+    : supabaseAdmin
+        .from("sales")
+        .insert(payload)
+        .select("*")
+        .single();
+
+  const { data, error } = await query;
 
   if (error || !data) {
     console.error("Error syncing current sale:", error);
@@ -236,7 +291,7 @@ Deno.serve(async (req: Request) =>
         const body = (await req.json()) as SaleBody;
 
         if (req.method === "POST" && body.action === "sync_current") {
-          return syncCurrentUser(body, user);
+          return syncCurrentUser(req, body, user);
         }
 
         const workspaceError = validateWorkspaceId(body);

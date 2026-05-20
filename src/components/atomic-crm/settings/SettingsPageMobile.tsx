@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@/components/admin/use-theme";
-import { ChevronRight, KeyRound } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,48 +48,6 @@ import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
 import type { SalesFormData } from "../types";
 
-const ChangePasswordButton = () => {
-  const translate = useTranslate();
-  const notify = useNotify();
-  const { identity } = useGetIdentity();
-  const dataProvider = useDataProvider<CrmDataProvider>();
-
-  const { mutate: updatePassword } = useMutation({
-    mutationKey: ["updatePassword"],
-    mutationFn: async () => {
-      if (!identity) {
-        throw new Error(
-          translate("crm.profile.record_not_found", {
-            _: "Record not found",
-          }),
-        );
-      }
-      return dataProvider.updatePassword(identity.id);
-    },
-    onSuccess: () => {
-      notify("crm.profile.password_reset_sent", {
-        messageArgs: {
-          _: "A reset password email has been sent to your email address",
-        },
-      });
-    },
-    onError: (e) => {
-      notify(`${e}`, { type: "error" });
-    },
-  });
-
-  return (
-    <Button
-      variant="outline"
-      className="w-full text-base h-auto"
-      onClick={() => updatePassword()}
-    >
-      <KeyRound className="size-5 mr-3" />
-      {translate("crm.profile.password.change")}
-    </Button>
-  );
-};
-
 export const SettingsPageMobile = () => {
   const translate = useTranslate();
   const authProvider = useAuthProvider();
@@ -115,7 +73,6 @@ export const SettingsPageMobile = () => {
           </div>
 
           <div className="mt-auto pt-6 space-y-3 mb-4">
-            <ChangePasswordButton />
             <Button
               variant="destructive"
               className="w-full text-base h-auto"

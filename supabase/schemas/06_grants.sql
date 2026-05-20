@@ -106,9 +106,8 @@ grant all on function public.lowercase_email_jsonb() to anon;
 grant all on function public.lowercase_email_jsonb() to authenticated;
 grant all on function public.lowercase_email_jsonb() to service_role;
 
-grant all on function public.merge_contacts(bigint, bigint) to anon;
-grant all on function public.merge_contacts(bigint, bigint) to authenticated;
-grant all on function public.merge_contacts(bigint, bigint) to service_role;
+revoke all on function public.merge_contacts(uuid, bigint, bigint) from public;
+grant all on function public.merge_contacts(uuid, bigint, bigint) to service_role;
 
 grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;

@@ -106,32 +106,6 @@ const ProfileForm = ({
   const { isDirty } = useFormState();
   const dataProvider = useDataProvider<CrmDataProvider>();
 
-  const { mutate: updatePassword } = useMutation({
-    mutationKey: ["updatePassword"],
-    mutationFn: async () => {
-      if (!identity) {
-        throw new Error(
-          translate("crm.profile.record_not_found", {
-            _: "Record not found",
-          }),
-        );
-      }
-      return dataProvider.updatePassword(identity.id);
-    },
-    onSuccess: () => {
-      notify("crm.profile.password_reset_sent", {
-        messageArgs: {
-          _: "A reset password email has been sent to your email address",
-        },
-      });
-    },
-    onError: (e) => {
-      notify(`${e}`, {
-        type: "error",
-      });
-    },
-  });
-
   const { mutate: mutateSale } = useMutation({
     mutationKey: ["signup"],
     mutationFn: async (data: SalesFormData) => {
@@ -163,10 +137,6 @@ const ProfileForm = ({
   });
   if (!identity) return null;
 
-  const handleClickOpenPasswordChange = () => {
-    updatePassword();
-  };
-
   const handleAvatarUpdate = async (values: any) => {
     mutateSale(values);
   };
@@ -197,18 +167,6 @@ const ProfileForm = ({
           </div>
 
           <div className="flex flex-row justify-end gap-2">
-            {!isEditMode && (
-              <>
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={handleClickOpenPasswordChange}
-                >
-                  {translate("crm.profile.password.change")}
-                </Button>
-              </>
-            )}
-
             <Button
               type="button"
               variant={isEditMode ? "ghost" : "outline"}

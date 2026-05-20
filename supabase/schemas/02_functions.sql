@@ -109,7 +109,56 @@ CREATE OR REPLACE FUNCTION "public"."get_note_attachments_function_url"() RETURN
     DECLARE
       issuer text;
       function_url text;
+      configured_functions_url text;
+      request_headers jsonb;
+      request_host text;
+      request_proto text;
     BEGIN
+      configured_functions_url := nullif(
+        current_setting('app.functions_base_url', true),
+        ''
+      );
+
+      IF configured_functions_url IS NOT NULL THEN
+        RETURN rtrim(configured_functions_url, '/') || '/delete_note_attachments';
+      END IF;
+
+      request_headers := coalesce(
+        nullif(current_setting('request.headers', true), '')::jsonb,
+        '{}'::jsonb
+      );
+      request_host := request_headers ->> 'host';
+      request_proto := coalesce(
+        request_headers ->> 'x-forwarded-proto',
+        case
+          when request_host like 'localhost:%' or request_host like '127.0.0.1:%'
+            then 'http'
+          else 'https'
+        end
+      );
+
+      IF request_host IS NOT NULL AND request_host <> '' THEN
+        function_url := request_proto || '://' || request_host || '/functions/v1/delete_note_attachments';
+
+        IF function_url LIKE 'http://127.0.0.1:%' THEN
+          RETURN replace(
+            function_url,
+            'http://127.0.0.1:',
+            'http://host.docker.internal:'
+          );
+        END IF;
+
+        IF function_url LIKE 'http://localhost:%' THEN
+          RETURN replace(
+            function_url,
+            'http://localhost:',
+            'http://host.docker.internal:'
+          );
+        END IF;
+
+        RETURN function_url;
+      END IF;
+
       issuer := coalesce(
         nullif(current_setting('request.jwt.claim.iss', true), ''),
         (
@@ -433,13 +482,13 @@ CREATE OR REPLACE FUNCTION "public"."workspace_has_proposal"("target_workspace_i
   );
 $$;
 
-CREATE OR REPLACE FUNCTION "public"."merge_contacts"("loser_id" bigint, "winner_id" bigint) RETURNS bigint
-    LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
+CREATE OR REPLACE FUNCTION "public"."merge_contacts"("target_workspace_id" uuid, "loser_id" bigint, "winner_id" bigint) RETURNS bigint
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
     AS $$
 DECLARE
-  winner_contact contacts%ROWTYPE;
-  loser_contact contacts%ROWTYPE;
+  winner_contact public.contacts%ROWTYPE;
+  loser_contact public.contacts%ROWTYPE;
   deal_record RECORD;
   merged_emails jsonb;
   merged_phones jsonb;
@@ -451,27 +500,33 @@ DECLARE
   email_map jsonb;
   phone_map jsonb;
 BEGIN
-  -- Fetch both contacts
-  SELECT * INTO winner_contact FROM contacts WHERE id = winner_id;
-  SELECT * INTO loser_contact FROM contacts WHERE id = loser_id;
+  SELECT * INTO winner_contact
+  FROM public.contacts
+  WHERE id = winner_id AND workspace_id = target_workspace_id;
+
+  SELECT * INTO loser_contact
+  FROM public.contacts
+  WHERE id = loser_id AND workspace_id = target_workspace_id;
 
   IF winner_contact IS NULL OR loser_contact IS NULL THEN
     RAISE EXCEPTION 'Contact not found';
   END IF;
 
-  -- 1. Reassign tasks from loser to winner
-  UPDATE tasks SET contact_id = winner_id WHERE contact_id = loser_id;
+  UPDATE public.tasks
+  SET contact_id = winner_id
+  WHERE contact_id = loser_id AND workspace_id = target_workspace_id;
 
-  -- 2. Reassign contact notes from loser to winner
-  UPDATE contact_notes SET contact_id = winner_id WHERE contact_id = loser_id;
+  UPDATE public.contact_notes
+  SET contact_id = winner_id
+  WHERE contact_id = loser_id AND workspace_id = target_workspace_id;
 
-  -- 3. Update deals - replace loser with winner in contact_ids array
   FOR deal_record IN
     SELECT id, contact_ids
-    FROM deals
-    WHERE contact_ids @> ARRAY[loser_id]
+    FROM public.deals
+    WHERE workspace_id = target_workspace_id
+      AND contact_ids @> ARRAY[loser_id]
   LOOP
-    UPDATE deals
+    UPDATE public.deals
     SET contact_ids = (
       SELECT ARRAY(
         SELECT DISTINCT unnest(
@@ -479,20 +534,13 @@ BEGIN
         )
       )
     )
-    WHERE id = deal_record.id;
+    WHERE id = deal_record.id AND workspace_id = target_workspace_id;
   END LOOP;
 
-  -- 4. Merge contact data
-
-  -- Get email arrays
   winner_emails := COALESCE(winner_contact.email_jsonb, '[]'::jsonb);
   loser_emails := COALESCE(loser_contact.email_jsonb, '[]'::jsonb);
-
-  -- Merge emails with deduplication by email address
-  -- Build a map of email -> email object, then convert back to array
   email_map := '{}'::jsonb;
 
-  -- Add winner emails to map
   IF jsonb_array_length(winner_emails) > 0 THEN
     FOR i IN 0..jsonb_array_length(winner_emails)-1 LOOP
       email_map := email_map || jsonb_build_object(
@@ -502,7 +550,6 @@ BEGIN
     END LOOP;
   END IF;
 
-  -- Add loser emails to map (won't overwrite existing keys)
   IF jsonb_array_length(loser_emails) > 0 THEN
     FOR i IN 0..jsonb_array_length(loser_emails)-1 LOOP
       IF NOT email_map ? (loser_emails->i->>'email') THEN
@@ -514,18 +561,13 @@ BEGIN
     END LOOP;
   END IF;
 
-  -- Convert map back to array
   merged_emails := (SELECT jsonb_agg(value) FROM jsonb_each(email_map));
   merged_emails := COALESCE(merged_emails, '[]'::jsonb);
 
-  -- Get phone arrays
   winner_phones := COALESCE(winner_contact.phone_jsonb, '[]'::jsonb);
   loser_phones := COALESCE(loser_contact.phone_jsonb, '[]'::jsonb);
-
-  -- Merge phones with deduplication by number
   phone_map := '{}'::jsonb;
 
-  -- Add winner phones to map
   IF jsonb_array_length(winner_phones) > 0 THEN
     FOR i IN 0..jsonb_array_length(winner_phones)-1 LOOP
       phone_map := phone_map || jsonb_build_object(
@@ -535,7 +577,6 @@ BEGIN
     END LOOP;
   END IF;
 
-  -- Add loser phones to map (won't overwrite existing keys)
   IF jsonb_array_length(loser_phones) > 0 THEN
     FOR i IN 0..jsonb_array_length(loser_phones)-1 LOOP
       IF NOT phone_map ? (loser_phones->i->>'number') THEN
@@ -547,11 +588,9 @@ BEGIN
     END LOOP;
   END IF;
 
-  -- Convert map back to array
   merged_phones := (SELECT jsonb_agg(value) FROM jsonb_each(phone_map));
   merged_phones := COALESCE(merged_phones, '[]'::jsonb);
 
-  -- Merge tags (remove duplicates)
   merged_tags := ARRAY(
     SELECT DISTINCT unnest(
       COALESCE(winner_contact.tags, ARRAY[]::bigint[]) ||
@@ -559,8 +598,7 @@ BEGIN
     )
   );
 
-  -- 5. Update winner with merged data
-  UPDATE contacts SET
+  UPDATE public.contacts SET
     avatar = COALESCE(winner_contact.avatar, loser_contact.avatar),
     gender = COALESCE(winner_contact.gender, loser_contact.gender),
     first_name = COALESCE(winner_contact.first_name, loser_contact.first_name),
@@ -576,10 +614,10 @@ BEGIN
     last_seen = GREATEST(COALESCE(winner_contact.last_seen, loser_contact.last_seen), COALESCE(loser_contact.last_seen, winner_contact.last_seen)),
     sales_id = COALESCE(winner_contact.sales_id, loser_contact.sales_id),
     tags = merged_tags
-  WHERE id = winner_id;
+  WHERE id = winner_id AND workspace_id = target_workspace_id;
 
-  -- 6. Delete loser contact
-  DELETE FROM contacts WHERE id = loser_id;
+  DELETE FROM public.contacts
+  WHERE id = loser_id AND workspace_id = target_workspace_id;
 
   RETURN winner_id;
 END;

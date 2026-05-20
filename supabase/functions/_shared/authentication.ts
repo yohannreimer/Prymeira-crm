@@ -9,13 +9,13 @@ export type AuthenticatedUser = {
 
 let clerkJwtKeys: ReturnType<typeof jose.createRemoteJWKSet> | null = null;
 
-function getAuthToken(req: Request) {
+export function getAuthToken(req: Request) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) {
     throw new Error("Missing authorization header");
   }
   const [bearer, token] = authHeader.split(" ");
-  if (bearer !== "Bearer") {
+  if (bearer !== "Bearer" || !token) {
     throw new Error(`Auth header is not 'Bearer {token}'`);
   }
 
