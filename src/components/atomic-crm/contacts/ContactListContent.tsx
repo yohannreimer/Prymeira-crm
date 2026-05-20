@@ -76,23 +76,34 @@ export const ContactListContent = () => {
   }
 
   return (
-    <div className="md:divide-y">
-      {contacts.map((contact) => (
-        <RecordContextProvider key={contact.id} value={contact}>
-          <ContactItemContent
-            contact={contact}
-            handleToggleItem={handleToggleItem}
-          />
-        </RecordContextProvider>
-      ))}
+    <div>
+      <div className="hidden md:grid md:grid-cols-[auto_1fr_auto] gap-4 px-6 py-2 border-b border-border/50">
+        <div className="w-10" />
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Nome / Empresa
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
+          Última atividade
+        </p>
+      </div>
+      <div className="divide-y divide-border/40">
+        {contacts.map((contact) => (
+          <RecordContextProvider key={contact.id} value={contact}>
+            <ContactItemContent
+              contact={contact}
+              handleToggleItem={handleToggleItem}
+            />
+          </RecordContextProvider>
+        ))}
 
-      {contacts.length === 0 && (
-        <div className="p-4">
-          <div className="text-muted-foreground">
-            {translate("resources.contacts.empty.title", {})}
+        {contacts.length === 0 && (
+          <div className="p-4">
+            <div className="text-muted-foreground">
+              {translate("resources.contacts.empty.title", {})}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
@@ -128,7 +139,7 @@ const ContactItemContent = ({
       >
         <Avatar />
         <div className="flex-1 min-w-0">
-          <div className="font-medium">
+          <div className="text-[13px] font-semibold text-foreground">
             {`${contact.first_name} ${contact.last_name ?? ""}`}
           </div>
           {contact.title || contact.company_id != null || contact.nb_tasks ? (
