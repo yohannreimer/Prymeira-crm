@@ -139,13 +139,30 @@ async function syncCurrentUser(
   }
 
   if (!existingSale) {
+    const { data: placeholderSale, error: placeholderError } =
+      await supabaseAdmin
+        .from("sales")
+        .select("*")
+        .eq("workspace_id", access.workspace_id)
+        .eq("email", payload.email)
+        .eq("clerk_user_id", payload.email)
+        .maybeSingle();
+
+    if (placeholderError) {
+      console.error("Error fetching placeholder sale:", placeholderError);
+      return createErrorResponse(500, "Failed to sync current user");
+    }
+
+    if (placeholderSale?.disabled) {
+      return createErrorResponse(403, "Account disabled");
+    }
+
     const { data: claimedPlaceholder, error: claimError } = await supabaseAdmin
       .from("sales")
       .update(payload)
       .eq("workspace_id", access.workspace_id)
       .eq("email", payload.email)
       .eq("clerk_user_id", payload.email)
-      .eq("disabled", false)
       .select("*")
       .maybeSingle();
 
