@@ -91,16 +91,13 @@ export const AgendaList = () => {
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6">
-      <div className="flex items-center gap-3">
-        <CalendarDays className="size-6 text-muted-foreground" />
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {translate("resources.agenda.name", { smart_count: 1 })}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {translate("resources.agenda.subtitle")}
-          </p>
-        </div>
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          Hoje
+        </p>
+        <h1 className="text-[18px] font-bold text-foreground leading-tight">
+          {translate("resources.agenda.name", { smart_count: 1 })}
+        </h1>
       </div>
       {isPending ? (
         <Skeleton className="h-64 w-full" />
@@ -109,18 +106,22 @@ export const AgendaList = () => {
           <AgendaSection
             title={translate("resources.agenda.sections.overdue")}
             items={sections.overdue}
+            sectionKey="overdue"
           />
           <AgendaSection
             title={translate("resources.agenda.sections.today")}
             items={sections.today}
+            sectionKey="today"
           />
           <AgendaSection
             title={translate("resources.agenda.sections.risks")}
             items={sections.risks}
+            sectionKey="risks"
           />
           <AgendaSection
             title={translate("resources.agenda.sections.upcoming")}
             items={sections.upcoming}
+            sectionKey="upcoming"
           />
         </div>
       )}
@@ -128,26 +129,58 @@ export const AgendaList = () => {
   );
 };
 
+const SECTION_STYLES: Record<string, { header: string; dot: string }> = {
+  overdue: {
+    header: "bg-destructive/8 border-destructive/20",
+    dot: "bg-destructive",
+  },
+  today: {
+    header: "bg-primary/8 border-primary/20",
+    dot: "bg-primary",
+  },
+  risks: {
+    header:
+      "bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800",
+    dot: "bg-amber-500",
+  },
+  upcoming: {
+    header: "bg-muted/50 border-border",
+    dot: "bg-muted-foreground",
+  },
+};
+
 const AgendaSection = ({
   title,
   items,
+  sectionKey,
 }: {
   title: string;
   items: AgendaSections[keyof AgendaSections];
+  sectionKey: keyof typeof SECTION_STYLES;
 }) => {
   const translate = useTranslate();
+  const styles = SECTION_STYLES[sectionKey];
 
   return (
     <Card className="overflow-hidden py-0">
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        <span className="text-xs text-muted-foreground">{items.length}</span>
+      <div
+        className={`flex items-center justify-between border-b px-4 py-2.5 ${styles.header}`}
+      >
+        <div className="flex items-center gap-2">
+          <span className={`h-1.5 w-1.5 rounded-full ${styles.dot}`} />
+          <h2 className="text-[11px] font-semibold uppercase tracking-widest text-foreground/70">
+            {title}
+          </h2>
+        </div>
+        <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
+          {items.length}
+        </span>
       </div>
-      <div className="divide-y">
+      <div className="divide-y divide-border/40">
         {items.length ? (
           items.map((item) => <AgendaItem key={item.id} item={item} />)
         ) : (
-          <div className="px-4 py-6 text-sm text-muted-foreground">
+          <div className="px-4 py-5 text-[12px] text-muted-foreground">
             {translate("resources.agenda.empty")}
           </div>
         )}
