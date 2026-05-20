@@ -85,6 +85,10 @@ enable_signup = true
 # Development signing keys
 signing_keys_path = "./signing_keys.json"
 
+[auth.third_party.clerk]
+enabled = true
+domain = "env(CLERK_DOMAIN)"
+
 [auth.email]
 # Allow/disallow new user signups via email to your project.
 enable_signup = true

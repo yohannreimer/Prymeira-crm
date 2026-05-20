@@ -6,6 +6,7 @@
 create or replace view public.activity_log with (security_invoker = on) as
 select
     ('company.' || c.id || '.created') as id,
+    c.workspace_id,
     'company.created' as type,
     c.created_at as date,
     c.id as company_id,
@@ -19,6 +20,7 @@ from public.companies c
 union all
 select
     ('contact.' || co.id || '.created') as id,
+    co.workspace_id,
     'contact.created' as type,
     co.first_seen as date,
     co.company_id,
@@ -32,6 +34,7 @@ from public.contacts co
 union all
 select
     ('contactNote.' || cn.id || '.created') as id,
+    cn.workspace_id,
     'contactNote.created' as type,
     cn.date,
     co.company_id,
@@ -42,10 +45,11 @@ select
     to_json(cn.*) as contact_note,
     null::json as deal_note
 from public.contact_notes cn
-    left join public.contacts co on co.id = cn.contact_id
+    left join public.contacts co on co.id = cn.contact_id and co.workspace_id = cn.workspace_id
 union all
 select
     ('deal.' || d.id || '.created') as id,
+    d.workspace_id,
     'deal.created' as type,
     d.created_at as date,
     d.company_id,
@@ -59,6 +63,7 @@ from public.deals d
 union all
 select
     ('dealNote.' || dn.id || '.created') as id,
+    dn.workspace_id,
     'dealNote.created' as type,
     dn.date,
     d.company_id,
@@ -69,11 +74,12 @@ select
     null::json as contact_note,
     to_json(dn.*) as deal_note
 from public.deal_notes dn
-    left join public.deals d on d.id = dn.deal_id;
+    left join public.deals d on d.id = dn.deal_id and d.workspace_id = dn.workspace_id;
 
 create or replace view public.companies_summary with (security_invoker = on) as
 select
     c.id,
+    c.workspace_id,
     c.created_at,
     c.name,
     c.sector,
@@ -95,13 +101,14 @@ select
     count(distinct d.id) as nb_deals,
     count(distinct co.id) as nb_contacts
 from public.companies c
-    left join public.deals d on c.id = d.company_id
-    left join public.contacts co on c.id = co.company_id
+    left join public.deals d on c.id = d.company_id and c.workspace_id = d.workspace_id
+    left join public.contacts co on c.id = co.company_id and c.workspace_id = co.workspace_id
 group by c.id;
 
 create or replace view public.contacts_summary with (security_invoker = on) as
 select
     co.id,
+    co.workspace_id,
     co.first_name,
     co.last_name,
     co.gender,
@@ -123,8 +130,8 @@ select
     c.name as company_name,
     count(distinct t.id) filter (where t.done_date is null) as nb_tasks
 from public.contacts co
-    left join public.tasks t on co.id = t.contact_id
-    left join public.companies c on co.company_id = c.id
+    left join public.tasks t on co.id = t.contact_id and co.workspace_id = t.workspace_id
+    left join public.companies c on co.company_id = c.id and co.workspace_id = c.workspace_id
 group by co.id, c.name;
 
 create or replace view public.init_state with (security_invoker = off) as

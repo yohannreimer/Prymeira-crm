@@ -7,6 +7,7 @@
 alter table public.companies enable row level security;
 alter table public.contacts enable row level security;
 alter table public.contact_notes enable row level security;
+alter table public.pipelines enable row level security;
 alter table public.deals enable row level security;
 alter table public.deal_notes enable row level security;
 alter table public.leads enable row level security;
@@ -23,102 +24,100 @@ alter table public.tasks enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
--- Companies
-create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.companies for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.companies for update to authenticated using (true) with check (true);
-create policy "Company Delete Policy" on public.companies for delete to authenticated using (true);
+-- Tenant CRUD resources
+create policy "Tenant read" on public.companies for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.companies for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.companies for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.companies for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Contacts
-create policy "Enable read access for authenticated users" on public.contacts for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.contacts for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.contacts for update to authenticated using (true) with check (true);
-create policy "Contact Delete Policy" on public.contacts for delete to authenticated using (true);
+create policy "Tenant read" on public.contacts for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.contacts for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.contacts for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.contacts for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Contact Notes
-create policy "Enable read access for authenticated users" on public.contact_notes for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.contact_notes for insert to authenticated with check (true);
-create policy "Contact Notes Update policy" on public.contact_notes for update to authenticated using (true);
-create policy "Contact Notes Delete Policy" on public.contact_notes for delete to authenticated using (true);
+create policy "Tenant read" on public.contact_notes for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.contact_notes for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.contact_notes for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.contact_notes for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Deals
-create policy "Enable read access for authenticated users" on public.deals for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.deals for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.deals for update to authenticated using (true) with check (true);
-create policy "Deals Delete Policy" on public.deals for delete to authenticated using (true);
+create policy "Tenant read" on public.pipelines for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.pipelines for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.pipelines for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.pipelines for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Deal Notes
-create policy "Enable read access for authenticated users" on public.deal_notes for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.deal_notes for insert to authenticated with check (true);
-create policy "Deal Notes Update Policy" on public.deal_notes for update to authenticated using (true);
-create policy "Deal Notes Delete Policy" on public.deal_notes for delete to authenticated using (true);
+create policy "Tenant read" on public.deals for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.deals for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.deals for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.deals for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Leads
-create policy "Enable read access for authenticated users" on public.leads for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.leads for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.leads for update to authenticated using (true) with check (true);
-create policy "Leads Delete Policy" on public.leads for delete to authenticated using (true);
+create policy "Tenant read" on public.deal_notes for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.deal_notes for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.deal_notes for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.deal_notes for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Sales
-create policy "Enable read access for authenticated users" on public.sales for select to authenticated using (true);
+create policy "Tenant read" on public.leads for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.leads for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.leads for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.leads for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Sales Goals
-create policy "Enable read access for authenticated users" on public.sales_goals for select to authenticated using (true);
-create policy "Enable insert for admins" on public.sales_goals for insert to authenticated with check (public.is_admin());
-create policy "Enable update for admins" on public.sales_goals for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "Sales Goals Delete Policy" on public.sales_goals for delete to authenticated using (public.is_admin());
+create policy "Tenant read" on public.tags for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.tags for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.tags for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.tags for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Tags
-create policy "Enable read access for authenticated users" on public.tags for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.tags for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.tags for update to authenticated using (true);
-create policy "Enable delete for authenticated users only" on public.tags for delete to authenticated using (true);
+create policy "Tenant read" on public.automation_runs for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.automation_runs for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.automation_runs for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.automation_runs for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Automation Runs
-create policy "Enable read access for authenticated users" on public.automation_runs for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.automation_runs for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.automation_runs for update to authenticated using (true) with check (true);
+create policy "Tenant read" on public.proposals for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.proposals for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.proposals for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.proposals for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Proposal Templates
-create policy "Enable read access for authenticated users" on public.proposal_templates for select to authenticated using (true);
-create policy "Enable insert for admins" on public.proposal_templates for insert to authenticated with check (public.is_admin());
-create policy "Enable update for admins" on public.proposal_templates for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "Proposal Templates Delete Policy" on public.proposal_templates for delete to authenticated using (public.is_admin());
+create policy "Tenant read" on public.proposal_items for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.proposal_items for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.proposal_items for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.proposal_items for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Proposal Template Items
-create policy "Enable read access for authenticated users" on public.proposal_template_items for select to authenticated using (true);
-create policy "Enable insert for admins" on public.proposal_template_items for insert to authenticated with check (public.is_admin());
-create policy "Enable update for admins" on public.proposal_template_items for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "Proposal Template Items Delete Policy" on public.proposal_template_items for delete to authenticated using (public.is_admin());
+create policy "Tenant read" on public.tasks for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.tasks for insert to authenticated with check (public.can_access_workspace(workspace_id));
+create policy "Tenant update" on public.tasks for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id));
+create policy "Tenant delete" on public.tasks for delete to authenticated using (public.can_access_workspace(workspace_id));
 
--- Proposals
-create policy "Enable read access for authenticated users" on public.proposals for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.proposals for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.proposals for update to authenticated using (true) with check (true);
-create policy "Proposals Delete Policy" on public.proposals for delete to authenticated using (true);
+-- Sales are readable by workspace members and writable only by workspace admins.
+create policy "Tenant read" on public.sales for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Admin insert" on public.sales for insert to authenticated with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin update" on public.sales for update to authenticated using (public.is_admin_for_workspace(workspace_id)) with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin delete" on public.sales for delete to authenticated using (public.is_admin_for_workspace(workspace_id));
 
--- Proposal Items
-create policy "Enable read access for authenticated users" on public.proposal_items for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.proposal_items for insert to authenticated with check (true);
-create policy "Enable update for authenticated users only" on public.proposal_items for update to authenticated using (true) with check (true);
-create policy "Proposal Items Delete Policy" on public.proposal_items for delete to authenticated using (true);
+-- Admin-write resources
+create policy "Tenant read" on public.sales_goals for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Admin insert" on public.sales_goals for insert to authenticated with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin update" on public.sales_goals for update to authenticated using (public.is_admin_for_workspace(workspace_id)) with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin delete" on public.sales_goals for delete to authenticated using (public.is_admin_for_workspace(workspace_id));
 
--- Automation Rules
-create policy "Enable read access for authenticated users" on public.automation_rules for select to authenticated using (true);
-create policy "Enable insert for admins" on public.automation_rules for insert to authenticated with check (public.is_admin());
-create policy "Enable update for admins" on public.automation_rules for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "Automation Rules Delete Policy" on public.automation_rules for delete to authenticated using (public.is_admin());
+create policy "Tenant read" on public.proposal_templates for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Admin insert" on public.proposal_templates for insert to authenticated with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin update" on public.proposal_templates for update to authenticated using (public.is_admin_for_workspace(workspace_id)) with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin delete" on public.proposal_templates for delete to authenticated using (public.is_admin_for_workspace(workspace_id));
 
--- Tasks
-create policy "Enable read access for authenticated users" on public.tasks for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.tasks for insert to authenticated with check (true);
-create policy "Task Update Policy" on public.tasks for update to authenticated using (true);
-create policy "Task Delete Policy" on public.tasks for delete to authenticated using (true);
+create policy "Tenant read" on public.proposal_template_items for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Admin insert" on public.proposal_template_items for insert to authenticated with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin update" on public.proposal_template_items for update to authenticated using (public.is_admin_for_workspace(workspace_id)) with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin delete" on public.proposal_template_items for delete to authenticated using (public.is_admin_for_workspace(workspace_id));
 
--- Configuration (admin-only for writes)
-create policy "Enable read for authenticated" on public.configuration for select to authenticated using (true);
-create policy "Enable insert for admins" on public.configuration for insert to authenticated with check (public.is_admin());
-create policy "Enable update for admins" on public.configuration for update to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy "Tenant read" on public.automation_rules for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Admin insert" on public.automation_rules for insert to authenticated with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin update" on public.automation_rules for update to authenticated using (public.is_admin_for_workspace(workspace_id)) with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin delete" on public.automation_rules for delete to authenticated using (public.is_admin_for_workspace(workspace_id));
 
--- Favicons excluded domains
-create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+create policy "Tenant read" on public.configuration for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Admin insert" on public.configuration for insert to authenticated with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin update" on public.configuration for update to authenticated using (public.is_admin_for_workspace(workspace_id)) with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin delete" on public.configuration for delete to authenticated using (public.is_admin_for_workspace(workspace_id));
+
+create policy "Tenant read" on public.favicons_excluded_domains for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Admin insert" on public.favicons_excluded_domains for insert to authenticated with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin update" on public.favicons_excluded_domains for update to authenticated using (public.is_admin_for_workspace(workspace_id)) with check (public.is_admin_for_workspace(workspace_id));
+create policy "Admin delete" on public.favicons_excluded_domains for delete to authenticated using (public.is_admin_for_workspace(workspace_id));

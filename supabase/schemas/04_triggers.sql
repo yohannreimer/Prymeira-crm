@@ -3,7 +3,7 @@
 -- This file declares all triggers.
 --
 
--- Auto-populate sales_id from current auth user on insert
+-- Auto-populate sales_id from current Clerk user and workspace on insert
 create or replace trigger set_company_sales_id_trigger
     before insert on public.companies
     for each row execute function public.set_sales_id_default();
@@ -73,12 +73,3 @@ create or replace trigger on_deal_notes_attachments_updated_delete_note_attachme
 create or replace trigger on_deal_notes_deleted_delete_note_attachments
     after delete on public.deal_notes
     for each row execute function public.cleanup_note_attachments();
-
--- Auth triggers: sync auth.users to public.sales
-create or replace trigger on_auth_user_created
-    after insert on auth.users
-    for each row execute function public.handle_new_user();
-
-create or replace trigger on_auth_user_updated
-    after update on auth.users
-    for each row execute function public.handle_update_user();

@@ -41,17 +41,25 @@ grant all on function public.handle_contact_saved() to anon;
 grant all on function public.handle_contact_saved() to authenticated;
 grant all on function public.handle_contact_saved() to service_role;
 
-grant all on function public.handle_new_user() to anon;
-grant all on function public.handle_new_user() to authenticated;
-grant all on function public.handle_new_user() to service_role;
-
-grant all on function public.handle_update_user() to anon;
-grant all on function public.handle_update_user() to authenticated;
-grant all on function public.handle_update_user() to service_role;
-
 grant all on function public.is_admin() to anon;
 grant all on function public.is_admin() to authenticated;
 grant all on function public.is_admin() to service_role;
+
+grant all on function public.current_clerk_user_id() to anon;
+grant all on function public.current_clerk_user_id() to authenticated;
+grant all on function public.current_clerk_user_id() to service_role;
+
+grant all on function public.can_access_workspace(uuid) to anon;
+grant all on function public.can_access_workspace(uuid) to authenticated;
+grant all on function public.can_access_workspace(uuid) to service_role;
+
+grant all on function public.current_sale_id(uuid) to anon;
+grant all on function public.current_sale_id(uuid) to authenticated;
+grant all on function public.current_sale_id(uuid) to service_role;
+
+grant all on function public.is_admin_for_workspace(uuid) to anon;
+grant all on function public.is_admin_for_workspace(uuid) to authenticated;
+grant all on function public.is_admin_for_workspace(uuid) to service_role;
 
 grant all on function public.lowercase_email_jsonb() to anon;
 grant all on function public.lowercase_email_jsonb() to authenticated;
@@ -77,6 +85,10 @@ grant all on table public.contacts to service_role;
 grant all on table public.contact_notes to anon;
 grant all on table public.contact_notes to authenticated;
 grant all on table public.contact_notes to service_role;
+
+grant all on table public.pipelines to anon;
+grant all on table public.pipelines to authenticated;
+grant all on table public.pipelines to service_role;
 
 grant all on table public.deals to anon;
 grant all on table public.deals to authenticated;
@@ -167,6 +179,10 @@ grant all on sequence public."contactNotes_id_seq" to service_role;
 grant all on sequence public.contacts_id_seq to anon;
 grant all on sequence public.contacts_id_seq to authenticated;
 grant all on sequence public.contacts_id_seq to service_role;
+
+grant all on sequence public.pipelines_id_seq to anon;
+grant all on sequence public.pipelines_id_seq to authenticated;
+grant all on sequence public.pipelines_id_seq to service_role;
 
 grant all on sequence public."dealNotes_id_seq" to anon;
 grant all on sequence public."dealNotes_id_seq" to authenticated;

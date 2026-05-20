@@ -185,7 +185,11 @@ CREATE OR REPLACE FUNCTION "public"."handle_contact_note_created_or_updated"() R
     SET "search_path" TO ''
     AS $$
 begin
-  update public.contacts set last_seen = new.date where contacts.id = new.contact_id and contacts.last_seen < new.date;
+  update public.contacts
+  set last_seen = new.date
+  where contacts.id = new.contact_id
+    and contacts.workspace_id = new.workspace_id
+    and contacts.last_seen < new.date;
   return new;
 end;
 $$;
@@ -224,42 +228,12 @@ begin
     return new;
 end;$$;
 
-CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
-    LANGUAGE "plpgsql" SECURITY DEFINER
+CREATE OR REPLACE FUNCTION "public"."current_clerk_user_id"() RETURNS text
+    LANGUAGE "sql"
+    STABLE
     SET "search_path" TO ''
     AS $$
-declare
-  sales_count int;
-begin
-  select count(id) into sales_count
-  from public.sales;
-
-  insert into public.sales (first_name, last_name, email, user_id, administrator)
-  values (
-    coalesce(new.raw_user_meta_data ->> 'first_name', new.raw_user_meta_data -> 'custom_claims' ->> 'first_name', 'Pending'),
-    coalesce(new.raw_user_meta_data ->> 'last_name', new.raw_user_meta_data -> 'custom_claims' ->> 'last_name', 'Pending'),
-    new.email,
-    new.id,
-    case when sales_count > 0 then FALSE else TRUE end
-  );
-  return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION "public"."handle_update_user"() RETURNS "trigger"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO ''
-    AS $$
-begin
-  update public.sales
-  set
-    first_name = coalesce(new.raw_user_meta_data ->> 'first_name', new.raw_user_meta_data -> 'custom_claims' ->> 'first_name', 'Pending'),
-    last_name = coalesce(new.raw_user_meta_data ->> 'last_name', new.raw_user_meta_data -> 'custom_claims' ->> 'last_name', 'Pending'),
-    email = new.email
-  where user_id = new.id;
-
-  return new;
-end;
+  select nullif(auth.jwt() ->> 'sub', '');
 $$;
 
 CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
@@ -268,7 +242,81 @@ CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
     AS $$
 begin
   return exists (
-    select 1 from public.sales where user_id = auth.uid() and administrator = true
+    select 1
+    from public.sales
+    where clerk_user_id = public.current_clerk_user_id()
+      and disabled = false
+      and (
+        administrator = true
+        or workspace_role in ('admin', 'administrator', 'owner')
+        or product_role in ('admin', 'administrator', 'owner')
+      )
+  );
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."can_access_workspace"("target_workspace_id" uuid) RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  if target_workspace_id is null then
+    return false;
+  end if;
+
+  return exists (
+    select 1
+    from public.sales
+    where workspace_id = target_workspace_id
+      and clerk_user_id = public.current_clerk_user_id()
+      and disabled = false
+  );
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."current_sale_id"("target_workspace_id" uuid) RETURNS bigint
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+  sale_id bigint;
+begin
+  if target_workspace_id is null then
+    return null;
+  end if;
+
+  select id into sale_id
+  from public.sales
+  where workspace_id = target_workspace_id
+    and clerk_user_id = public.current_clerk_user_id()
+    and disabled = false
+  order by id
+  limit 1;
+
+  return sale_id;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."is_admin_for_workspace"("target_workspace_id" uuid) RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  if target_workspace_id is null then
+    return false;
+  end if;
+
+  return exists (
+    select 1
+    from public.sales
+    where workspace_id = target_workspace_id
+      and clerk_user_id = public.current_clerk_user_id()
+      and disabled = false
+      and (
+        administrator = true
+        or workspace_role in ('admin', 'administrator', 'owner')
+        or product_role in ('admin', 'administrator', 'owner')
+      )
   );
 end;
 $$;
@@ -444,11 +492,11 @@ $$;
 
 CREATE OR REPLACE FUNCTION "public"."set_sales_id_default"() RETURNS "trigger"
     LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
+    SET "search_path" TO ''
     AS $$
 BEGIN
-  IF NEW.sales_id IS NULL THEN
-    SELECT id INTO NEW.sales_id FROM sales WHERE user_id = auth.uid();
+  IF NEW.sales_id IS NULL AND NEW.workspace_id IS NOT NULL THEN
+    NEW.sales_id := public.current_sale_id(NEW.workspace_id);
   END IF;
   RETURN NEW;
 END;

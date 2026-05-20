@@ -89,6 +89,10 @@ enabled = true
 authorization_url_path = "/oauth/consent"
 allow_dynamic_registration = true
 
+[auth.third_party.clerk]
+enabled = true
+domain = "env(CLERK_DOMAIN)"
+
 [auth.email]
 # Allow/disallow new user signups via email to your project.
 enable_signup = true
