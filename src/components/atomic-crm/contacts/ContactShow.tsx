@@ -250,45 +250,37 @@ const ContactShowContent = () => {
           {record.first_name} {record.last_name}
         </h1>
       </div>
-      <div className="mb-2 flex gap-8">
-        <div className="flex-1">
+      <div className="flex gap-6">
+        {/* Left: 220px profile sidebar */}
+        <div className="w-[220px] shrink-0">
+          <div className="flex flex-col items-center text-center pb-4 mb-1 border-b border-border/40">
+            <Avatar width={56} />
+            <h2 className="mt-3 text-[15px] font-semibold text-foreground leading-tight">
+              <RecordRepresentation />
+            </h2>
+            <div className="mt-1 text-[12px] text-muted-foreground">
+              {record.title && record.company_id != null
+                ? `${translate("resources.contacts.position_at", {
+                    title: record.title,
+                  })} `
+                : record.title}
+              {record.company_id != null && (
+                <ReferenceField
+                  source="company_id"
+                  reference="companies"
+                  link="show"
+                >
+                  <TextField source="name" />
+                </ReferenceField>
+              )}
+            </div>
+          </div>
+          <ContactAside className="w-full" />
+        </div>
+        {/* Right: notes/activity */}
+        <div className="flex-1 min-w-0">
           <Card>
             <CardContent>
-              <div className="flex">
-                <Avatar />
-                <div className="ml-2 flex-1">
-                  <h5 className="text-xl font-semibold">
-                    <RecordRepresentation />
-                  </h5>
-                  <div className="inline-flex text-sm text-muted-foreground">
-                    {record.title && record.company_id != null
-                      ? `${translate("resources.contacts.position_at", {
-                          title: record.title,
-                        })} `
-                      : record.title}
-                    {record.company_id != null && (
-                      <ReferenceField
-                        source="company_id"
-                        reference="companies"
-                        link="show"
-                      >
-                        &nbsp;
-                        <TextField source="name" />
-                      </ReferenceField>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <ReferenceField
-                    source="company_id"
-                    reference="companies"
-                    link="show"
-                    className="no-underline"
-                  >
-                    <CompanyAvatar />
-                  </ReferenceField>
-                </div>
-              </div>
               <InfiniteListBase
                 resource="contact_notes"
                 filter={{ contact_id: record.id }}
@@ -309,7 +301,6 @@ const ContactShowContent = () => {
             </CardContent>
           </Card>
         </div>
-        <ContactAside />
       </div>
     </div>
   );

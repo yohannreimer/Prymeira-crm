@@ -3,6 +3,7 @@ import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { ShowButton } from "@/components/admin/show-button";
+import { cn } from "@/lib/utils";
 
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
@@ -15,14 +16,22 @@ import type { Contact } from "../types";
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
 
-export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
+export const ContactAside = ({
+  link = "edit",
+  className,
+}: {
+  link?: "edit" | "show";
+  className?: string;
+}) => {
   const record = useRecordContext<Contact>();
   const translate = useTranslate();
 
   if (!record) return null;
 
   return (
-    <div className="hidden sm:block w-92 min-w-92 text-sm">
+    <div
+      className={cn("hidden sm:block text-sm", className ?? "w-92 min-w-92")}
+    >
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
           <EditButton label="resources.contacts.action.edit" />

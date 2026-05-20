@@ -23,24 +23,25 @@ const LeadShowContent = () => {
   if (isPending || !record) return null;
 
   return (
-    <div className="mt-2 flex gap-8">
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          Pipeline
+        </p>
+        <h1 className="text-[18px] font-bold text-foreground leading-tight">
+          {[record.first_name, record.last_name].filter(Boolean).join(" ")}
+        </h1>
+      </div>
       <div className="flex-1">
         <Card>
           <CardContent className="space-y-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold">
-                  {[record.first_name, record.last_name]
-                    .filter(Boolean)
-                    .join(" ")}
-                </h2>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <LeadStatusBadge lead={record} />
-                  <LeadTemperatureBadge lead={record} />
-                </div>
+              <div className="flex flex-wrap gap-2">
+                <LeadStatusBadge lead={record} />
+                <LeadTemperatureBadge lead={record} />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" asChild>
+                <Button variant="outline" size="sm" asChild>
                   <Link to={`/leads/${record.id}`}>
                     <Edit className="h-4 w-4" />
                     {translate("ra.action.edit")}
@@ -52,7 +53,7 @@ const LeadShowContent = () => {
 
             <Separator />
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2">
               <LeadField
                 label="resources.leads.fields.company_name"
                 value={record.company_name}
@@ -64,12 +65,12 @@ const LeadShowContent = () => {
               <LeadField
                 label="resources.leads.fields.email"
                 value={record.email}
-                icon={<Mail className="h-4 w-4" />}
+                icon={<Mail className="h-3.5 w-3.5 text-primary" />}
               />
               <LeadField
                 label="resources.leads.fields.phone_number"
                 value={record.phone_number}
-                icon={<Phone className="h-4 w-4" />}
+                icon={<Phone className="h-3.5 w-3.5 text-primary" />}
               />
               <LeadField
                 label="resources.leads.fields.next_action_at"
@@ -92,10 +93,12 @@ const LeadShowContent = () => {
               <>
                 <Separator />
                 <div>
-                  <div className="text-xs text-muted-foreground">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                     {translate("resources.leads.fields.interest")}
-                  </div>
-                  <p className="mt-1 whitespace-pre-wrap">{record.interest}</p>
+                  </p>
+                  <p className="mt-1 text-[13px] text-foreground whitespace-pre-wrap">
+                    {record.interest}
+                  </p>
                 </div>
               </>
             ) : null}
@@ -119,10 +122,12 @@ const LeadField = ({
 
   return (
     <div>
-      <div className="text-xs text-muted-foreground">{translate(label)}</div>
-      <div className="mt-1 flex items-center gap-2">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        {translate(label)}
+      </p>
+      <div className="mt-1 flex items-center gap-1.5">
         {icon}
-        <span>{value || "-"}</span>
+        <span className="text-[13px] text-foreground">{value || "—"}</span>
       </div>
     </div>
   );
