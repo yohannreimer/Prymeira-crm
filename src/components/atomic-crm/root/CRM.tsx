@@ -4,6 +4,7 @@ import type {
   DashboardComponent,
   LayoutComponent,
 } from "ra-core";
+import { useClerk } from "@clerk/clerk-react";
 import { CustomRoutes, localStorageStore, Resource } from "ra-core";
 import { useEffect, useMemo } from "react";
 import { Route } from "react-router";
@@ -11,9 +12,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { Admin } from "@/components/admin/admin";
-import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
-import { SetPasswordPage } from "@/components/supabase/set-password-page";
-import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 
 import agenda from "../agenda";
 import automations from "../automations";
@@ -28,16 +26,14 @@ import { MobileLayout } from "../layout/MobileLayout";
 import proposals from "../proposals";
 import proposalTemplates from "../proposal-templates";
 import salesGoals from "../sales-goals";
-import { SignupPage } from "../login/SignupPage";
-import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import {
-  getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
 } from "../providers/supabase";
+import { createClerkAuthProvider } from "../providers/supabase/clerkAuthProvider";
+import { usePrymeiraAccess } from "../prymeira/PrymeiraAccessContext";
 import sales from "../sales";
-import { SettingsPageMobile } from "../settings/SettingsPageMobile";
 import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
 import {
@@ -60,7 +56,6 @@ import {
   defaultTitle,
 } from "./defaultConfiguration";
 import { i18nProvider as defaulti18nProvider } from "../providers/commons/i18nProvider";
-import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
 import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
 import { ContactListMobile } from "../contacts/ContactList.tsx";
@@ -120,7 +115,41 @@ export type CRMProps = {
  *
  * export default App;
  */
-export const CRM = ({
+export const CRM = (props: CRMProps) => {
+  if (props.authProvider) {
+    return <CRMWithAuthProvider {...props} authProvider={props.authProvider} />;
+  }
+
+  return <PrymeiraCRM {...props} />;
+};
+
+const PrymeiraCRM = (props: CRMProps) => {
+  const access = usePrymeiraAccess();
+  const { signOut } = useClerk();
+  const dataProvider = useMemo(
+    () => props.dataProvider ?? defaultDataProviderBuilder(),
+    [props.dataProvider],
+  );
+  const authProvider = useMemo(
+    () =>
+      createClerkAuthProvider({
+        getAccess: () => access,
+        signOut,
+        dataProvider,
+      }),
+    [access, dataProvider, signOut],
+  );
+
+  return (
+    <CRMWithAuthProvider
+      {...props}
+      dataProvider={dataProvider}
+      authProvider={authProvider}
+    />
+  );
+};
+
+const CRMWithAuthProvider = ({
   companySectors = defaultCompanySectors,
   currency = defaultCurrency,
   dealCategories = defaultDealCategories,
@@ -134,7 +163,7 @@ export const CRM = ({
   taskTypes = defaultTaskTypes,
   title = defaultTitle,
   dataProvider = defaultDataProviderBuilder(),
-  authProvider = defaultAuthProviderBuilder(),
+  authProvider,
   i18nProvider = defaulti18nProvider,
   store = defaultStore,
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
@@ -142,7 +171,7 @@ export const CRM = ({
     .VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION === "true",
   disableTelemetry,
   ...rest
-}: CRMProps) => {
+}: CRMProps & { authProvider: AuthProvider }) => {
   useEffect(() => {
     if (
       disableTelemetry ||
@@ -237,7 +266,7 @@ export const CRM = ({
       authProvider={wrappedAuthProvider}
       i18nProvider={i18nProvider}
       store={store}
-      loginPage={StartPage}
+      loginPage={false}
       requireAuth
       disableTelemetry
       {...rest}
@@ -257,20 +286,6 @@ const DesktopAdmin = (
       dashboard={props.dashboard ?? Dashboard}
       {...props}
     >
-      <CustomRoutes noLayout>
-        <Route path={SignupPage.path} element={<SignupPage />} />
-        <Route
-          path={ConfirmationRequired.path}
-          element={<ConfirmationRequired />}
-        />
-        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-        <Route
-          path={ForgotPasswordPage.path}
-          element={<ForgotPasswordPage />}
-        />
-        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
-      </CustomRoutes>
-
       <CustomRoutes>
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
@@ -329,24 +344,10 @@ const MobileAdmin = (
         dashboard={props.dashboard ?? MobileDashboard}
         {...props}
       >
-        <CustomRoutes noLayout>
-          <Route path={SignupPage.path} element={<SignupPage />} />
-          <Route
-            path={ConfirmationRequired.path}
-            element={<ConfirmationRequired />}
-          />
-          <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-          <Route
-            path={ForgotPasswordPage.path}
-            element={<ForgotPasswordPage />}
-          />
-          <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
-        </CustomRoutes>
         <CustomRoutes>
-          <Route
-            path={SettingsPageMobile.path}
-            element={<SettingsPageMobile />}
-          />
+          <Route path={ProfilePage.path} element={<ProfilePage />} />
+          <Route path={SettingsPage.path} element={<SettingsPage />} />
+          <Route path={ImportPage.path} element={<ImportPage />} />
           <Route path={ChangelogPage.path} element={<ChangelogPage />} />
         </CustomRoutes>
         <Resource name="agenda" {...agenda} />
