@@ -1,0 +1,114 @@
+import { SignIn, useAuth, useUser } from "@clerk/clerk-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { setSupabaseAccessTokenProvider } from "../providers/supabase/supabase";
+import {
+  checkPrymeiraProductAccess,
+  syncPrymeiraCustomer,
+} from "./accountApi";
+import { PrymeiraAccessProvider } from "./PrymeiraAccessContext";
+import { PrymeiraAccessDenied } from "./PrymeiraAccessDenied";
+import type {
+  PrymeiraAccessContextValue,
+  PrymeiraAccessDecision,
+} from "./types";
+
+type GateState =
+  | { status: "loading" }
+  | { status: "denied"; decision: PrymeiraAccessDecision }
+  | { status: "error"; error: Error }
+  | { status: "allowed"; value: PrymeiraAccessContextValue };
+
+export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
+  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { user } = useUser();
+  const [state, setState] = useState<GateState>({ status: "loading" });
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      setSupabaseAccessTokenProvider(null);
+      return;
+    }
+
+    setSupabaseAccessTokenProvider(() => getToken());
+    return () => setSupabaseAccessTokenProvider(null);
+  }, [getToken, isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user) return;
+
+    let active = true;
+    const clerkUser = user;
+    setState({ status: "loading" });
+
+    async function loadAccess() {
+      const token = await getToken();
+      const email = clerkUser.primaryEmailAddress?.emailAddress;
+      if (!token) throw new Error("Sessao Clerk sem token.");
+      if (!email) throw new Error("Perfil Clerk sem email principal.");
+
+      const sync = await syncPrymeiraCustomer(token, {
+        clerk_user_id: clerkUser.id,
+        email,
+        name: clerkUser.fullName ?? clerkUser.firstName ?? undefined,
+      });
+      const decision = await checkPrymeiraProductAccess(token);
+
+      if (!decision.allowed || !decision.workspace_id) {
+        setState({ status: "denied", decision });
+        return;
+      }
+
+      setState({
+        status: "allowed",
+        value: {
+          token,
+          clerkUserId: clerkUser.id,
+          email,
+          name: clerkUser.fullName ?? null,
+          workspace: sync.workspace,
+          decision: {
+            ...decision,
+            allowed: true,
+            workspace_id: decision.workspace_id,
+            workspace_role: decision.workspace_role ?? sync.workspace.role,
+            product_role: decision.product_role ?? "member",
+          },
+        },
+      });
+    }
+
+    loadAccess().catch((error: unknown) => {
+      if (!active) return;
+      setState({
+        status: "error",
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [getToken, isLoaded, isSignedIn, user]);
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background p-6">
+        <SignIn routing="hash" />
+      </main>
+    );
+  }
+  if (state.status === "loading") return null;
+  if (state.status === "error") {
+    return <PrymeiraAccessDenied error={state.error} />;
+  }
+  if (state.status === "denied") {
+    return <PrymeiraAccessDenied decision={state.decision} />;
+  }
+
+  return (
+    <PrymeiraAccessProvider value={state.value}>
+      {children}
+    </PrymeiraAccessProvider>
+  );
+}
