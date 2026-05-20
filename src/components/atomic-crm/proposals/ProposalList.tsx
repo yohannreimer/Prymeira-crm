@@ -35,16 +35,26 @@ export const ProposalList = () => {
   ];
 
   return (
-    <List
-      title={false}
-      perPage={25}
-      sort={{ field: "created_at", order: "DESC" }}
-      filters={filters}
-      actions={<ProposalListActions />}
-      pagination={<ListPagination rowsPerPageOptions={[10, 25, 50, 100]} />}
-    >
-      <ProposalListContent />
-    </List>
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          Comercial
+        </p>
+        <h1 className="text-[18px] font-bold text-foreground leading-tight">
+          {translate("resources.proposals.name", { smart_count: 2 })}
+        </h1>
+      </div>
+      <List
+        title={false}
+        perPage={25}
+        sort={{ field: "created_at", order: "DESC" }}
+        filters={filters}
+        actions={<ProposalListActions />}
+        pagination={<ListPagination rowsPerPageOptions={[10, 25, 50, 100]} />}
+      >
+        <ProposalListContent />
+      </List>
+    </div>
   );
 };
 
@@ -84,7 +94,21 @@ const ProposalListContent = () => {
 
   return (
     <Card className="py-0">
-      <div className="divide-y">
+      <div className="hidden md:grid md:grid-cols-[1.5fr_0.8fr_0.7fr_0.8fr] gap-3 px-4 py-2.5 border-b border-border/50">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {translate("resources.proposals.fields.title")}
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {translate("resources.proposals.fields.status")}
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {translate("resources.proposals.fields.valid_until")}
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
+          {translate("resources.proposals.fields.total")}
+        </p>
+      </div>
+      <div className="divide-y divide-border/40">
         {records.map((proposal) => (
           <ProposalRow key={proposal.id} proposal={proposal} />
         ))}
@@ -110,22 +134,24 @@ const ProposalRow = ({ proposal }: { proposal: Proposal }) => {
       className="grid gap-3 p-4 transition-colors hover:bg-muted md:grid-cols-[1.5fr_0.8fr_0.7fr_0.8fr]"
     >
       <div className="min-w-0">
-        <div className="truncate font-medium">{proposal.title}</div>
-        <div className="truncate text-sm text-muted-foreground">
+        <div className="truncate text-[13px] font-semibold text-foreground">
+          {proposal.title}
+        </div>
+        <div className="truncate text-[11px] text-muted-foreground">
           {proposal.number}
         </div>
       </div>
       <div className="flex items-center">
         <ProposalStatusBadge proposal={proposal} />
       </div>
-      <div className="text-sm text-muted-foreground">
+      <div className="text-[12px] text-muted-foreground">
         {proposal.valid_until
           ? new Intl.DateTimeFormat(LOCALE, {
               dateStyle: "medium",
             }).format(new Date(`${proposal.valid_until}T00:00:00`))
           : null}
       </div>
-      <div className="font-medium md:text-right">
+      <div className="text-[13px] font-semibold text-foreground md:text-right">
         {formatter.format(proposal.total / 100)}
       </div>
     </Link>

@@ -46,26 +46,38 @@ const ProposalShowContent = () => {
   if (isPending || !record) return null;
 
   return (
-    <div className={cn("mt-2 flex gap-8", printMode && "mt-0 block")}>
-      {printMode ? (
-        <div className="mb-4 flex justify-end print:hidden">
-          <button
-            className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-            onClick={() => window.print()}
-            type="button"
-          >
-            {translate("resources.proposals.action.print")}
-          </button>
+    <div className={cn("flex flex-col gap-4", printMode && "block")}>
+      {!printMode && (
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+            Comercial
+          </p>
+          <h1 className="text-[18px] font-bold text-foreground leading-tight">
+            {record.title}
+          </h1>
         </div>
-      ) : null}
-      <div className="flex flex-1 flex-col gap-4">
-        {printMode ? null : <ProposalActions proposal={record} />}
-        <ProposalPreview
-          proposal={record}
-          company={company}
-          items={items}
-          printMode={printMode}
-        />
+      )}
+      <div className={cn("flex gap-8", printMode && "mt-0 block")}>
+        {printMode ? (
+          <div className="mb-4 flex justify-end print:hidden">
+            <button
+              className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+              onClick={() => window.print()}
+              type="button"
+            >
+              {translate("resources.proposals.action.print")}
+            </button>
+          </div>
+        ) : null}
+        <div className="flex flex-1 flex-col gap-4">
+          {printMode ? null : <ProposalActions proposal={record} />}
+          <ProposalPreview
+            proposal={record}
+            company={company}
+            items={items}
+            printMode={printMode}
+          />
+        </div>
       </div>
     </div>
   );

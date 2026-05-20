@@ -1,8 +1,16 @@
 import { useTranslate } from "ra-core";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 import type { Proposal } from "../types";
-import { proposalStatuses } from "./proposalChoices";
+
+const STATUS_STYLES: Record<string, string> = {
+  draft: "bg-secondary text-secondary-foreground",
+  sent: "bg-primary/10 text-primary border border-primary/20",
+  accepted:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+  rejected: "bg-destructive/10 text-destructive border border-destructive/20",
+  expired: "border border-border text-muted-foreground bg-transparent",
+};
 
 export const ProposalStatusBadge = ({
   proposal,
@@ -10,15 +18,15 @@ export const ProposalStatusBadge = ({
   proposal: Pick<Proposal, "status">;
 }) => {
   const translate = useTranslate();
-  const status = proposalStatuses.find(
-    (choice) => choice.value === proposal.status,
-  );
-
   return (
-    <Badge variant={status?.variant ?? "secondary"}>
-      {translate(
-        status?.label ?? `resources.proposals.statuses.${proposal.status}`,
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold",
+        STATUS_STYLES[proposal.status] ??
+          "bg-secondary text-secondary-foreground",
       )}
-    </Badge>
+    >
+      {translate(`resources.proposals.statuses.${proposal.status}`)}
+    </span>
   );
 };
