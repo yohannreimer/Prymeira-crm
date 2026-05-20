@@ -33,24 +33,21 @@ export const HotContacts = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <Users className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
+      <div className="flex items-center gap-2">
+        <p className="flex-1 text-[10px] font-semibold uppercase tracking-widest text-primary">
           {translate("resources.contacts.hot.title")}
-        </h2>
+        </p>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="ml-auto text-muted-foreground"
+                className="h-6 w-6 p-0 text-muted-foreground"
                 asChild
               >
                 <Link to="/contacts/create">
-                  <Plus className="w-4 h-4 text-primary" />
+                  <Plus className="h-3.5 w-3.5 text-primary" />
                 </Link>
               </Button>
             </TooltipTrigger>

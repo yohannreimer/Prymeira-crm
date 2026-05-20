@@ -55,34 +55,44 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-1">
-      <div className="md:col-span-3">
-        <div className="flex flex-col gap-4">
-          {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
-          <HotContacts />
-        </div>
+    <div className="flex flex-col gap-6">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          Visão geral
+        </p>
+        <h1 className="text-[18px] font-bold text-foreground leading-tight">
+          Dashboard
+        </h1>
       </div>
-      <div className="md:col-span-6">
-        <div className="flex flex-col gap-6">
-          <SalesManagerSummary />
-          <LeadFunnelSummary />
-          <ProposalSummary />
-          <DealRiskSummary />
-          <RevenueForecastSummary />
-          <GoalProgressSummary />
-          <FunnelConversionSummary />
-          <PipelineAgingSummary />
-          <AdvancedSellerRanking />
-          <LossReasonSummary />
-          {totalDeal ? <DealsChart /> : null}
-          <DashboardActivityLog />
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="md:col-span-3">
+          <div className="flex flex-col gap-4">
+            {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
+            <HotContacts />
+          </div>
         </div>
-      </div>
+        <div className="md:col-span-6">
+          <div className="flex flex-col gap-6">
+            <SalesManagerSummary />
+            <LeadFunnelSummary />
+            <ProposalSummary />
+            <DealRiskSummary />
+            <RevenueForecastSummary />
+            <GoalProgressSummary />
+            <FunnelConversionSummary />
+            <PipelineAgingSummary />
+            <AdvancedSellerRanking />
+            <LossReasonSummary />
+            {totalDeal ? <DealsChart /> : null}
+            <DashboardActivityLog />
+          </div>
+        </div>
 
-      <div className="md:col-span-3">
-        <div className="flex flex-col gap-6">
-          <SellerDailyCockpit />
-          <TasksList />
+        <div className="md:col-span-3">
+          <div className="flex flex-col gap-6">
+            <SellerDailyCockpit />
+            <TasksList />
+          </div>
         </div>
       </div>
     </div>
