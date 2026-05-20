@@ -109,80 +109,90 @@ const CompanyShowContent = () => {
   if (isPending || !record) return null;
 
   return (
-    <div className="mt-2 flex pb-2 gap-8">
-      <div className="flex-1">
-        <Card>
-          <CardContent>
-            <div className="flex mb-3">
-              <CompanyAvatar />
-              <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
-            </div>
-            <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="activity">
-                  {translate("crm.common.activity")}
-                </TabsTrigger>
-                <TabsTrigger value="contacts">
-                  {record.nb_contacts === 0
-                    ? translate("resources.companies.no_contacts")
-                    : translate("resources.companies.nb_contacts", {
-                        smart_count: record.nb_contacts ?? 0,
-                      })}
-                </TabsTrigger>
-                {record.nb_deals ? (
-                  <TabsTrigger value="deals">
-                    {translate("resources.companies.nb_deals", {
-                      smart_count: record.nb_deals ?? 0,
-                    })}
+    <div className="flex flex-col gap-4">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+          {translate("resources.companies.forcedCaseName")}
+        </p>
+        <h1 className="text-[18px] font-bold text-foreground leading-tight">
+          {record.name}
+        </h1>
+      </div>
+      <div className="flex pb-2 gap-8">
+        <div className="flex-1">
+          <Card>
+            <CardContent>
+              <div className="flex mb-3">
+                <CompanyAvatar />
+                <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
+              </div>
+              <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="activity">
+                    {translate("crm.common.activity")}
                   </TabsTrigger>
-                ) : null}
-              </TabsList>
-              <TabsContent value="activity" className="pt-2">
-                <ActivityLog companyId={record.id} context="company" />
-              </TabsContent>
-              <TabsContent value="contacts">
-                {record.nb_contacts ? (
-                  <ReferenceManyField
-                    reference="contacts_summary"
-                    target="company_id"
-                    sort={{ field: "last_name", order: "ASC" }}
-                  >
+                  <TabsTrigger value="contacts">
+                    {record.nb_contacts === 0
+                      ? translate("resources.companies.no_contacts")
+                      : translate("resources.companies.nb_contacts", {
+                          smart_count: record.nb_contacts ?? 0,
+                        })}
+                  </TabsTrigger>
+                  {record.nb_deals ? (
+                    <TabsTrigger value="deals">
+                      {translate("resources.companies.nb_deals", {
+                        smart_count: record.nb_deals ?? 0,
+                      })}
+                    </TabsTrigger>
+                  ) : null}
+                </TabsList>
+                <TabsContent value="activity" className="pt-2">
+                  <ActivityLog companyId={record.id} context="company" />
+                </TabsContent>
+                <TabsContent value="contacts">
+                  {record.nb_contacts ? (
+                    <ReferenceManyField
+                      reference="contacts_summary"
+                      target="company_id"
+                      sort={{ field: "last_name", order: "ASC" }}
+                    >
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-row justify-end space-x-2 mt-1">
+                          {!!record.nb_contacts && (
+                            <SortButton
+                              fields={["last_name", "first_name", "last_seen"]}
+                            />
+                          )}
+                          <CreateRelatedContactButton />
+                        </div>
+                        <ContactsIterator />
+                      </div>
+                    </ReferenceManyField>
+                  ) : (
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-row justify-end space-x-2 mt-1">
-                        {!!record.nb_contacts && (
-                          <SortButton
-                            fields={["last_name", "first_name", "last_seen"]}
-                          />
-                        )}
                         <CreateRelatedContactButton />
                       </div>
-                      <ContactsIterator />
                     </div>
-                  </ReferenceManyField>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-row justify-end space-x-2 mt-1">
-                      <CreateRelatedContactButton />
-                    </div>
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent value="deals">
-                {record.nb_deals ? (
-                  <ReferenceManyField
-                    reference="deals"
-                    target="company_id"
-                    sort={{ field: "name", order: "ASC" }}
-                  >
-                    <DealsIterator />
-                  </ReferenceManyField>
-                ) : null}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+                  )}
+                </TabsContent>
+                <TabsContent value="deals">
+                  {record.nb_deals ? (
+                    <ReferenceManyField
+                      reference="deals"
+                      target="company_id"
+                      sort={{ field: "name", order: "ASC" }}
+                    >
+                      <DealsIterator />
+                    </ReferenceManyField>
+                  ) : null}
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+        <CompanyAside />
       </div>
-      <CompanyAside />
     </div>
   );
 };
