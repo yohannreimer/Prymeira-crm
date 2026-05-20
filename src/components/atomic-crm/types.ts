@@ -26,27 +26,25 @@ export type SalesFormData = {
   disabled: boolean;
 };
 
+export type TenantRecord = {
+  workspace_id: string;
+};
+
 export type Sale = {
+  id: Identifier;
   first_name: string;
   last_name: string;
+  email: string;
   administrator: boolean;
+  clerk_user_id?: string;
+  workspace_id?: string;
+  workspace_role?: string;
+  product_role?: string;
   avatar?: RAFile;
   disabled?: boolean;
-  user_id: string;
-
-  /**
-   * This is a copy of the user's email, to make it easier to handle by react admin
-   * DO NOT UPDATE this field directly, it should be updated by the backend
-   */
-  email: string;
-
-  /**
-   * This is used by the fake rest provider to store the password
-   * DO NOT USE this field in your code besides the fake rest provider
-   * @deprecated
-   */
+  user_id?: string;
   password?: string;
-} & Pick<RaRecord, "id">;
+};
 
 export type SalesGoal = {
   sales_id: Identifier;

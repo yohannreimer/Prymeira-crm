@@ -36,6 +36,7 @@ import {
 } from "../../proposals/proposalUtils";
 import { getIsInitialized } from "./authProvider";
 import { getSupabaseClient } from "./supabase";
+import { withTenantDataProvider } from "./tenantDataProvider";
 
 const getBaseDataProvider = () =>
   supabaseDataProvider({
@@ -57,6 +58,15 @@ const getNextProposalNumber = async (dataProvider: DataProvider) => {
   const latestId = Number(proposals[0]?.id);
 
   return buildProposalNumber(Number.isFinite(latestId) ? latestId + 1 : 1);
+};
+
+export type SyncCurrentSaleInput = {
+  clerk_user_id: string;
+  email: string;
+  name: string | null;
+  workspace_id: string;
+  workspace_role: string;
+  product_role: string;
 };
 
 const processCompanyLogo = async (params: any) => {
@@ -196,6 +206,36 @@ const getDataProviderWithCustomMethods = () => {
 
       return updatedData.data;
     },
+    async syncCurrentSale(input: SyncCurrentSaleInput) {
+      const [first_name, ...rest] = (input.name || input.email).split(" ");
+      const last_name = rest.join(" ") || " ";
+      const { data, error } = await getSupabaseClient()
+        .from("sales")
+        .upsert(
+          {
+            clerk_user_id: input.clerk_user_id,
+            email: input.email,
+            first_name,
+            last_name,
+            workspace_id: input.workspace_id,
+            workspace_role: input.workspace_role,
+            product_role: input.product_role,
+            administrator:
+              input.workspace_role === "owner" ||
+              input.product_role === "admin",
+            disabled: false,
+          },
+          { onConflict: "workspace_id,clerk_user_id" },
+        )
+        .select("*")
+        .single();
+
+      if (error || !data) {
+        throw error ?? new Error("Failed to sync current CRM user");
+      }
+
+      return data;
+    },
     async updatePassword(id: Identifier) {
       const { data: passwordUpdated, error } =
         await getSupabaseClient().functions.invoke<boolean>("update_password", {
@@ -278,9 +318,12 @@ const getDataProviderWithCustomMethods = () => {
   } satisfies DataProvider;
 };
 
-export type CrmDataProvider = ReturnType<
+type SupabaseCrmDataProvider = ReturnType<
   typeof getDataProviderWithCustomMethods
 >;
+
+export type CrmDataProvider = Omit<SupabaseCrmDataProvider, "syncCurrentSale"> &
+  Partial<Pick<SupabaseCrmDataProvider, "syncCurrentSale">>;
 
 const processConfigLogo = async (logo: any): Promise<string> => {
   if (typeof logo === "string") return logo;
@@ -609,7 +652,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   } satisfies ResourceCallbacks<Proposal>,
 ];
 
-export const getDataProvider = () => {
+export const getDataProvider = (): SupabaseCrmDataProvider => {
   if (import.meta.env.VITE_SUPABASE_URL === undefined) {
     throw new Error("Please set the VITE_SUPABASE_URL environment variable");
   }
@@ -618,10 +661,14 @@ export const getDataProvider = () => {
       "Please set the VITE_SB_PUBLISHABLE_KEY environment variable",
     );
   }
-  return withLifecycleCallbacks(
+  const dataProvider = withLifecycleCallbacks(
     getDataProviderWithCustomMethods(),
     lifeCycleCallbacks,
-  ) as CrmDataProvider;
+  ) as SupabaseCrmDataProvider;
+
+  return withTenantDataProvider(dataProvider, () =>
+    window.localStorage.getItem("prymeira.workspace_id"),
+  );
 };
 
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {

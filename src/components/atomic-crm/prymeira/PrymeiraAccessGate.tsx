@@ -1,5 +1,6 @@
 import { SignIn, useAuth, useUser } from "@clerk/clerk-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { getDataProvider } from "../providers/supabase/dataProvider";
 import { setSupabaseAccessTokenProvider } from "../providers/supabase/supabase";
 import {
   checkPrymeiraProductAccess,
@@ -74,6 +75,20 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
         setState({ status: "denied", decision });
         return;
       }
+
+      window.localStorage.setItem(
+        "prymeira.workspace_id",
+        decision.workspace_id,
+      );
+      await getDataProvider().syncCurrentSale({
+        clerk_user_id: clerkUser.id,
+        email,
+        name: clerkUser.fullName ?? null,
+        workspace_id: decision.workspace_id,
+        workspace_role: decision.workspace_role ?? sync.workspace.role,
+        product_role: decision.product_role ?? "member",
+      });
+      if (!active) return;
 
       setState({
         status: "allowed",
