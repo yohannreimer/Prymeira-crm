@@ -18,6 +18,18 @@ type GateState =
   | { status: "error"; error: Error }
   | { status: "allowed"; value: PrymeiraAccessContextValue };
 
+function PrymeiraAccessLoading() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background p-6">
+      <div
+        aria-label="Carregando"
+        className="size-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground"
+        role="status"
+      />
+    </main>
+  );
+}
+
 export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { user } = useUser();
@@ -42,6 +54,8 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
 
     async function loadAccess() {
       const token = await getToken();
+      if (!active) return;
+
       const email = clerkUser.primaryEmailAddress?.emailAddress;
       if (!token) throw new Error("Sessao Clerk sem token.");
       if (!email) throw new Error("Perfil Clerk sem email principal.");
@@ -51,7 +65,10 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
         email,
         name: clerkUser.fullName ?? clerkUser.firstName ?? undefined,
       });
+      if (!active) return;
+
       const decision = await checkPrymeiraProductAccess(token);
+      if (!active) return;
 
       if (!decision.allowed || !decision.workspace_id) {
         setState({ status: "denied", decision });
@@ -90,7 +107,7 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
     };
   }, [getToken, isLoaded, isSignedIn, user]);
 
-  if (!isLoaded) return null;
+  if (!isLoaded) return <PrymeiraAccessLoading />;
   if (!isSignedIn) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background p-6">
@@ -98,7 +115,7 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
       </main>
     );
   }
-  if (state.status === "loading") return null;
+  if (state.status === "loading") return <PrymeiraAccessLoading />;
   if (state.status === "error") {
     return <PrymeiraAccessDenied error={state.error} />;
   }
