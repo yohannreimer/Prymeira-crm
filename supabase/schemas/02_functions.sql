@@ -150,15 +150,6 @@ CREATE OR REPLACE FUNCTION "public"."get_note_attachments_function_url"() RETURN
     END;
     $$;
 
-CREATE OR REPLACE FUNCTION "public"."get_user_id_by_email"("email" "text") RETURNS TABLE("id" "uuid")
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
-    AS $_$
-BEGIN
-  RETURN QUERY SELECT au.id FROM auth.users au WHERE au.email = $1;
-END;
-$_$;
-
 CREATE OR REPLACE FUNCTION "public"."handle_company_saved"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
