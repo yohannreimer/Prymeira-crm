@@ -14,9 +14,10 @@ export function PrymeiraAccessDenied(props: {
     : getPrymeiraHubUrl();
 
   useEffect(() => {
+    if (props.error) return;
     if (import.meta.env.MODE === "test") return;
     window.location.assign(href);
-  }, [href]);
+  }, [href, props.error]);
 
   return (
     <main
