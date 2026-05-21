@@ -27,3 +27,10 @@ services:
     restart: unless-stopped
     expose:
       - "80"
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.prymeira-crm.rule=Host(`vincula.prymeiradigital.com.br`)
+        - traefik.http.routers.prymeira-crm.entrypoints=websecure
+        - traefik.http.routers.prymeira-crm.tls=true
+        - traefik.http.services.prymeira-crm.loadbalancer.server.port=80
