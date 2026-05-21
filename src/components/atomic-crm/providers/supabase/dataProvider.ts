@@ -1,5 +1,6 @@
 import { supabaseDataProvider } from "ra-supabase-core";
 import {
+  fetchUtils,
   withLifecycleCallbacks,
   type CreateParams,
   type DataProvider,
@@ -35,14 +36,40 @@ import {
   getNextProposalStatusData,
 } from "../../proposals/proposalUtils";
 import { getIsInitialized } from "./authProvider";
-import { getSupabaseClient } from "./supabase";
+import { getSupabaseAccessToken, getSupabaseClient } from "./supabase";
 import { withTenantDataProvider } from "./tenantDataProvider";
+
+export const createPrymeiraSupabaseHttpClient =
+  (apiKey: string) => async (url: string, options: any = {}) => {
+    const token = await getSupabaseAccessToken();
+    const headers =
+      options.headers instanceof Headers
+        ? options.headers
+        : new Headers(options.headers ?? {});
+
+    headers.set("apiKey", apiKey);
+    headers.set("Authorization", `Bearer ${token ?? apiKey}`);
+
+    return fetchUtils.fetchJson(url, {
+      ...options,
+      headers,
+      user: token
+        ? {
+            authenticated: true,
+            token: `Bearer ${token}`,
+          }
+        : options.user,
+    });
+  };
 
 const getBaseDataProvider = () =>
   supabaseDataProvider({
     instanceUrl: import.meta.env.VITE_SUPABASE_URL,
     apiKey: import.meta.env.VITE_SB_PUBLISHABLE_KEY,
     supabaseClient: getSupabaseClient(),
+    httpClient: createPrymeiraSupabaseHttpClient(
+      import.meta.env.VITE_SB_PUBLISHABLE_KEY,
+    ),
     sortOrder: "asc,desc.nullslast" as any,
   });
 

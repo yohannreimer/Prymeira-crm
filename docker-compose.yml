@@ -17,7 +17,7 @@ services:
         npm run build
         npx vite preview --host 0.0.0.0 --port 80
     environment:
-      CRM_RELEASE: "2026-05-21-blank-page-cache-reset"
+      CRM_RELEASE: "2026-05-21-supabase-token-client"
       NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=1536}
       VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
       VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
