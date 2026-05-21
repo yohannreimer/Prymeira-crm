@@ -47,8 +47,12 @@ export const createPrymeiraSupabaseHttpClient =
         ? options.headers
         : new Headers(options.headers ?? {});
 
-    headers.set("apiKey", apiKey);
-    headers.set("Authorization", `Bearer ${token ?? apiKey}`);
+    headers.set("apikey", apiKey);
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    } else {
+      headers.delete("Authorization");
+    }
 
     return fetchUtils.fetchJson(url, {
       ...options,
