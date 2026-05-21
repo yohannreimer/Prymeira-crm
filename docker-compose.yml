@@ -39,10 +39,10 @@ services:
         git clone --depth 1 --branch main https://github.com/yohannreimer/Prymeira-crm.git /app
         echo "Starting Vincula API release ${CRM_RELEASE}"
         git rev-parse --short HEAD
-        npm ci --omit=dev
+        npm ci --omit=dev --ignore-scripts
         node server/index.js
     environment:
-      CRM_RELEASE: "2026-05-21-internal-postgres"
+      CRM_RELEASE: "2026-05-21-api-health-and-access-error"
       NODE_ENV: production
       PORT: 3001
       DATABASE_URL: postgresql://postgres:${CRM_POSTGRES_PASSWORD:?set CRM_POSTGRES_PASSWORD}@postgres:5432/prymeira_crm
@@ -92,7 +92,7 @@ services:
         npm run build
         npx vite preview --host 0.0.0.0 --port 80
     environment:
-      CRM_RELEASE: "2026-05-21-internal-postgres"
+      CRM_RELEASE: "2026-05-21-api-health-and-access-error"
       NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=1536}
       VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
       VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
