@@ -11,10 +11,13 @@ services:
         set -e
         apk add --no-cache git
         git clone --depth 1 --branch main https://github.com/yohannreimer/Prymeira-crm.git /app
+        echo "Starting Prymeira CRM release ${CRM_RELEASE}"
+        git rev-parse --short HEAD
         npm ci
         npm run build
         npx vite preview --host 0.0.0.0 --port 80
     environment:
+      CRM_RELEASE: "2026-05-21-blank-page-cache-reset"
       NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=1536}
       VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
       VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
