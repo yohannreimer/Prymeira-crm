@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
+        VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
         VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:?set VITE_CLERK_PUBLISHABLE_KEY}
         VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION: ${VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION:-false}
         VITE_GOOGLE_WORKPLACE_DOMAIN: ${VITE_GOOGLE_WORKPLACE_DOMAIN:-}
@@ -17,5 +18,5 @@ services:
         VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:?set VITE_SUPABASE_URL}
     image: prymeira-crm:latest
     restart: unless-stopped
-    ports:
-      - "${CRM_HTTP_PORT:-8080}:80"
+    expose:
+      - "80"
