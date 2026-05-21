@@ -8,12 +8,14 @@ services:
       - sh
       - -lc
       - |
+        set -e
         apk add --no-cache git
         git clone --depth 1 --branch main https://github.com/yohannreimer/Prymeira-crm.git /app
         npm ci
         npm run build
         npx vite preview --host 0.0.0.0 --port 80
     environment:
+      NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=1536}
       VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
       VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
       VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:?set VITE_CLERK_PUBLISHABLE_KEY}
@@ -39,8 +41,8 @@ services:
           - node.hostname == manager01
       resources:
         limits:
-          cpus: "0.50"
-          memory: 768M
+          cpus: "1.00"
+          memory: 2048M
       restart_policy:
         condition: on-failure
       labels:

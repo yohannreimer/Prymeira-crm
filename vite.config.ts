@@ -6,6 +6,17 @@ import { visualizer } from "rollup-plugin-visualizer";
 import createHtmlPlugin from "vite-plugin-simple-html";
 import { VitePWA } from "vite-plugin-pwa";
 
+const appHost = (() => {
+  const appUrl = process.env.VITE_APP_URL;
+  if (!appUrl) return undefined;
+
+  try {
+    return new URL(appUrl).hostname;
+  } catch {
+    return undefined;
+  }
+})();
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -58,6 +69,12 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+  },
+  preview: {
+    allowedHosts: [
+      "vincula.prymeiradigital.com.br",
+      ...(appHost ? [appHost] : []),
+    ],
   },
   resolve: {
     preserveSymlinks: true,
