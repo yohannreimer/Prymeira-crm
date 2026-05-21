@@ -1,0 +1,88 @@
+import { useGetIdentity, useGetList, useTranslate } from "ra-core";
+import { Link } from "react-router";
+import { ReferenceField } from "@/components/admin/reference-field";
+import { Card } from "@/components/ui/card";
+
+import { SimpleList } from "../simple-list/SimpleList";
+import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { findDealLabel } from "../deals/dealUtils";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Deal } from "../types";
+
+const LOCALE = "pt-BR";
+
+/**
+ * This component displays the deals pipeline for the current user.
+ * It's currently not used in the application but can be added to the dashboard.
+ */
+export const DealsPipeline = () => {
+  const translate = useTranslate();
+  const { identity } = useGetIdentity();
+  const { dealStages, dealPipelineStatuses, currency } =
+    useConfigurationContext();
+  const { data, total, isPending } = useGetList<Deal>(
+    "deals",
+    {
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "last_seen", order: "DESC" },
+      filter: { "stage@neq": "lost", sales_id: identity?.id },
+    },
+    { enabled: Number.isInteger(identity?.id) },
+  );
+
+  const getOrderedDeals = (data?: Deal[]): Deal[] | undefined => {
+    if (!data) {
+      return;
+    }
+    const deals: Deal[] = [];
+    dealStages
+      .filter((stage) => !dealPipelineStatuses.includes(stage.value))
+      .forEach((stage) =>
+        data
+          .filter((deal) => deal.stage === stage.value)
+          .forEach((deal) => deals.push(deal)),
+      );
+    return deals;
+  };
+
+  return (
+    <>
+      <Link
+        to="/deals"
+        className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-2 hover:text-primary/80 inline-block"
+      >
+        {translate("crm.dashboard.deals_pipeline")}
+      </Link>
+      <Card>
+        <SimpleList<Deal>
+          resource="deals"
+          linkType="show"
+          data={getOrderedDeals(data)}
+          total={total}
+          isPending={isPending}
+          primaryText={(deal) => deal.name}
+          secondaryText={(deal) =>
+            `${deal.amount.toLocaleString(LOCALE, {
+              notation: "compact",
+              style: "currency",
+              currency,
+              currencyDisplay: "narrowSymbol",
+              minimumSignificantDigits: 3,
+            })} , ${findDealLabel(dealStages, deal.stage)}`
+          }
+          leftAvatar={(deal) => (
+            <ReferenceField
+              source="company_id"
+              record={deal}
+              reference="companies"
+              resource="deals"
+              link={false}
+            >
+              <CompanyAvatar width={20} height={20} />
+            </ReferenceField>
+          )}
+        />
+      </Card>
+    </>
+  );
+};

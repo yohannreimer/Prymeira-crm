@@ -1,0 +1,297 @@
+--
+-- Grants
+-- This file declares all grants and default privileges for the public schema.
+--
+
+-- Schema usage
+grant usage on schema public to postgres;
+grant usage on schema public to anon;
+grant usage on schema public to authenticated;
+grant usage on schema public to service_role;
+
+-- Function grants
+grant all on function public.cleanup_note_attachments() to anon;
+grant all on function public.cleanup_note_attachments() to authenticated;
+grant all on function public.cleanup_note_attachments() to service_role;
+
+grant all on function public.get_avatar_for_email(text) to anon;
+grant all on function public.get_avatar_for_email(text) to authenticated;
+grant all on function public.get_avatar_for_email(text) to service_role;
+
+grant all on function public.get_domain_favicon(text) to anon;
+grant all on function public.get_domain_favicon(text) to authenticated;
+grant all on function public.get_domain_favicon(text) to service_role;
+
+grant all on function public.get_note_attachments_function_url() to anon;
+grant all on function public.get_note_attachments_function_url() to authenticated;
+grant all on function public.get_note_attachments_function_url() to service_role;
+
+grant all on function public.handle_company_saved() to anon;
+grant all on function public.handle_company_saved() to authenticated;
+grant all on function public.handle_company_saved() to service_role;
+
+grant all on function public.handle_contact_note_created_or_updated() to anon;
+grant all on function public.handle_contact_note_created_or_updated() to authenticated;
+grant all on function public.handle_contact_note_created_or_updated() to service_role;
+
+grant all on function public.handle_contact_saved() to anon;
+grant all on function public.handle_contact_saved() to authenticated;
+grant all on function public.handle_contact_saved() to service_role;
+
+grant all on function public.is_admin() to anon;
+grant all on function public.is_admin() to authenticated;
+grant all on function public.is_admin() to service_role;
+
+grant all on function public.current_clerk_user_id() to anon;
+grant all on function public.current_clerk_user_id() to authenticated;
+grant all on function public.current_clerk_user_id() to service_role;
+
+grant all on function public.can_access_workspace(uuid) to anon;
+grant all on function public.can_access_workspace(uuid) to authenticated;
+grant all on function public.can_access_workspace(uuid) to service_role;
+
+grant all on function public.current_sale_id(uuid) to anon;
+grant all on function public.current_sale_id(uuid) to authenticated;
+grant all on function public.current_sale_id(uuid) to service_role;
+
+grant all on function public.is_admin_for_workspace(uuid) to anon;
+grant all on function public.is_admin_for_workspace(uuid) to authenticated;
+grant all on function public.is_admin_for_workspace(uuid) to service_role;
+
+grant all on function public.storage_workspace_id(text) to anon;
+grant all on function public.storage_workspace_id(text) to authenticated;
+grant all on function public.storage_workspace_id(text) to service_role;
+
+grant all on function public.workspace_has_company(uuid, bigint) to anon;
+grant all on function public.workspace_has_company(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_company(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_contact(uuid, bigint) to anon;
+grant all on function public.workspace_has_contact(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_contact(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_contacts(uuid, bigint[]) to anon;
+grant all on function public.workspace_has_contacts(uuid, bigint[]) to authenticated;
+grant all on function public.workspace_has_contacts(uuid, bigint[]) to service_role;
+
+grant all on function public.workspace_has_deal(uuid, bigint) to anon;
+grant all on function public.workspace_has_deal(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_deal(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_lead(uuid, bigint) to anon;
+grant all on function public.workspace_has_lead(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_lead(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_pipeline(uuid, bigint) to anon;
+grant all on function public.workspace_has_pipeline(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_pipeline(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_sale(uuid, bigint) to anon;
+grant all on function public.workspace_has_sale(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_sale(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_automation_run(uuid, bigint) to anon;
+grant all on function public.workspace_has_automation_run(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_automation_run(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_proposal_template(uuid, bigint) to anon;
+grant all on function public.workspace_has_proposal_template(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_proposal_template(uuid, bigint) to service_role;
+
+grant all on function public.workspace_has_proposal(uuid, bigint) to anon;
+grant all on function public.workspace_has_proposal(uuid, bigint) to authenticated;
+grant all on function public.workspace_has_proposal(uuid, bigint) to service_role;
+
+grant all on function public.lowercase_email_jsonb() to anon;
+grant all on function public.lowercase_email_jsonb() to authenticated;
+grant all on function public.lowercase_email_jsonb() to service_role;
+
+revoke all on function public.merge_contacts(uuid, bigint, bigint) from public;
+grant all on function public.merge_contacts(uuid, bigint, bigint) to service_role;
+
+grant all on function public.set_sales_id_default() to anon;
+grant all on function public.set_sales_id_default() to authenticated;
+grant all on function public.set_sales_id_default() to service_role;
+
+-- Table grants
+grant all on table public.companies to anon;
+grant all on table public.companies to authenticated;
+grant all on table public.companies to service_role;
+
+grant all on table public.contacts to anon;
+grant all on table public.contacts to authenticated;
+grant all on table public.contacts to service_role;
+
+grant all on table public.contact_notes to anon;
+grant all on table public.contact_notes to authenticated;
+grant all on table public.contact_notes to service_role;
+
+grant all on table public.pipelines to anon;
+grant all on table public.pipelines to authenticated;
+grant all on table public.pipelines to service_role;
+
+grant all on table public.deals to anon;
+grant all on table public.deals to authenticated;
+grant all on table public.deals to service_role;
+
+grant all on table public.deal_notes to anon;
+grant all on table public.deal_notes to authenticated;
+grant all on table public.deal_notes to service_role;
+
+grant all on table public.leads to anon;
+grant all on table public.leads to authenticated;
+grant all on table public.leads to service_role;
+
+grant all on table public.sales to anon;
+grant all on table public.sales to authenticated;
+grant all on table public.sales to service_role;
+
+grant all on table public.sales_goals to anon;
+grant all on table public.sales_goals to authenticated;
+grant all on table public.sales_goals to service_role;
+
+grant all on table public.tags to anon;
+grant all on table public.tags to authenticated;
+grant all on table public.tags to service_role;
+
+grant all on table public.automation_runs to anon;
+grant all on table public.automation_runs to authenticated;
+grant all on table public.automation_runs to service_role;
+
+grant all on table public.proposal_templates to anon;
+grant all on table public.proposal_templates to authenticated;
+grant all on table public.proposal_templates to service_role;
+
+grant all on table public.proposal_template_items to anon;
+grant all on table public.proposal_template_items to authenticated;
+grant all on table public.proposal_template_items to service_role;
+
+grant all on table public.proposals to anon;
+grant all on table public.proposals to authenticated;
+grant all on table public.proposals to service_role;
+
+grant all on table public.proposal_items to anon;
+grant all on table public.proposal_items to authenticated;
+grant all on table public.proposal_items to service_role;
+
+grant all on table public.automation_rules to anon;
+grant all on table public.automation_rules to authenticated;
+grant all on table public.automation_rules to service_role;
+
+grant all on table public.tasks to anon;
+grant all on table public.tasks to authenticated;
+grant all on table public.tasks to service_role;
+
+grant all on table public.configuration to anon;
+grant all on table public.configuration to authenticated;
+grant all on table public.configuration to service_role;
+
+grant all on table public.favicons_excluded_domains to anon;
+grant all on table public.favicons_excluded_domains to authenticated;
+grant all on table public.favicons_excluded_domains to service_role;
+
+-- View grants
+grant all on table public.activity_log to anon;
+grant all on table public.activity_log to authenticated;
+grant all on table public.activity_log to service_role;
+
+grant all on table public.companies_summary to anon;
+grant all on table public.companies_summary to authenticated;
+grant all on table public.companies_summary to service_role;
+
+grant all on table public.contacts_summary to anon;
+grant all on table public.contacts_summary to authenticated;
+grant all on table public.contacts_summary to service_role;
+
+grant all on table public.init_state to anon;
+grant all on table public.init_state to authenticated;
+grant all on table public.init_state to service_role;
+
+-- Sequence grants
+grant all on sequence public.companies_id_seq to anon;
+grant all on sequence public.companies_id_seq to authenticated;
+grant all on sequence public.companies_id_seq to service_role;
+
+grant all on sequence public."contactNotes_id_seq" to anon;
+grant all on sequence public."contactNotes_id_seq" to authenticated;
+grant all on sequence public."contactNotes_id_seq" to service_role;
+
+grant all on sequence public.contacts_id_seq to anon;
+grant all on sequence public.contacts_id_seq to authenticated;
+grant all on sequence public.contacts_id_seq to service_role;
+
+grant all on sequence public.pipelines_id_seq to anon;
+grant all on sequence public.pipelines_id_seq to authenticated;
+grant all on sequence public.pipelines_id_seq to service_role;
+
+grant all on sequence public."dealNotes_id_seq" to anon;
+grant all on sequence public."dealNotes_id_seq" to authenticated;
+grant all on sequence public."dealNotes_id_seq" to service_role;
+
+grant all on sequence public.deals_id_seq to anon;
+grant all on sequence public.deals_id_seq to authenticated;
+grant all on sequence public.deals_id_seq to service_role;
+
+grant all on sequence public.leads_id_seq to anon;
+grant all on sequence public.leads_id_seq to authenticated;
+grant all on sequence public.leads_id_seq to service_role;
+
+grant all on sequence public.favicons_excluded_domains_id_seq to anon;
+grant all on sequence public.favicons_excluded_domains_id_seq to authenticated;
+grant all on sequence public.favicons_excluded_domains_id_seq to service_role;
+
+grant all on sequence public.sales_id_seq to anon;
+grant all on sequence public.sales_id_seq to authenticated;
+grant all on sequence public.sales_id_seq to service_role;
+
+grant all on sequence public.sales_goals_id_seq to anon;
+grant all on sequence public.sales_goals_id_seq to authenticated;
+grant all on sequence public.sales_goals_id_seq to service_role;
+
+grant all on sequence public.tags_id_seq to anon;
+grant all on sequence public.tags_id_seq to authenticated;
+grant all on sequence public.tags_id_seq to service_role;
+
+grant all on sequence public.automation_runs_id_seq to anon;
+grant all on sequence public.automation_runs_id_seq to authenticated;
+grant all on sequence public.automation_runs_id_seq to service_role;
+
+grant all on sequence public.proposal_templates_id_seq to anon;
+grant all on sequence public.proposal_templates_id_seq to authenticated;
+grant all on sequence public.proposal_templates_id_seq to service_role;
+
+grant all on sequence public.proposal_template_items_id_seq to anon;
+grant all on sequence public.proposal_template_items_id_seq to authenticated;
+grant all on sequence public.proposal_template_items_id_seq to service_role;
+
+grant all on sequence public.proposals_id_seq to anon;
+grant all on sequence public.proposals_id_seq to authenticated;
+grant all on sequence public.proposals_id_seq to service_role;
+
+grant all on sequence public.proposal_items_id_seq to anon;
+grant all on sequence public.proposal_items_id_seq to authenticated;
+grant all on sequence public.proposal_items_id_seq to service_role;
+
+grant all on sequence public.automation_rules_id_seq to anon;
+grant all on sequence public.automation_rules_id_seq to authenticated;
+grant all on sequence public.automation_rules_id_seq to service_role;
+
+grant all on sequence public.tasks_id_seq to anon;
+grant all on sequence public.tasks_id_seq to authenticated;
+grant all on sequence public.tasks_id_seq to service_role;
+
+-- Default privileges
+alter default privileges for role postgres in schema public grant all on sequences to postgres;
+alter default privileges for role postgres in schema public grant all on sequences to anon;
+alter default privileges for role postgres in schema public grant all on sequences to authenticated;
+alter default privileges for role postgres in schema public grant all on sequences to service_role;
+
+alter default privileges for role postgres in schema public grant all on functions to postgres;
+alter default privileges for role postgres in schema public grant all on functions to anon;
+alter default privileges for role postgres in schema public grant all on functions to authenticated;
+alter default privileges for role postgres in schema public grant all on functions to service_role;
+
+alter default privileges for role postgres in schema public grant all on tables to postgres;
+alter default privileges for role postgres in schema public grant all on tables to anon;
+alter default privileges for role postgres in schema public grant all on tables to authenticated;
+alter default privileges for role postgres in schema public grant all on tables to service_role;

@@ -1,0 +1,442 @@
+<h2>Estrutura de navegação</h2>
+<p class="subtitle">Qual dessas abordagens parece mais certa para o CRM?</p>
+
+<div class="cards">
+  <!-- Option A: Full sidebar -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div
+      class="card-image"
+      style="
+        background: #f8f8fa;
+        padding: 16px;
+        display: flex;
+        gap: 10px;
+        height: 200px;
+        overflow: hidden;
+      "
+    >
+      <!-- Sidebar -->
+      <div
+        style="
+          width: 52px;
+          background: #1a1a2e;
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 12px 0;
+          gap: 12px;
+          flex-shrink: 0;
+        "
+      >
+        <div
+          style="
+            width: 28px;
+            height: 28px;
+            background: #6366f1;
+            border-radius: 6px;
+          "
+        ></div>
+        <div
+          style="
+            width: 24px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 2px;
+            margin-top: 8px;
+          "
+        ></div>
+        <div
+          style="
+            width: 24px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+          "
+        ></div>
+        <div
+          style="
+            width: 24px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+          "
+        ></div>
+        <div
+          style="
+            width: 24px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+          "
+        ></div>
+        <div
+          style="
+            width: 24px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+          "
+        ></div>
+        <div style="flex: 1"></div>
+        <div
+          style="
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+          "
+        ></div>
+      </div>
+      <!-- Content -->
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+        <div
+          style="
+            height: 24px;
+            background: #e5e5f0;
+            border-radius: 4px;
+            width: 60%;
+          "
+        ></div>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            flex: 1;
+          "
+        >
+          <div style="background: #ededf5; border-radius: 6px"></div>
+          <div style="background: #ededf5; border-radius: 6px"></div>
+          <div style="background: #ededf5; border-radius: 6px"></div>
+          <div style="background: #ededf5; border-radius: 6px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Sidebar com ícones (icon-only)</h3>
+      <p>
+        Barra lateral compacta só com ícones — máximo espaço para o conteúdo.
+        Padrão do Attio, Linear, Superhuman.
+      </p>
+    </div>
+  </div>
+
+  <!-- Option B: Wide sidebar with labels -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div
+      class="card-image"
+      style="
+        background: #f8f8fa;
+        padding: 16px;
+        display: flex;
+        gap: 10px;
+        height: 200px;
+        overflow: hidden;
+      "
+    >
+      <!-- Sidebar -->
+      <div
+        style="
+          width: 110px;
+          background: #1a1a2e;
+          border-radius: 8px;
+          display: flex;
+          flex-direction: column;
+          padding: 12px 8px;
+          gap: 6px;
+          flex-shrink: 0;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+          "
+        >
+          <div
+            style="
+              width: 20px;
+              height: 20px;
+              background: #6366f1;
+              border-radius: 4px;
+              flex-shrink: 0;
+            "
+          ></div>
+          <div
+            style="
+              width: 48px;
+              height: 8px;
+              background: rgba(255, 255, 255, 0.6);
+              border-radius: 2px;
+            "
+          ></div>
+        </div>
+        <div
+          style="
+            background: rgba(99, 102, 241, 0.25);
+            border-radius: 5px;
+            padding: 5px 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+          "
+        >
+          <div
+            style="
+              width: 10px;
+              height: 10px;
+              background: #6366f1;
+              border-radius: 2px;
+            "
+          ></div>
+          <div
+            style="
+              width: 40px;
+              height: 6px;
+              background: rgba(255, 255, 255, 0.8);
+              border-radius: 2px;
+            "
+          ></div>
+        </div>
+        <div
+          style="padding: 5px 6px; display: flex; align-items: center; gap: 5px"
+        >
+          <div
+            style="
+              width: 10px;
+              height: 10px;
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 2px;
+            "
+          ></div>
+          <div
+            style="
+              width: 35px;
+              height: 6px;
+              background: rgba(255, 255, 255, 0.25);
+              border-radius: 2px;
+            "
+          ></div>
+        </div>
+        <div
+          style="padding: 5px 6px; display: flex; align-items: center; gap: 5px"
+        >
+          <div
+            style="
+              width: 10px;
+              height: 10px;
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 2px;
+            "
+          ></div>
+          <div
+            style="
+              width: 45px;
+              height: 6px;
+              background: rgba(255, 255, 255, 0.25);
+              border-radius: 2px;
+            "
+          ></div>
+        </div>
+        <div
+          style="padding: 5px 6px; display: flex; align-items: center; gap: 5px"
+        >
+          <div
+            style="
+              width: 10px;
+              height: 10px;
+              background: rgba(255, 255, 255, 0.2);
+              border-radius: 2px;
+            "
+          ></div>
+          <div
+            style="
+              width: 38px;
+              height: 6px;
+              background: rgba(255, 255, 255, 0.25);
+              border-radius: 2px;
+            "
+          ></div>
+        </div>
+        <div style="flex: 1"></div>
+        <div
+          style="display: flex; align-items: center; gap: 5px; padding: 5px 6px"
+        >
+          <div
+            style="
+              width: 18px;
+              height: 18px;
+              background: rgba(255, 255, 255, 0.15);
+              border-radius: 50%;
+            "
+          ></div>
+          <div
+            style="
+              width: 40px;
+              height: 6px;
+              background: rgba(255, 255, 255, 0.25);
+              border-radius: 2px;
+            "
+          ></div>
+        </div>
+      </div>
+      <!-- Content -->
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 8px">
+        <div
+          style="
+            height: 24px;
+            background: #e5e5f0;
+            border-radius: 4px;
+            width: 60%;
+          "
+        ></div>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            flex: 1;
+          "
+        >
+          <div style="background: #ededf5; border-radius: 6px"></div>
+          <div style="background: #ededf5; border-radius: 6px"></div>
+          <div style="background: #ededf5; border-radius: 6px"></div>
+          <div style="background: #ededf5; border-radius: 6px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Sidebar larga com labels</h3>
+      <p>
+        Sidebar com ícones + nomes das seções sempre visíveis. Padrão do Twenty,
+        Notion, HubSpot. Mais orientadora para novos usuários.
+      </p>
+    </div>
+  </div>
+
+  <!-- Option C: Top bar redesigned (current approach, made beautiful) -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div
+      class="card-image"
+      style="
+        background: #f8f8fa;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 200px;
+        overflow: hidden;
+      "
+    >
+      <!-- Top nav -->
+      <div
+        style="
+          background: #1a1a2e;
+          border-radius: 8px;
+          padding: 8px 12px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        "
+      >
+        <div
+          style="
+            width: 20px;
+            height: 20px;
+            background: #6366f1;
+            border-radius: 4px;
+          "
+        ></div>
+        <div style="display: flex; gap: 4px; flex: 1">
+          <div
+            style="
+              background: rgba(99, 102, 241, 0.3);
+              border-radius: 20px;
+              padding: 4px 10px;
+            "
+          >
+            <div
+              style="
+                width: 32px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 2px;
+              "
+            ></div>
+          </div>
+          <div style="padding: 4px 10px">
+            <div
+              style="
+                width: 28px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.25);
+                border-radius: 2px;
+              "
+            ></div>
+          </div>
+          <div style="padding: 4px 10px">
+            <div
+              style="
+                width: 36px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.25);
+                border-radius: 2px;
+              "
+            ></div>
+          </div>
+          <div style="padding: 4px 10px">
+            <div
+              style="
+                width: 30px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.25);
+                border-radius: 2px;
+              "
+            ></div>
+          </div>
+          <div style="padding: 4px 10px">
+            <div
+              style="
+                width: 44px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.25);
+                border-radius: 2px;
+              "
+            ></div>
+          </div>
+        </div>
+        <div
+          style="
+            width: 22px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+          "
+        ></div>
+      </div>
+      <!-- Content -->
+      <div
+        style="
+          flex: 1;
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 8px;
+        "
+      >
+        <div style="background: #ededf5; border-radius: 6px"></div>
+        <div style="background: #ededf5; border-radius: 6px"></div>
+        <div style="background: #ededf5; border-radius: 6px"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Top bar reformulado (atual)</h3>
+      <p>
+        Manter a barra no topo mas redesenhada com fundo escuro, pill ativo, e
+        mais personalidade. Mais familiar, menos ruptura.
+      </p>
+    </div>
+  </div>
+</div>

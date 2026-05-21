@@ -1,0 +1,21 @@
+import type { Pipeline } from "../../../types";
+import { DEFAULT_WORKSPACE_ID } from "./constants";
+
+const DEFAULT_STAGES = [
+  { value: "opportunity", label: "Oportunidade" },
+  { value: "proposal-sent", label: "Proposta enviada" },
+  { value: "in-negociation", label: "Em negociação" },
+  { value: "won", label: "Ganho" },
+  { value: "lost", label: "Perdido" },
+  { value: "delayed", label: "Adiado" },
+];
+
+export const generatePipelines = (): Pipeline[] => [
+  {
+    id: 1,
+    name: "Vendas",
+    stages: DEFAULT_STAGES,
+    created_at: new Date().toISOString(),
+    workspace_id: DEFAULT_WORKSPACE_ID,
+  },
+];

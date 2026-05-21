@@ -1,0 +1,327 @@
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap");
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "DM Sans", sans-serif;
+  }
+
+  .ds-section {
+    margin-bottom: 28px;
+  }
+  .ds-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94a3b8;
+    margin-bottom: 10px;
+  }
+
+  /* Colors */
+  .swatch-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .swatch {
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-end;
+    padding: 6px 8px;
+  }
+  .swatch span {
+    font-size: 9px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    font-family: monospace;
+  }
+  .swatch-sm {
+    height: 32px;
+    border-radius: 6px;
+    flex: 1;
+    min-width: 40px;
+    display: flex;
+    align-items: flex-end;
+    padding: 4px 6px;
+  }
+  .swatch-sm span {
+    font-size: 8px;
+    font-weight: 600;
+    font-family: monospace;
+  }
+
+  /* Type scale */
+  .type-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .t-hero {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  .t-h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  .t-h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .t-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #14b8a6;
+    letter-spacing: 0.01em;
+  }
+  .t-body {
+    font-size: 13px;
+    font-weight: 400;
+    color: #475569;
+    line-height: 1.6;
+  }
+  .t-caption {
+    font-size: 11px;
+    font-weight: 400;
+    color: #94a3b8;
+  }
+
+  /* Shadows */
+  .shadow-samples {
+    display: flex;
+    gap: 12px;
+  }
+  .shadow-box {
+    flex: 1;
+    background: white;
+    border-radius: 10px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .shadow-xs {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  .shadow-sm {
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.08),
+      0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .shadow-md {
+    box-shadow:
+      0 4px 6px rgba(0, 0, 0, 0.07),
+      0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  .shadow-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* Radius -->*/
+  .radius-samples {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .radius-box {
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Badges -->*/
+  .badge-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* Buttons -->*/
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: "DM Sans", sans-serif;
+  }
+  .btn-primary {
+    background: #14b8a6;
+    color: white;
+  }
+  .btn-secondary {
+    background: white;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: #64748b;
+  }
+  .btn-destructive {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+  .btn-sm {
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 6px;
+  }
+</style>
+
+<h2>Sistema de Design</h2>
+<p class="subtitle">
+  A fundação visual que vai unificar todas as telas. Revise e me diga se quer
+  ajustar algo antes de continuar.
+</p>
+
+<div class="ds-section">
+  <div class="ds-label">Cores principais</div>
+  <div class="swatch-row">
+    <div class="swatch" style="background: #14b8a6; width: 100px">
+      <span>#14b8a6 · Teal Primary</span>
+    </div>
+    <div class="swatch" style="background: #0f766e; width: 100px">
+      <span>#0f766e · Teal Dark</span>
+    </div>
+    <div class="swatch" style="background: #ccfbf1; width: 100px">
+      <span style="color: #0f766e; text-shadow: none"
+        >#ccfbf1 · Teal Muted</span
+      >
+    </div>
+    <div class="swatch" style="background: #1e293b; width: 100px">
+      <span>#1e293b · Sidebar</span>
+    </div>
+    <div class="swatch" style="background: #0f172a; width: 100px">
+      <span>#0f172a · Foreground</span>
+    </div>
+  </div>
+</div>
+
+<div class="ds-section">
+  <div class="ds-label">Neutros (fundo e superfícies)</div>
+  <div class="swatch-row" style="width: 100%">
+    <div class="swatch-sm" style="background: #f8fafc; flex: 1">
+      <span style="color: #94a3b8">Background</span>
+    </div>
+    <div class="swatch-sm" style="background: #f1f5f9">
+      <span style="color: #94a3b8">Surface</span>
+    </div>
+    <div class="swatch-sm" style="background: #e2e8f0">
+      <span style="color: #64748b">Border</span>
+    </div>
+    <div class="swatch-sm" style="background: #94a3b8"><span>Muted</span></div>
+    <div class="swatch-sm" style="background: #475569">
+      <span>Secondary</span>
+    </div>
+    <div class="swatch-sm" style="background: #1e293b">
+      <span>Foreground</span>
+    </div>
+  </div>
+</div>
+
+<div class="ds-section">
+  <div class="ds-label">Escala tipográfica · DM Sans</div>
+  <div class="type-row">
+    <div class="t-hero">Dashboard de Vendas</div>
+    <div class="t-h1">Contatos · 248 registros</div>
+    <div class="t-h2">Pipeline ativo</div>
+    <div class="t-label">Contatos Quentes</div>
+    <div class="t-body">
+      Sarah Kowalski entrou em contato ontem às 14h sobre a proposta de R$
+      48.000. Aguarda resposta do time jurídico.
+    </div>
+    <div class="t-caption">Última atividade há 2 horas · via email</div>
+  </div>
+</div>
+
+<div class="ds-section">
+  <div class="ds-label">Sombras dos cards</div>
+  <div class="shadow-samples">
+    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1">
+      <div class="shadow-box shadow-xs">
+        <span class="shadow-label">XS · hover states</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1">
+      <div class="shadow-box shadow-sm">
+        <span class="shadow-label">SM · cards padrão</span>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; flex: 1">
+      <div class="shadow-box shadow-md">
+        <span class="shadow-label">MD · modais, dropdowns</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ds-section">
+  <div class="ds-label">Badges de status</div>
+  <div class="badge-row">
+    <span class="badge" style="background: #ccfbf1; color: #0f766e"
+      >● Quente</span
+    >
+    <span class="badge" style="background: #fef9c3; color: #854d0e"
+      >● Morno</span
+    >
+    <span class="badge" style="background: #f1f5f9; color: #475569"
+      >● Frio</span
+    >
+    <span class="badge" style="background: #ede9fe; color: #6d28d9"
+      >● Em proposta</span
+    >
+    <span class="badge" style="background: #fef2f2; color: #b91c1c"
+      >● Perdido</span
+    >
+    <span class="badge" style="background: #dcfce7; color: #15803d"
+      >● Ganho</span
+    >
+  </div>
+</div>
+
+<div class="ds-section">
+  <div class="ds-label">Botões</div>
+  <div class="btn-row">
+    <button class="btn btn-primary">+ Novo Contato</button>
+    <button class="btn btn-secondary">Exportar CSV</button>
+    <button class="btn btn-ghost">Cancelar</button>
+    <button class="btn btn-destructive">Excluir</button>
+    <button class="btn btn-primary btn-sm">+ Adicionar</button>
+    <button class="btn btn-secondary btn-sm">Filtrar</button>
+  </div>
+</div>

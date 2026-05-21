@@ -1,0 +1,274 @@
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Geist:wght@400;500;600;700&display=swap");
+
+  .typo-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.08),
+      0 1px 2px rgba(0, 0, 0, 0.04);
+    padding: 16px;
+    height: 200px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .section-label-a {
+    font-family: "Inter", sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #94a3b8;
+  }
+
+  .section-title-a {
+    font-family: "Inter", sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+
+  .body-a {
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .name-a {
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  /* Option B - DM Sans, warmer */
+  .section-label-b {
+    font-family: "DM Sans", sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #14b8a6;
+    letter-spacing: 0.02em;
+  }
+  .section-title-b {
+    font-family: "DM Sans", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  .body-b {
+    font-family: "DM Sans", sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #475569;
+    line-height: 1.5;
+  }
+  .name-b {
+    font-family: "DM Sans", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  /* Option C - Inter but more expressive hierarchy */
+  .section-label-c {
+    font-family: "Inter", sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #14b8a6;
+    letter-spacing: 0.01em;
+  }
+  .section-title-c {
+    font-family: "Inter", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.3;
+  }
+  .body-c {
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: #64748b;
+    line-height: 1.5;
+  }
+  .name-c {
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+  }
+
+  .divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 2px 0;
+  }
+
+  .contact-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+  }
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .badge {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: #ccfbf1;
+    color: #0f766e;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+</style>
+
+<h2>Estilo tipográfico</h2>
+<p class="subtitle">
+  Mesmo conteúdo, três personalidades de texto diferentes. O projeto usa a fonte
+  Inter (já instalada).
+</p>
+
+<div class="cards">
+  <!-- Option A: Compact, uppercase labels, strong contrast -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; background: #f8fafc">
+      <div class="typo-card" style="margin: 12px; height: 176px">
+        <div>
+          <div class="section-label-a">Contatos Quentes</div>
+          <div style="margin-top: 1px" class="body-a">
+            3 contatos precisam de atenção
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="contact-row">
+          <div class="avatar" style="background: #14b8a6"></div>
+          <div style="flex: 1">
+            <div class="name-a">Sarah Kowalski</div>
+            <div class="body-a">VP Sales · Acme Corp</div>
+          </div>
+          <span class="badge" style="font-family: &quot;Inter&quot;, sans-serif"
+            >Quente</span
+          >
+        </div>
+        <div class="contact-row">
+          <div class="avatar" style="background: #f59e0b"></div>
+          <div style="flex: 1">
+            <div class="name-a">Marcos Lima</div>
+            <div class="body-a">CTO · TechBrasil</div>
+          </div>
+          <span class="badge" style="font-family: &quot;Inter&quot;, sans-serif"
+            >Quente</span
+          >
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Inter compacto · Labels maiúsculos</h3>
+      <p>
+        Fontes Inter com labels ALL CAPS em cinza pálido. Hierarquia técnica,
+        muito legível. Estilo Linear, Vercel Dashboard.
+      </p>
+    </div>
+  </div>
+
+  <!-- Option B: DM Sans warmer, colored labels -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; background: #f8fafc">
+      <div class="typo-card" style="margin: 12px; height: 176px">
+        <div>
+          <div class="section-label-b">Contatos Quentes</div>
+          <div style="margin-top: 2px" class="body-b">
+            3 contatos precisam de atenção
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="contact-row">
+          <div class="avatar" style="background: #14b8a6"></div>
+          <div style="flex: 1">
+            <div class="name-b">Sarah Kowalski</div>
+            <div class="body-b">VP Sales · Acme Corp</div>
+          </div>
+          <span
+            class="badge"
+            style="font-family: &quot;DM Sans&quot;, sans-serif"
+            >Quente</span
+          >
+        </div>
+        <div class="contact-row">
+          <div class="avatar" style="background: #f59e0b"></div>
+          <div style="flex: 1">
+            <div class="name-b">Marcos Lima</div>
+            <div class="body-b">CTO · TechBrasil</div>
+          </div>
+          <span
+            class="badge"
+            style="font-family: &quot;DM Sans&quot;, sans-serif"
+            >Quente</span
+          >
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>DM Sans · Labels coloridos em teal</h3>
+      <p>
+        Fonte DM Sans com labels coloridos na cor accent. Mais quente e
+        expressivo. Os títulos de seção viram parte da identidade. Estilo
+        Notion, Twenty.
+      </p>
+    </div>
+  </div>
+
+  <!-- Option C: Inter, medium weight throughout, subtle -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; background: #f8fafc">
+      <div class="typo-card" style="margin: 12px; height: 176px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <div class="section-title-c">Contatos Quentes</div>
+          <div class="section-label-c">3 ativos</div>
+        </div>
+        <div class="divider"></div>
+        <div class="contact-row">
+          <div class="avatar" style="background: #14b8a6"></div>
+          <div style="flex: 1">
+            <div class="name-c">Sarah Kowalski</div>
+            <div class="body-c">VP Sales · Acme Corp</div>
+          </div>
+          <span class="badge" style="font-family: &quot;Inter&quot;, sans-serif"
+            >Quente</span
+          >
+        </div>
+        <div class="contact-row">
+          <div class="avatar" style="background: #f59e0b"></div>
+          <div style="flex: 1">
+            <div class="name-c">Marcos Lima</div>
+            <div class="body-c">CTO · TechBrasil</div>
+          </div>
+          <span class="badge" style="font-family: &quot;Inter&quot;, sans-serif"
+            >Quente</span
+          >
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Inter equilibrado · Títulos como headings</h3>
+      <p>
+        Título da seção é um heading real (semibold, 15px), com número de itens
+        ao lado em teal. Hierarquia clara sem ser gritante. Estilo HubSpot novo,
+        Attio.
+      </p>
+    </div>
+  </div>
+</div>
