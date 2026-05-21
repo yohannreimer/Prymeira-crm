@@ -151,6 +151,7 @@ export type Deal = {
   archived_at?: string;
   expected_closing_date: string;
   sales_id: Identifier;
+  pipeline_id?: Identifier | null;
   index: number;
 } & TenantRecord &
   Pick<RaRecord, "id">;

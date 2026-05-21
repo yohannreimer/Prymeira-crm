@@ -1,4 +1,3 @@
-import { UserRoundPlus } from "lucide-react";
 import { useGetList, useTranslate } from "ra-core";
 import { useMemo } from "react";
 

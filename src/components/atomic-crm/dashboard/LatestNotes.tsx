@@ -1,5 +1,4 @@
 import { formatDistance } from "date-fns";
-import { FileText } from "lucide-react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { TextField } from "@/components/admin/text-field";

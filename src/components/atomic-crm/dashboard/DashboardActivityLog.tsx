@@ -1,4 +1,3 @@
-import { Clock } from "lucide-react";
 import { useTranslate } from "ra-core";
 import { Card } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";

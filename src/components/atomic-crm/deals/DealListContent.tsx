@@ -1,26 +1,49 @@
 import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
-import { useDataProvider, useListContext, type DataProvider } from "ra-core";
-import { useEffect, useState } from "react";
+import {
+  useDataProvider,
+  useListContext,
+  useUpdate,
+  type DataProvider,
+} from "ra-core";
+import { useContext, useEffect, useRef, useState } from "react";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { DealColumn } from "./DealColumn";
+import { PipelineContext } from "./DealList";
 import type { DealsByStage } from "./stages";
 import { getDealsByStage } from "./stages";
 
 export const DealListContent = () => {
   const { dealStages } = useConfigurationContext();
+  const { stages: pipelineStages, pipelineId } = useContext(PipelineContext);
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
+  const [updatePipeline] = useUpdate();
+
+  // Use pipeline stages if available, else fall back to config dealStages
+  const activeStages =
+    pipelineStages && pipelineStages.length > 0 ? pipelineStages : dealStages;
 
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
-    getDealsByStage([], dealStages),
+    getDealsByStage([], activeStages),
   );
+
+  // Track activeStages changes to reset dealsByStage when pipeline changes
+  const prevActiveStagesRef = useRef(activeStages);
+  useEffect(() => {
+    if (!isEqual(prevActiveStagesRef.current, activeStages)) {
+      prevActiveStagesRef.current = activeStages;
+      if (unorderedDeals) {
+        setDealsByStage(getDealsByStage(unorderedDeals, activeStages));
+      }
+    }
+  }, [activeStages, unorderedDeals]);
 
   useEffect(() => {
     if (unorderedDeals) {
-      const newDealsByStage = getDealsByStage(unorderedDeals, dealStages);
+      const newDealsByStage = getDealsByStage(unorderedDeals, activeStages);
       if (!isEqual(newDealsByStage, dealsByStage)) {
         setDealsByStage(newDealsByStage);
       }
@@ -28,7 +51,36 @@ export const DealListContent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unorderedDeals]);
 
+  // Add stage state
+  const [addingStage, setAddingStage] = useState(false);
+  const [newStageName, setNewStageName] = useState("");
+
   if (isPending) return null;
+
+  const saveStages = (newStages: { value: string; label: string }[]) => {
+    if (!pipelineId) return;
+    updatePipeline("pipelines", {
+      id: pipelineId,
+      data: { stages: newStages },
+      previousData: { id: pipelineId },
+    });
+  };
+
+  const handleAddStage = () => {
+    if (!newStageName.trim()) return;
+    const newStage = {
+      value: newStageName.toLowerCase().replace(/\s+/g, "-"),
+      label: newStageName.trim(),
+    };
+    saveStages([...activeStages, newStage]);
+    setAddingStage(false);
+    setNewStageName("");
+  };
+
+  const handleDeleteStage = (stageValue: string) => {
+    const newStages = activeStages.filter((s) => s.value !== stageValue);
+    saveStages(newStages);
+  };
 
   const onDragEnd: OnDragEndResponder = (result) => {
     const { destination, source } = result;
@@ -73,13 +125,49 @@ export const DealListContent = () => {
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="flex gap-4">
-        {dealStages.map((stage) => (
+        {activeStages.map((stage) => (
           <DealColumn
             stage={stage.value}
-            deals={dealsByStage[stage.value]}
+            deals={dealsByStage[stage.value] ?? []}
             key={stage.value}
+            stageLabel={stage.label}
+            onDelete={
+              pipelineId ? () => handleDeleteStage(stage.value) : undefined
+            }
           />
         ))}
+        {/* Add column button */}
+        <div className="flex-shrink-0 min-w-[180px]">
+          {addingStage ? (
+            <div className="border border-primary rounded-lg p-2">
+              <input
+                autoFocus
+                className="w-full px-2 py-1 text-[13px] border border-primary rounded outline-none bg-background mb-1"
+                placeholder="Nome da coluna..."
+                value={newStageName}
+                onChange={(e) => setNewStageName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddStage();
+                  if (e.key === "Escape") {
+                    setAddingStage(false);
+                    setNewStageName("");
+                  }
+                }}
+                onBlur={() => {
+                  setAddingStage(false);
+                  setNewStageName("");
+                }}
+              />
+            </div>
+          ) : (
+            <button
+              onClick={() => setAddingStage(true)}
+              className="w-full border border-dashed border-border/50 rounded-lg py-2 px-3 text-[13px] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+            >
+              + Coluna
+            </button>
+          )}
+        </div>
       </div>
     </DragDropContext>
   );

@@ -1,23 +1,43 @@
-import { useGetList } from "ra-core";
+import { useGetList, useLocaleState, useTranslate } from "ra-core";
+import { useMemo, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
-import type { Contact, ContactNote } from "../types";
+import { summarizeDeals } from "../deals/dealCommercialUtils";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Contact, ContactNote, Deal } from "../types";
 import { AdvancedSellerRanking } from "./AdvancedSellerRanking";
+import { ConversionFunnel } from "./ConversionFunnel";
+import { ExportReportsButton } from "./ExportReportsButton";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
-import { DealRiskSummary } from "./DealRiskSummary";
 import { DealsChart } from "./DealsChart";
-import { FunnelConversionSummary } from "./FunnelConversionSummary";
-import { GoalProgressSummary } from "./GoalProgressSummary";
 import { HotContacts } from "./HotContacts";
 import { LeadFunnelSummary } from "./LeadFunnelSummary";
-import { LossReasonSummary } from "./LossReasonSummary";
-import { PipelineAgingSummary } from "./PipelineAgingSummary";
 import { ProposalSummary } from "./ProposalSummary";
-import { RevenueForecastSummary } from "./RevenueForecastSummary";
-import { SalesManagerSummary } from "./SalesManagerSummary";
-import { SellerDailyCockpit } from "./SellerDailyCockpit";
 import { TasksList } from "./TasksList";
-import { Welcome } from "./Welcome";
+
+type Period = "month" | "quarter" | "year" | "all";
+
+const PERIODS: { value: Period; label: string }[] = [
+  { value: "month", label: "Este mês" },
+  { value: "quarter", label: "Trimestre" },
+  { value: "year", label: "Este ano" },
+  { value: "all", label: "Tudo" },
+];
+
+function getPeriodStart(period: Period): string | null {
+  if (period === "all") return null;
+  const now = new Date();
+  if (period === "month")
+    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  if (period === "quarter") {
+    const q = Math.floor(now.getMonth() / 3);
+    return new Date(now.getFullYear(), q * 3, 1).toISOString();
+  }
+  return new Date(now.getFullYear(), 0, 1).toISOString();
+}
 
 export const Dashboard = () => {
   const {
@@ -33,68 +53,152 @@ export const Dashboard = () => {
       pagination: { page: 1, perPage: 1 },
     });
 
-  const { total: totalDeal, isPending: isPendingDeal } = useGetList<Contact>(
-    "deals",
-    {
-      pagination: { page: 1, perPage: 1 },
-    },
-  );
+  const { isPending: isPendingDeal } = useGetList<Contact>("deals", {
+    pagination: { page: 1, perPage: 1 },
+  });
 
   const isPending = isPendingContact || isPendingContactNotes || isPendingDeal;
 
-  if (isPending) {
-    return null;
-  }
-
-  if (!totalContact) {
-    return <DashboardStepper step={1} />;
-  }
-
-  if (!totalContactNotes) {
+  if (isPending) return null;
+  if (!totalContact) return <DashboardStepper step={1} />;
+  if (!totalContactNotes)
     return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;
-  }
+
+  return <DashboardContent />;
+};
+
+const DashboardContent = () => {
+  const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
+  const { currency } = useConfigurationContext();
+  const [period, setPeriod] = useState<Period>("month");
+
+  const periodStart = getPeriodStart(period);
+  const periodFilter = periodStart ? { "created_at@gte": periodStart } : {};
+
+  const { data: deals, isPending } = useGetList<Deal>("deals", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "updated_at", order: "DESC" },
+    filter: { "archived_at@is": null, ...periodFilter },
+  });
+
+  const summary = useMemo(() => summarizeDeals(deals ?? []), [deals]);
+
+  const formatAmount = (amount: number) =>
+    (amount / 100).toLocaleString(locale, {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    });
+
+  const kpis = [
+    {
+      label: translate("crm.dashboard.sales_summary.open_deals"),
+      value: isPending ? "—" : summary.openCount.toLocaleString(locale),
+    },
+    {
+      label: translate("crm.dashboard.sales_summary.open_amount"),
+      value: isPending ? "—" : formatAmount(summary.openAmount),
+    },
+    {
+      label: translate("crm.dashboard.sales_summary.weighted_amount"),
+      value: isPending ? "—" : formatAmount(summary.weightedOpenAmount),
+    },
+    {
+      label: translate("crm.dashboard.sales_summary.won_amount"),
+      value: isPending ? "—" : formatAmount(summary.wonAmount),
+    },
+  ];
+
+  const TAB_CLASS =
+    "rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground px-0 pb-2 text-[13px] font-medium shadow-none";
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-          Visão geral
-        </p>
-        <h1 className="text-[18px] font-bold text-foreground leading-tight">
-          Dashboard
-        </h1>
+      {/* Header */}
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+            Comercial
+          </p>
+          <h1 className="text-[18px] font-bold text-foreground leading-tight">
+            Dashboard
+          </h1>
+        </div>
+        {/* Period selector */}
+        <div className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5 gap-0.5">
+          {PERIODS.map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              onClick={() => setPeriod(p.value)}
+              className={cn(
+                "px-3 py-1 rounded-md text-[12px] font-medium transition-colors",
+                period === p.value
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div className="md:col-span-3">
-          <div className="flex flex-col gap-4">
-            {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
-            <HotContacts />
-          </div>
-        </div>
-        <div className="md:col-span-6">
-          <div className="flex flex-col gap-6">
-            <SalesManagerSummary />
-            <LeadFunnelSummary />
-            <ProposalSummary />
-            <DealRiskSummary />
-            <RevenueForecastSummary />
-            <GoalProgressSummary />
-            <FunnelConversionSummary />
-            <PipelineAgingSummary />
-            <AdvancedSellerRanking />
-            <LossReasonSummary />
-            {totalDeal ? <DealsChart /> : null}
-            <DashboardActivityLog />
-          </div>
-        </div>
 
-        <div className="md:col-span-3">
-          <div className="flex flex-col gap-6">
-            <SellerDailyCockpit />
-            <TasksList />
-          </div>
-        </div>
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {kpis.map((kpi) => (
+          <Card key={kpi.label} className="px-5 py-4 gap-1 flex flex-col">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              {kpi.label}
+            </p>
+            <p className="text-[26px] font-bold text-foreground leading-none truncate">
+              {kpi.value}
+            </p>
+          </Card>
+        ))}
       </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="overview">
+        <TabsList className="h-9 bg-transparent border-b border-border/50 w-full justify-start rounded-none p-0 gap-6 mb-2">
+          <TabsTrigger value="overview" className={TAB_CLASS}>
+            Visão Geral
+          </TabsTrigger>
+          <TabsTrigger value="reports" className={TAB_CLASS}>
+            Relatórios
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <HotContacts />
+            </div>
+            <div className="md:col-span-1">
+              <TasksList />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-4">
+          <div className="flex flex-col gap-6">
+            <div className="flex justify-end">
+              <ExportReportsButton />
+            </div>
+            <ConversionFunnel />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <LeadFunnelSummary />
+              <ProposalSummary />
+            </div>
+            <DealsChart />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <AdvancedSellerRanking />
+              <DashboardActivityLog />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

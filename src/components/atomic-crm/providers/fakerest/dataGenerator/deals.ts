@@ -49,6 +49,7 @@ export const generateDeals = (db: Db): Deal[] => {
       updated_at: randomDate(new Date(created_at)).toISOString(),
       expected_closing_date,
       sales_id: company.sales_id!,
+      pipeline_id: random.arrayElement(db.pipelines).id,
       index: 0,
     };
   });

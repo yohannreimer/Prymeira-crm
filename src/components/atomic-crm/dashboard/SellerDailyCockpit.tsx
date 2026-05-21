@@ -1,5 +1,4 @@
 import { endOfToday } from "date-fns/endOfToday";
-import { CalendarClock } from "lucide-react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";

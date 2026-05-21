@@ -125,8 +125,8 @@ export const CreateSheet = ({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="bottom"
-        className="h-dvh flex flex-col"
+        side="right"
+        className="w-[360px] sm:w-[400px] flex flex-col p-0"
         aria-describedby={undefined}
       >
         <CreateBase
@@ -136,18 +136,20 @@ export const CreateSheet = ({
         >
           <Form
             defaultValues={defaultValues}
-            className="h-dvh flex-1 flex flex-col"
+            className="flex-1 flex flex-col overflow-hidden"
           >
-            <SheetHeader className="border-b">
+            <SheetHeader className="border-b px-5 py-4">
               <div
                 className={cn(
                   "flex items-center gap-2",
-                  headerActions && "pr-12",
+                  headerActions && "pr-8",
                 )}
               >
                 <SheetTitle className="min-w-0 flex-1 truncate">
                   {typeof title === "string" ? (
-                    <span className="text-xl font-semibold">{title}</span>
+                    <span className="text-[16px] font-semibold text-foreground">
+                      {title}
+                    </span>
                   ) : (
                     title
                   )}
@@ -158,12 +160,19 @@ export const CreateSheet = ({
               </div>
             </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
+            <div className="flex-1 overflow-y-auto flex flex-col gap-4 px-5 py-4">
               {children}
             </div>
 
-            <SheetFooter className="border-t flex flex-row w-full gap-4">
-              <SaveButton className="flex-1 h-12" />
+            <SheetFooter className="border-t px-5 py-3 flex flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="flex-1 rounded-md border border-border bg-transparent px-4 py-2 text-[13px] font-medium text-muted-foreground hover:bg-muted transition-colors"
+              >
+                {translate("ra.action.cancel")}
+              </button>
+              <SaveButton className="flex-1" />
             </SheetFooter>
           </Form>
         </CreateBase>

@@ -4,22 +4,25 @@ import { useLocaleState, useTranslate } from "ra-core";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { getWeightedAmount } from "./dealCommercialUtils";
-import { findDealLabel } from "./dealUtils";
 import { DealCard } from "./DealCard";
 
 export const DealColumn = ({
   stage,
   deals,
+  stageLabel,
+  onDelete,
 }: {
   stage: string;
   deals: Deal[];
+  stageLabel?: string;
+  onDelete?: () => void;
 }) => {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const weightedAmount = deals.reduce(
     (sum, deal) => sum + getWeightedAmount(deal),
     0,
   );
-  const { dealStages, currency } = useConfigurationContext();
+  const { currency } = useConfigurationContext();
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const formatAmount = (amount: number) =>
@@ -31,12 +34,25 @@ export const DealColumn = ({
       minimumSignificantDigits: 3,
     });
 
+  const label = stageLabel ?? stage;
+
   return (
     <div className="flex-1 min-w-[220px] pb-8">
       <div className="border-b border-border/40 pb-2 mb-3">
-        <h3 className="text-[11px] font-semibold uppercase tracking-widest text-foreground/70">
-          {findDealLabel(dealStages, stage)}
-        </h3>
+        <div className="flex items-center justify-between gap-1">
+          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-foreground/70">
+            {label}
+          </h3>
+          {onDelete && (
+            <button
+              onClick={onDelete}
+              className="text-muted-foreground hover:text-destructive transition-colors text-[12px] leading-none flex-shrink-0"
+              title="Remover coluna"
+            >
+              ×
+            </button>
+          )}
+        </div>
         <p className="text-[11px] text-muted-foreground mt-0.5">
           {formatAmount(totalAmount)} · {formatAmount(weightedAmount)}{" "}
           {translate("resources.deals.weighted_short")}

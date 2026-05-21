@@ -1,4 +1,3 @@
-import { CheckSquare } from "lucide-react";
 import { useTranslate } from "ra-core";
 import { Card } from "@/components/ui/card";
 

@@ -1,4 +1,4 @@
-import { Plus, Users } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";

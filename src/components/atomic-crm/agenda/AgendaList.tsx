@@ -1,4 +1,3 @@
-import { CalendarDays } from "lucide-react";
 import { useMemo } from "react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 

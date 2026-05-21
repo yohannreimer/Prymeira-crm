@@ -1,4 +1,3 @@
-import { BarChart3 } from "lucide-react";
 import { useGetList, useLocaleState, useTranslate } from "ra-core";
 import { useMemo } from "react";
 

@@ -1,4 +1,10 @@
-import { useGetIdentity, useListContext, useTranslate } from "ra-core";
+import {
+  useDeleteMany,
+  useGetIdentity,
+  useListContext,
+  useResourceContext,
+  useTranslate,
+} from "ra-core";
 import { Link } from "react-router";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
@@ -12,6 +18,8 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { TopToolbar } from "../layout/TopToolbar";
+import { BulkActionToolbar } from "../misc/BulkActionToolbar";
+import { useBulkSelection } from "../misc/useBulkSelection";
 import type { Lead } from "../types";
 import { leadStatuses, leadTemperatures } from "./leadChoices";
 import { LeadStatusBadge, LeadTemperatureBadge } from "./LeadStatusBadge";
@@ -86,10 +94,19 @@ const LeadListContent = () => {
   const translate = useTranslate();
   const { data: leads, isPending, filterValues } = useListContext<Lead>();
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
+  const { selected, toggle, toggleAll, clear, isSelected } =
+    useBulkSelection<Lead>();
+  const resource = useResourceContext();
+  const [deleteMany] = useDeleteMany();
 
   if (isPending) return <Skeleton className="h-12 w-full" />;
 
   const leadRecords = leads ?? [];
+
+  const handleDelete = () => {
+    deleteMany(resource, { ids: Array.from(selected) });
+    clear();
+  };
 
   if (!leadRecords.length && !hasFilters) {
     return (
@@ -104,66 +121,109 @@ const LeadListContent = () => {
     );
   }
 
+  const allSelected =
+    leadRecords.length > 0 && selected.size === leadRecords.length;
+  const someSelected = selected.size > 0 && !allSelected;
+
   return (
-    <Card className="py-0">
-      <div className="hidden md:grid md:grid-cols-[1.4fr_1fr_0.8fr_0.8fr] gap-3 px-4 py-2.5 border-b border-border/50">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Nome
-        </p>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Interesse / Fonte
-        </p>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Status
-        </p>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
-          Próxima ação
-        </p>
-      </div>
-      <div className="divide-y divide-border/40">
-        {leadRecords.map((lead) => (
-          <LeadRow key={lead.id} lead={lead} />
-        ))}
-        {leadRecords.length === 0 && (
-          <div className="p-4 text-muted-foreground">
-            {translate("resources.leads.empty.filtered")}
+    <>
+      <Card className="py-0">
+        <div className="hidden md:grid md:grid-cols-[28px_1.4fr_1fr_0.8fr_0.8fr] gap-3 px-4 py-2.5 border-b border-border/50">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              className="h-4 w-4 cursor-pointer accent-primary"
+              checked={allSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = someSelected;
+              }}
+              onChange={() => toggleAll(leadRecords)}
+            />
           </div>
-        )}
-      </div>
-    </Card>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Nome
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Interesse / Fonte
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Status
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
+            Próxima ação
+          </p>
+        </div>
+        <div className="divide-y divide-border/40">
+          {leadRecords.map((lead) => (
+            <LeadRow
+              key={lead.id}
+              lead={lead}
+              isSelected={isSelected(lead.id)}
+              onToggle={() => toggle(lead.id)}
+            />
+          ))}
+          {leadRecords.length === 0 && (
+            <div className="p-4 text-muted-foreground">
+              {translate("resources.leads.empty.filtered")}
+            </div>
+          )}
+        </div>
+      </Card>
+      <BulkActionToolbar
+        count={selected.size}
+        onClear={clear}
+        onDelete={handleDelete}
+      />
+    </>
   );
 };
 
-const LeadRow = ({ lead }: { lead: Lead }) => {
+const LeadRow = ({
+  lead,
+  isSelected,
+  onToggle,
+}: {
+  lead: Lead;
+  isSelected: boolean;
+  onToggle: () => void;
+}) => {
   return (
-    <Link
-      to={`/leads/${lead.id}/show`}
-      className="grid gap-3 p-4 transition-colors hover:bg-muted md:grid-cols-[1.4fr_1fr_0.8fr_0.8fr]"
-    >
-      <div className="min-w-0">
-        <div className="font-medium">
-          {[lead.first_name, lead.last_name].filter(Boolean).join(" ")}
+    <div className="grid gap-3 px-4 py-3 transition-colors hover:bg-muted md:grid-cols-[28px_1.4fr_1fr_0.8fr_0.8fr]">
+      <div className="hidden md:flex items-center">
+        <input
+          type="checkbox"
+          className="h-4 w-4 cursor-pointer accent-primary"
+          checked={isSelected}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+      <Link to={`/leads/${lead.id}/show`} className="col-span-1 md:contents">
+        <div className="min-w-0 md:col-start-2">
+          <div className="font-medium">
+            {[lead.first_name, lead.last_name].filter(Boolean).join(" ")}
+          </div>
+          <div className="truncate text-sm text-muted-foreground">
+            {lead.company_name || lead.email || lead.phone_number}
+          </div>
         </div>
-        <div className="truncate text-sm text-muted-foreground">
-          {lead.company_name || lead.email || lead.phone_number}
+        <div className="min-w-0 text-sm text-muted-foreground">
+          <div className="truncate">{lead.interest}</div>
+          <div className="truncate">{lead.source}</div>
         </div>
-      </div>
-      <div className="min-w-0 text-sm text-muted-foreground">
-        <div className="truncate">{lead.interest}</div>
-        <div className="truncate">{lead.source}</div>
-      </div>
-      <div className="flex items-center gap-2">
-        <LeadStatusBadge lead={lead} />
-        <LeadTemperatureBadge lead={lead} />
-      </div>
-      <div className="text-sm text-muted-foreground md:text-right">
-        {lead.next_action_at
-          ? new Intl.DateTimeFormat("pt-BR", {
-              dateStyle: "short",
-              timeStyle: "short",
-            }).format(new Date(lead.next_action_at))
-          : null}
-      </div>
-    </Link>
+        <div className="flex items-center gap-2">
+          <LeadStatusBadge lead={lead} />
+          <LeadTemperatureBadge lead={lead} />
+        </div>
+        <div className="text-sm text-muted-foreground md:text-right">
+          {lead.next_action_at
+            ? new Intl.DateTimeFormat("pt-BR", {
+                dateStyle: "short",
+                timeStyle: "short",
+              }).format(new Date(lead.next_action_at))
+            : null}
+        </div>
+      </Link>
+    </div>
   );
 };

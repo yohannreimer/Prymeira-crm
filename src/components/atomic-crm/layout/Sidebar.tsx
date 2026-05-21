@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import { GlobalSearch } from "../misc/GlobalSearch";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 
@@ -83,6 +84,9 @@ export const Sidebar = () => {
         >
           <LayoutDashboard className="h-4 w-4 text-primary-foreground" />
         </Link>
+
+        {/* Global search */}
+        <GlobalSearch />
 
         {/* Nav items */}
         <nav className="flex flex-col items-center gap-1">

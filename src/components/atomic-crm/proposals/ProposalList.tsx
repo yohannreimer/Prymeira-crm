@@ -1,4 +1,9 @@
-import { useListContext, useTranslate } from "ra-core";
+import {
+  useDeleteMany,
+  useListContext,
+  useResourceContext,
+  useTranslate,
+} from "ra-core";
 import { Link } from "react-router";
 import { CreateButton } from "@/components/admin/create-button";
 import { FilterButton } from "@/components/admin/filter-form";
@@ -10,6 +15,8 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { TopToolbar } from "../layout/TopToolbar";
+import { BulkActionToolbar } from "../misc/BulkActionToolbar";
+import { useBulkSelection } from "../misc/useBulkSelection";
 import type { Proposal } from "../types";
 import { proposalStatuses } from "./proposalChoices";
 import { ProposalStatusBadge } from "./ProposalStatusBadge";
@@ -74,10 +81,19 @@ const ProposalListContent = () => {
     filterValues,
   } = useListContext<Proposal>();
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
+  const { selected, toggle, toggleAll, clear, isSelected } =
+    useBulkSelection<Proposal>();
+  const resource = useResourceContext();
+  const [deleteMany] = useDeleteMany();
 
   if (isPending) return <Skeleton className="h-12 w-full" />;
 
   const records = proposals ?? [];
+
+  const handleDelete = () => {
+    deleteMany(resource, { ids: Array.from(selected) });
+    clear();
+  };
 
   if (!records.length && !hasFilters) {
     return (
@@ -92,68 +108,113 @@ const ProposalListContent = () => {
     );
   }
 
+  const allSelected = records.length > 0 && selected.size === records.length;
+  const someSelected = selected.size > 0 && !allSelected;
+
   return (
-    <Card className="py-0">
-      <div className="hidden md:grid md:grid-cols-[1.5fr_0.8fr_0.7fr_0.8fr] gap-3 px-4 py-2.5 border-b border-border/50">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          {translate("resources.proposals.fields.title")}
-        </p>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          {translate("resources.proposals.fields.status")}
-        </p>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          {translate("resources.proposals.fields.valid_until")}
-        </p>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
-          {translate("resources.proposals.fields.total")}
-        </p>
-      </div>
-      <div className="divide-y divide-border/40">
-        {records.map((proposal) => (
-          <ProposalRow key={proposal.id} proposal={proposal} />
-        ))}
-        {records.length === 0 && (
-          <div className="p-4 text-muted-foreground">
-            {translate("resources.proposals.empty.filtered")}
+    <>
+      <Card className="py-0">
+        <div className="hidden md:grid md:grid-cols-[28px_1.5fr_0.8fr_0.7fr_0.8fr] gap-3 px-4 py-2.5 border-b border-border/50">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              className="h-4 w-4 cursor-pointer accent-primary"
+              checked={allSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = someSelected;
+              }}
+              onChange={() => toggleAll(records)}
+            />
           </div>
-        )}
-      </div>
-    </Card>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            {translate("resources.proposals.fields.title")}
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            {translate("resources.proposals.fields.status")}
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            {translate("resources.proposals.fields.valid_until")}
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
+            {translate("resources.proposals.fields.total")}
+          </p>
+        </div>
+        <div className="divide-y divide-border/40">
+          {records.map((proposal) => (
+            <ProposalRow
+              key={proposal.id}
+              proposal={proposal}
+              isSelected={isSelected(proposal.id)}
+              onToggle={() => toggle(proposal.id)}
+            />
+          ))}
+          {records.length === 0 && (
+            <div className="p-4 text-muted-foreground">
+              {translate("resources.proposals.empty.filtered")}
+            </div>
+          )}
+        </div>
+      </Card>
+      <BulkActionToolbar
+        count={selected.size}
+        onClear={clear}
+        onDelete={handleDelete}
+      />
+    </>
   );
 };
 
-const ProposalRow = ({ proposal }: { proposal: Proposal }) => {
+const ProposalRow = ({
+  proposal,
+  isSelected,
+  onToggle,
+}: {
+  proposal: Proposal;
+  isSelected: boolean;
+  onToggle: () => void;
+}) => {
   const formatter = new Intl.NumberFormat(LOCALE, {
     style: "currency",
     currency: proposal.currency || "USD",
   });
 
   return (
-    <Link
-      to={`/proposals/${proposal.id}/show`}
-      className="grid gap-3 p-4 transition-colors hover:bg-muted md:grid-cols-[1.5fr_0.8fr_0.7fr_0.8fr]"
-    >
-      <div className="min-w-0">
-        <div className="truncate text-[13px] font-semibold text-foreground">
-          {proposal.title}
+    <div className="grid gap-3 px-4 py-3 transition-colors hover:bg-muted md:grid-cols-[28px_1.5fr_0.8fr_0.7fr_0.8fr]">
+      <div className="hidden md:flex items-center">
+        <input
+          type="checkbox"
+          className="h-4 w-4 cursor-pointer accent-primary"
+          checked={isSelected}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+      <Link
+        to={`/proposals/${proposal.id}/show`}
+        className="col-span-1 md:contents"
+      >
+        <div className="min-w-0">
+          <div className="truncate text-[13px] font-semibold text-foreground">
+            {proposal.title}
+          </div>
+          <div className="truncate text-[11px] text-muted-foreground">
+            {proposal.number}
+          </div>
         </div>
-        <div className="truncate text-[11px] text-muted-foreground">
-          {proposal.number}
+        <div className="flex items-center">
+          <ProposalStatusBadge proposal={proposal} />
         </div>
-      </div>
-      <div className="flex items-center">
-        <ProposalStatusBadge proposal={proposal} />
-      </div>
-      <div className="text-[12px] text-muted-foreground">
-        {proposal.valid_until
-          ? new Intl.DateTimeFormat(LOCALE, {
-              dateStyle: "medium",
-            }).format(new Date(`${proposal.valid_until}T00:00:00`))
-          : null}
-      </div>
-      <div className="text-[13px] font-semibold text-foreground md:text-right">
-        {formatter.format(proposal.total / 100)}
-      </div>
-    </Link>
+        <div className="text-[12px] text-muted-foreground">
+          {proposal.valid_until
+            ? new Intl.DateTimeFormat(LOCALE, {
+                dateStyle: "medium",
+              }).format(new Date(`${proposal.valid_until}T00:00:00`))
+            : null}
+        </div>
+        <div className="text-[13px] font-semibold text-foreground md:text-right">
+          {formatter.format(proposal.total / 100)}
+        </div>
+      </Link>
+    </div>
   );
 };

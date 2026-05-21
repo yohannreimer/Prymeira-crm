@@ -3,8 +3,10 @@ import {
   type Identifier,
   RecordContextProvider,
   RecordRepresentation,
+  useDeleteMany,
   useListContext,
   useLocaleState,
+  useResourceContext,
   useTimeout,
   useTranslate,
 } from "ra-core";
@@ -17,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 
+import { BulkActionToolbar } from "../misc/BulkActionToolbar";
 import { Status } from "../misc/Status";
 import { formatRelativeDate } from "../misc/RelativeDate";
 import type { Contact } from "../types";
@@ -33,7 +36,14 @@ export const ContactListContent = () => {
     onSelect,
     selectedIds,
   } = useListContext<Contact>();
+  const resource = useResourceContext();
+  const [deleteMany] = useDeleteMany();
   const lastSelected = useRef<Identifier | null>(null);
+
+  const handleBulkDelete = () => {
+    deleteMany(resource, { ids: selectedIds });
+    onSelect?.([]);
+  };
 
   // Handle shift+click to select a range of rows
   const handleToggleItem = useCallback(
@@ -76,35 +86,42 @@ export const ContactListContent = () => {
   }
 
   return (
-    <div>
-      <div className="hidden md:grid md:grid-cols-[auto_1fr_auto] gap-4 px-6 py-2 border-b border-border/50">
-        <div className="w-10" />
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Nome / Empresa
-        </p>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
-          Última atividade
-        </p>
-      </div>
-      <div className="divide-y divide-border/40">
-        {contacts.map((contact) => (
-          <RecordContextProvider key={contact.id} value={contact}>
-            <ContactItemContent
-              contact={contact}
-              handleToggleItem={handleToggleItem}
-            />
-          </RecordContextProvider>
-        ))}
+    <>
+      <div>
+        <div className="hidden md:grid md:grid-cols-[auto_1fr_auto] gap-4 px-6 py-2 border-b border-border/50">
+          <div className="w-10" />
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Nome / Empresa
+          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground text-right">
+            Última atividade
+          </p>
+        </div>
+        <div className="divide-y divide-border/40">
+          {contacts.map((contact) => (
+            <RecordContextProvider key={contact.id} value={contact}>
+              <ContactItemContent
+                contact={contact}
+                handleToggleItem={handleToggleItem}
+              />
+            </RecordContextProvider>
+          ))}
 
-        {contacts.length === 0 && (
-          <div className="p-4">
-            <div className="text-muted-foreground">
-              {translate("resources.contacts.empty.title", {})}
+          {contacts.length === 0 && (
+            <div className="p-4">
+              <div className="text-muted-foreground">
+                {translate("resources.contacts.empty.title", {})}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+      <BulkActionToolbar
+        count={selectedIds.length}
+        onClear={() => onSelect?.([])}
+        onDelete={handleBulkDelete}
+      />
+    </>
   );
 };
 
