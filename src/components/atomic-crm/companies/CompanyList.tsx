@@ -1,9 +1,10 @@
-import { useGetIdentity, useListContext, useTranslate } from "ra-core";
+import { useListContext, useTranslate } from "ra-core";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
 import { ListPagination } from "@/components/admin/list-pagination";
 import { SortButton } from "@/components/admin/sort-button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { TopToolbar } from "../layout/TopToolbar";
 import { CompanyEmpty } from "./CompanyEmpty";
@@ -11,8 +12,6 @@ import { CompanyListFilter } from "./CompanyListFilter";
 import { ImageList } from "./GridList";
 
 export const CompanyList = () => {
-  const { identity } = useGetIdentity();
-  if (!identity) return null;
   return (
     <List
       title={false}
@@ -30,7 +29,7 @@ const CompanyListLayout = () => {
   const { data, isPending, filterValues } = useListContext();
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
-  if (isPending) return null;
+  if (isPending) return <Skeleton className="h-64 w-full" />;
   if (!data?.length && !hasFilters) return <CompanyEmpty />;
 
   return (

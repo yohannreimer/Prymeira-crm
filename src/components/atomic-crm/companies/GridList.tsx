@@ -1,5 +1,7 @@
 import { RecordContextProvider, useListContext, useTranslate } from "ra-core";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 import type { Company } from "../types";
 import { CompanyCard } from "./CompanyCard";
 
@@ -21,7 +23,8 @@ const LoadedGridList = () => {
   const { data, error, isPending } = useListContext<Company>();
   const translate = useTranslate();
 
-  if (isPending || error) return null;
+  if (isPending) return <LoadingGridList />;
+  if (error) return <Skeleton className="h-40 w-full" />;
 
   return (
     <div

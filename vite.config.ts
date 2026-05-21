@@ -72,6 +72,15 @@ export default defineConfig({
   },
   build: {
     sourcemap: process.env.NODE_ENV !== "production",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("/node_modules/ra-core/")) {
+            return "react-admin-core";
+          }
+        },
+      },
+    },
   },
   preview: {
     allowedHosts: [

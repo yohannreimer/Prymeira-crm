@@ -1,6 +1,7 @@
 import { useGetList, useLocaleState, useTranslate } from "ra-core";
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +60,7 @@ export const Dashboard = () => {
 
   const isPending = isPendingContact || isPendingContactNotes || isPendingDeal;
 
-  if (isPending) return null;
+  if (isPending) return <Skeleton className="h-64 w-full" />;
   if (!totalContact) return <DashboardStepper step={1} />;
   if (!totalContactNotes)
     return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;

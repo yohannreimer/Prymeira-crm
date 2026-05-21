@@ -83,9 +83,8 @@ export const AgendaList = () => {
     [deals, leads, proposals, tasks],
   );
 
-  if (!enabled) return null;
-
   const isPending =
+    !enabled ||
     isTasksPending || isLeadsPending || isDealsPending || isProposalsPending;
 
   return (

@@ -2,7 +2,6 @@ import React, { type ReactNode, useEffect, useState } from "react";
 import type { InputProps } from "ra-core";
 import {
   useCreate,
-  useGetIdentity,
   useGetList,
   useListContext,
   useTranslate,
@@ -16,6 +15,7 @@ import { ReferenceInput } from "@/components/admin/reference-input";
 import { FilterButton } from "@/components/admin/filter-form";
 import { SearchInput } from "@/components/admin/search-input";
 import { SelectInput } from "@/components/admin/select-input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 import type { Pipeline } from "../types";
@@ -44,7 +44,6 @@ export const PipelineContext = React.createContext<{
 }>({ stages: [], pipelineId: null });
 
 const DealList = () => {
-  const { identity } = useGetIdentity();
   const { dealCategories, dealTypes } = useConfigurationContext();
   const translate = useTranslate();
   const [selectedPipeline, setSelectedPipeline] = useState<number | null>(null);
@@ -61,8 +60,6 @@ const DealList = () => {
       setSelectedPipeline(Number(pipelines[0].id));
     }
   }, [pipelines, selectedPipeline]);
-
-  if (!identity) return null;
 
   const handleCreatePipeline = () => {
     if (!newPipelineName.trim()) return;
@@ -211,7 +208,7 @@ const DealLayout = () => {
   const { data, isPending, filterValues } = useListContext();
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
-  if (isPending) return null;
+  if (isPending) return <Skeleton className="h-64 w-full" />;
   if (!data?.length && !hasFilters)
     return (
       <>

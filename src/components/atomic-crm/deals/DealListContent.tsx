@@ -8,6 +8,8 @@ import {
 } from "ra-core";
 import { useContext, useEffect, useRef, useState } from "react";
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { DealColumn } from "./DealColumn";
@@ -55,7 +57,7 @@ export const DealListContent = () => {
   const [addingStage, setAddingStage] = useState(false);
   const [newStageName, setNewStageName] = useState("");
 
-  if (isPending) return null;
+  if (isPending) return <Skeleton className="h-64 min-w-[720px]" />;
 
   const saveStages = (newStages: { value: string; label: string }[]) => {
     if (!pipelineId) return;

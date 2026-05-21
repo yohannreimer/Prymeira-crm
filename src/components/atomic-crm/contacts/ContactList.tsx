@@ -2,7 +2,6 @@ import jsonExport from "jsonexport/dist";
 import {
   downloadCSV,
   InfiniteListBase,
-  useGetIdentity,
   useListContext,
   type Exporter,
 } from "ra-core";
@@ -34,10 +33,6 @@ import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 
 export const ContactList = () => {
-  const { identity } = useGetIdentity();
-
-  if (!identity) return null;
-
   return (
     <List
       title={false}
@@ -56,7 +51,7 @@ const ContactListLayoutDesktop = () => {
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
-  if (isPending) return null;
+  if (isPending) return <Card className="h-64 animate-pulse" />;
 
   if (!data?.length && !hasFilters) return <ContactEmpty />;
 
@@ -94,9 +89,6 @@ const ContactListActions = () => (
 );
 
 export const ContactListMobile = () => {
-  const { identity } = useGetIdentity();
-  if (!identity) return null;
-
   return (
     <InfiniteListBase
       perPage={25}

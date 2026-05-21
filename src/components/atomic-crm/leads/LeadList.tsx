@@ -1,6 +1,5 @@
 import {
   useDeleteMany,
-  useGetIdentity,
   useListContext,
   useResourceContext,
   useTranslate,
@@ -25,9 +24,7 @@ import { leadStatuses, leadTemperatures } from "./leadChoices";
 import { LeadStatusBadge, LeadTemperatureBadge } from "./LeadStatusBadge";
 
 export const LeadList = () => {
-  const { identity } = useGetIdentity();
   const translate = useTranslate();
-  if (!identity) return null;
 
   const translatedStatuses = leadStatuses.map((choice) => ({
     ...choice,
