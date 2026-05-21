@@ -1,6 +1,81 @@
 version: "3.7"
 
 services:
+  vincula_postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: prymeira_crm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${CRM_POSTGRES_PASSWORD:?set CRM_POSTGRES_PASSWORD}
+    networks:
+      vincula_internal:
+        aliases:
+          - postgres
+    volumes:
+      - vincula_postgres_data:/var/lib/postgresql/data
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+          - node.hostname == manager01
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+
+  vincula_api:
+    image: node:22-alpine
+    working_dir: /app
+    command:
+      - sh
+      - -lc
+      - |
+        set -e
+        apk add --no-cache git
+        git clone --depth 1 --branch main https://github.com/yohannreimer/Prymeira-crm.git /app
+        echo "Starting Vincula API release ${CRM_RELEASE}"
+        git rev-parse --short HEAD
+        npm ci --omit=dev
+        node server/index.js
+    environment:
+      CRM_RELEASE: "2026-05-21-internal-postgres"
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:${CRM_POSTGRES_PASSWORD:?set CRM_POSTGRES_PASSWORD}@postgres:5432/prymeira_crm
+      PRYMEIRA_ACCOUNT_API_URL: ${PRYMEIRA_ACCOUNT_API_URL:?set PRYMEIRA_ACCOUNT_API_URL}
+      PRYMEIRA_PRODUCT_KEY: ${PRYMEIRA_PRODUCT_KEY:-crm}
+    networks:
+      - network_swarm_public
+      - vincula_internal
+    expose:
+      - "3001"
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+          - node.hostname == manager01
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
+      restart_policy:
+        condition: on-failure
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=network_swarm_public
+        - traefik.http.routers.vincula-api.rule=Host(`vincula.prymeiradigital.com.br`) && PathPrefix(`/api`)
+        - traefik.http.routers.vincula-api.priority=100
+        - traefik.http.routers.vincula-api.entrypoints=websecure
+        - traefik.http.routers.vincula-api.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.vincula-api.service=vincula-api
+        - traefik.http.services.vincula-api.loadbalancer.server.port=3001
+
   prymeira-crm:
     image: node:22-alpine
     working_dir: /app
@@ -11,17 +86,18 @@ services:
         set -e
         apk add --no-cache git
         git clone --depth 1 --branch main https://github.com/yohannreimer/Prymeira-crm.git /app
-        echo "Starting Prymeira CRM release ${CRM_RELEASE}"
+        echo "Starting Vincula web release ${CRM_RELEASE}"
         git rev-parse --short HEAD
         npm ci
         npm run build
         npx vite preview --host 0.0.0.0 --port 80
     environment:
-      CRM_RELEASE: "2026-05-21-postgrest-auth-header"
+      CRM_RELEASE: "2026-05-21-internal-postgres"
       NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=1536}
-      VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
       VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
+      VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
       VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:?set VITE_CLERK_PUBLISHABLE_KEY}
+      VITE_CRM_API_URL: ${VITE_CRM_API_URL:-/api}
       VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION: ${VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION:-false}
       VITE_GOOGLE_WORKPLACE_DOMAIN: ${VITE_GOOGLE_WORKPLACE_DOMAIN:-}
       VITE_INBOUND_EMAIL: ${VITE_INBOUND_EMAIL:-}
@@ -29,8 +105,6 @@ services:
       VITE_PRYMEIRA_ACCOUNT_API_URL: ${VITE_PRYMEIRA_ACCOUNT_API_URL:?set VITE_PRYMEIRA_ACCOUNT_API_URL}
       VITE_PRYMEIRA_HUB_URL: ${VITE_PRYMEIRA_HUB_URL:?set VITE_PRYMEIRA_HUB_URL}
       VITE_PRYMEIRA_PRODUCT_KEY: ${VITE_PRYMEIRA_PRODUCT_KEY:-crm}
-      VITE_SB_PUBLISHABLE_KEY: ${VITE_SB_PUBLISHABLE_KEY:?set VITE_SB_PUBLISHABLE_KEY}
-      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:?set VITE_SUPABASE_URL}
     networks:
       - network_swarm_public
     expose:
@@ -52,11 +126,17 @@ services:
         - traefik.enable=true
         - traefik.docker.network=network_swarm_public
         - traefik.http.routers.vincula.rule=Host(`vincula.prymeiradigital.com.br`)
+        - traefik.http.routers.vincula.priority=1
         - traefik.http.routers.vincula.entrypoints=websecure
         - traefik.http.routers.vincula.tls.certresolver=letsencryptresolver
         - traefik.http.routers.vincula.service=vincula
         - traefik.http.services.vincula.loadbalancer.server.port=80
 
+volumes:
+  vincula_postgres_data:
+
 networks:
   network_swarm_public:
     external: true
+  vincula_internal:
+    driver: overlay

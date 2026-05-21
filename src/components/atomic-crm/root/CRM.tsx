@@ -30,7 +30,7 @@ import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import {
   getDataProvider as defaultDataProviderBuilder,
-} from "../providers/supabase";
+} from "../providers/postgres";
 import { createClerkAuthProvider } from "../providers/supabase/clerkAuthProvider";
 import { usePrymeiraAccess } from "../prymeira/PrymeiraAccessContext";
 import sales from "../sales";
