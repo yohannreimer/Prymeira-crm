@@ -37,7 +37,7 @@ const getAccountApiUrl = () => {
 const getProductKey = () =>
   Deno.env.get("PRYMEIRA_PRODUCT_KEY") ??
   Deno.env.get("VITE_PRYMEIRA_PRODUCT_KEY") ??
-  "operis";
+  "crm";
 
 export async function getTrustedPrymeiraAccess(
   token: string,

@@ -19,7 +19,7 @@ export const getPrymeiraAccountApiUrl = () => {
 };
 
 export const getPrymeiraProductKey = () =>
-  import.meta.env.VITE_PRYMEIRA_PRODUCT_KEY || "operis";
+  import.meta.env.VITE_PRYMEIRA_PRODUCT_KEY || "crm";
 
 export const getPrymeiraHubUrl = () =>
   (import.meta.env.VITE_PRYMEIRA_HUB_URL || "http://localhost:5174").replace(

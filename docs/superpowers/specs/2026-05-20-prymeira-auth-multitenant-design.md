@@ -38,7 +38,7 @@ Use Prymeira Account as the CRM's auth and tenant authority:
 - CRM users are represented by `sales` rows keyed by `(workspace_id, clerk_user_id)`.
 - Product access is checked against Prymeira Account before the CRM renders.
 
-The initial product key is `operis`, matching the current Prymeira Account seed, but the CRM must read it from configuration (`VITE_PRYMEIRA_PRODUCT_KEY`) so it can be renamed without code changes.
+The production product key is `crm`, but the CRM must read it from configuration (`VITE_PRYMEIRA_PRODUCT_KEY`) so it can be renamed without code changes.
 
 ## 4. Tenant Model
 
@@ -181,7 +181,7 @@ New CRM environment variables:
 - `VITE_CLERK_PUBLISHABLE_KEY`
 - `VITE_PRYMEIRA_ACCOUNT_API_URL`
 - `VITE_PRYMEIRA_HUB_URL`
-- `VITE_PRYMEIRA_PRODUCT_KEY=operis`
+- `VITE_PRYMEIRA_PRODUCT_KEY=crm`
 - `VITE_SUPABASE_URL`
 - `VITE_SB_PUBLISHABLE_KEY`
 

@@ -168,7 +168,7 @@ export const getPrymeiraAccountApiUrl = () => {
 };
 
 export const getPrymeiraProductKey = () =>
-  import.meta.env.VITE_PRYMEIRA_PRODUCT_KEY || "operis";
+  import.meta.env.VITE_PRYMEIRA_PRODUCT_KEY || "crm";
 
 export const getPrymeiraHubUrl = () =>
   (import.meta.env.VITE_PRYMEIRA_HUB_URL || "http://localhost:5174").replace(
@@ -680,7 +680,7 @@ const access = {
     allowed: true,
     workspace_id: "c6fcda6d-c60b-4cf7-8548-9230fed8d8b4",
     workspace_role: "owner",
-    product_key: "operis",
+    product_key: "crm",
     product_role: "admin",
     status: "active",
     reason: "active_entitlement",
