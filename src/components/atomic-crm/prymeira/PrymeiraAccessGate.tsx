@@ -77,7 +77,7 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
         return;
       }
 
-      await getDataProvider().syncCurrentSale({
+      const sale = await getDataProvider().syncCurrentSale({
         clerk_user_id: clerkUser.id,
         email,
         name: clerkUser.fullName ?? null,
@@ -99,6 +99,7 @@ export function PrymeiraAccessGate({ children }: { children: ReactNode }) {
           clerkUserId: clerkUser.id,
           email,
           name: clerkUser.fullName ?? null,
+          sale,
           workspace: sync.workspace,
           decision: {
             ...decision,

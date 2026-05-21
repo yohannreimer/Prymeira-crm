@@ -16,10 +16,14 @@ export const ContactCreateSheet = ({
   open,
   onOpenChange,
 }: ContactCreateSheetProps) => {
-  const { identity } = useGetIdentity();
+  const { identity, isPending } = useGetIdentity();
   const translate = useTranslate();
+
+  if (isPending) return null;
+
   return (
     <CreateSheet
+      key={identity?.id}
       resource="contacts"
       title={translate("resources.contacts.action.new")}
       defaultValues={{

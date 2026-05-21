@@ -14,7 +14,9 @@ export const ContactCreate = ({
 }: {
   mutationMode?: MutationMode;
 }) => {
-  const { identity } = useGetIdentity();
+  const { identity, isPending } = useGetIdentity();
+
+  if (isPending) return null;
 
   return (
     <CreateBase
@@ -25,6 +27,7 @@ export const ContactCreate = ({
       <div className="mt-2 flex lg:mr-72">
         <div className="flex-1">
           <Form
+            key={identity?.id}
             defaultValues={{
               sales_id: identity?.id,
               email_jsonb: defaultEmailJsonb,

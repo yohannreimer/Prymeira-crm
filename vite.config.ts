@@ -16,16 +16,19 @@ const appHost = (() => {
     return undefined;
   }
 })();
+const shouldAnalyzeBundle = process.env.ANALYZE_BUNDLE === "true";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    visualizer({
-      open: process.env.NODE_ENV !== "CI",
-      filename: "./dist/stats.html",
-    }),
+    shouldAnalyzeBundle
+      ? visualizer({
+          open: process.env.NODE_ENV !== "CI",
+          filename: "./dist/stats.html",
+        })
+      : undefined,
     createHtmlPlugin({
       minify: true,
       inject: {
@@ -68,7 +71,7 @@ export default defineConfig({
     keepNames: true,
   },
   build: {
-    sourcemap: true,
+    sourcemap: process.env.NODE_ENV !== "production",
   },
   preview: {
     allowedHosts: [

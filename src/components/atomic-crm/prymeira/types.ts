@@ -49,6 +49,12 @@ export type PrymeiraAccessContextValue = {
   clerkUserId: string;
   email: string;
   name: string | null;
+  sale: {
+    id: string | number;
+    first_name?: string | null;
+    last_name?: string | null;
+    avatar?: { src?: string } | null;
+  };
   workspace: PrymeiraWorkspace;
   decision: PrymeiraAccessDecision & {
     allowed: true;

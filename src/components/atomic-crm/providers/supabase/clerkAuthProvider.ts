@@ -36,6 +36,19 @@ export function createClerkAuthProvider({
       const access = getAccess();
       if (!access) throw new Error("Missing Prymeira access context");
 
+      if (access.sale) {
+        return {
+          id: access.sale.id,
+          fullName:
+            [access.sale.first_name, access.sale.last_name]
+              .filter(Boolean)
+              .join(" ") ||
+            access.name ||
+            access.email,
+          avatar: access.sale.avatar?.src,
+        };
+      }
+
       const { data } = await dataProvider.getList("sales", {
         filter: {
           workspace_id: access.workspace.id,

@@ -22,15 +22,13 @@ const access = {
     status: "active",
     reason: "active_entitlement",
   },
+  sale: { id: 7, first_name: "Ana", last_name: "Silva", avatar: null },
 } as const;
 
 describe("createClerkAuthProvider", () => {
-  it("returns identity from Prymeira access context and sales row", async () => {
+  it("returns identity from the synced Prymeira access sale", async () => {
     const dataProvider = {
-      getList: vi.fn().mockResolvedValue({
-        data: [{ id: 7, first_name: "Ana", last_name: "Silva", avatar: null }],
-        total: 1,
-      }),
+      getList: vi.fn(),
     } as any;
     const authProvider = createClerkAuthProvider({
       getAccess: () => access,
@@ -41,6 +39,30 @@ describe("createClerkAuthProvider", () => {
     await expect(authProvider.getIdentity?.()).resolves.toEqual({
       id: 7,
       fullName: "Ana Silva",
+      avatar: undefined,
+    });
+    expect(dataProvider.getList).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the sales list when access has no synced sale", async () => {
+    const dataProvider = {
+      getList: vi.fn().mockResolvedValue({
+        data: [{ id: 9, first_name: "Bia", last_name: "Costa", avatar: null }],
+        total: 1,
+      }),
+    } as any;
+    const authProvider = createClerkAuthProvider({
+      getAccess: () => {
+        const { sale: _sale, ...accessWithoutSale } = access;
+        return accessWithoutSale as any;
+      },
+      signOut: vi.fn(),
+      dataProvider,
+    });
+
+    await expect(authProvider.getIdentity?.()).resolves.toEqual({
+      id: 9,
+      fullName: "Bia Costa",
       avatar: undefined,
     });
     expect(dataProvider.getList).toHaveBeenCalledWith("sales", {
@@ -74,7 +96,10 @@ describe("createClerkAuthProvider", () => {
       }),
     } as any;
     const authProvider = createClerkAuthProvider({
-      getAccess: () => access,
+      getAccess: () => {
+        const { sale: _sale, ...accessWithoutSale } = access;
+        return accessWithoutSale as any;
+      },
       signOut: vi.fn(),
       dataProvider,
     });
