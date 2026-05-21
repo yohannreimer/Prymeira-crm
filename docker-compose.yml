@@ -1,3 +1,5 @@
+version: "3.7"
+
 services:
   prymeira-crm:
     image: node:22-alpine
@@ -24,13 +26,32 @@ services:
       VITE_PRYMEIRA_PRODUCT_KEY: ${VITE_PRYMEIRA_PRODUCT_KEY:-crm}
       VITE_SB_PUBLISHABLE_KEY: ${VITE_SB_PUBLISHABLE_KEY:?set VITE_SB_PUBLISHABLE_KEY}
       VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:?set VITE_SUPABASE_URL}
-    restart: unless-stopped
+    networks:
+      - network_swarm_public
     expose:
       - "80"
     deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+          - node.hostname == manager01
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 768M
+      restart_policy:
+        condition: on-failure
       labels:
         - traefik.enable=true
-        - traefik.http.routers.prymeira-crm.rule=Host(`vincula.prymeiradigital.com.br`)
-        - traefik.http.routers.prymeira-crm.entrypoints=websecure
-        - traefik.http.routers.prymeira-crm.tls=true
-        - traefik.http.services.prymeira-crm.loadbalancer.server.port=80
+        - traefik.docker.network=network_swarm_public
+        - traefik.http.routers.vincula.rule=Host(`vincula.prymeiradigital.com.br`)
+        - traefik.http.routers.vincula.entrypoints=websecure
+        - traefik.http.routers.vincula.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.vincula.service=vincula
+        - traefik.http.services.vincula.loadbalancer.server.port=80
+
+networks:
+  network_swarm_public:
+    external: true
