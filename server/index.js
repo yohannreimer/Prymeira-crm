@@ -45,6 +45,7 @@ const repoRoot = path.resolve(
 );
 
 const tenantResources = new Set([
+  "activity_log",
   "companies",
   "companies_summary",
   "contacts",
@@ -194,7 +195,8 @@ const readBody = async (req) => {
 
 const isIdentifier = (value) => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value);
 const q = (identifier) => {
-  if (!isIdentifier(identifier)) throw new Error(`Invalid identifier ${identifier}`);
+  if (!isIdentifier(identifier))
+    throw new Error(`Invalid identifier ${identifier}`);
   return `"${identifier}"`;
 };
 
@@ -357,7 +359,9 @@ const buildCondition = (fieldAndOperator, value, values) => {
   };
 
   if (operator === "is") {
-    return value === null || value === "null" ? `${col} is null` : `${col} is not null`;
+    return value === null || value === "null"
+      ? `${col} is null`
+      : `${col} is not null`;
   }
   if (operator === "in") {
     const param = nextParam(parseInList(value));
@@ -382,10 +386,12 @@ const buildCondition = (fieldAndOperator, value, values) => {
 const buildWhere = ({ resource, filter = {}, workspaceId, values }) => {
   const clauses = [];
   if (tenantResources.has(resource)) {
-    clauses.push(`workspace_id = ${(() => {
-      values.push(workspaceId);
-      return `$${values.length}`;
-    })()}`);
+    clauses.push(
+      `workspace_id = ${(() => {
+        values.push(workspaceId);
+        return `$${values.length}`;
+      })()}`,
+    );
   }
 
   const { q: search, "@or": orFilter, ...rest } = filter || {};
@@ -424,7 +430,10 @@ const ensureResource = (resource, mode = "read") => {
 const listRecords = async (auth, resource, query) => {
   const table = ensureResource(resource, "read");
   const filter = parseMaybeJson(query.get("filter")) || {};
-  const sort = parseMaybeJson(query.get("sort")) || { field: "id", order: "ASC" };
+  const sort = parseMaybeJson(query.get("sort")) || {
+    field: "id",
+    order: "ASC",
+  };
   const pagination = parseMaybeJson(query.get("pagination")) || {
     page: 1,
     perPage: 25,
@@ -440,7 +449,8 @@ const listRecords = async (auth, resource, query) => {
   const { rows: countRows } = await pool.query(countSql, values);
 
   const field = isIdentifier(sort.field || "") ? sort.field : "id";
-  const order = String(sort.order || "ASC").toUpperCase() === "DESC" ? "desc" : "asc";
+  const order =
+    String(sort.order || "ASC").toUpperCase() === "DESC" ? "desc" : "asc";
   const perPage = Math.max(1, Math.min(Number(pagination.perPage || 25), 1000));
   const page = Math.max(1, Number(pagination.page || 1));
   values.push(perPage, (page - 1) * perPage);

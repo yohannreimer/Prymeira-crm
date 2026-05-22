@@ -5,6 +5,7 @@
   "scripts": {
     "test:unit:app": "vitest --config vitest.config.ts",
     "test:unit:functions": "vitest --config vitest.functions.config.ts",
+    "smoke:postgres": "node scripts/smoke-crm-postgres.mjs",
     "dev": "vite --force",
     "dev:demo": "vite --config vite.demo.config --force",
     "build": "tsc && vite build",
