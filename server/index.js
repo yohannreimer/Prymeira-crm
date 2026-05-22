@@ -16,16 +16,26 @@ const ACCOUNT_API_URL = (process.env.PRYMEIRA_ACCOUNT_API_URL || "").replace(
   "",
 );
 const DATABASE_URL = process.env.DATABASE_URL;
-
-if (!DATABASE_URL) {
-  throw new Error("DATABASE_URL is required");
-}
 if (!ACCOUNT_API_URL) {
   throw new Error("PRYMEIRA_ACCOUNT_API_URL is required");
 }
 
+const databaseConfig = DATABASE_URL
+  ? { connectionString: DATABASE_URL }
+  : {
+      host: process.env.PGHOST || "postgres",
+      port: Number(process.env.PGPORT || 5432),
+      database: process.env.PGDATABASE || "prymeira_crm",
+      user: process.env.PGUSER || "postgres",
+      password: process.env.PGPASSWORD,
+    };
+
+if (!DATABASE_URL && !process.env.PGPASSWORD) {
+  throw new Error("DATABASE_URL or PGPASSWORD is required");
+}
+
 const pool = new Pool({
-  connectionString: DATABASE_URL,
+  ...databaseConfig,
   max: Number(process.env.DB_POOL_SIZE || 10),
 });
 

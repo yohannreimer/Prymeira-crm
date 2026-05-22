@@ -40,13 +40,17 @@ services:
         echo "Starting Vincula API release $${CRM_RELEASE}"
         git rev-parse --short HEAD
         npm ci --omit=dev --ignore-scripts
-        export DATABASE_URL="postgresql://postgres:$${CRM_POSTGRES_PASSWORD}@postgres:5432/prymeira_crm"
         node server/index.js
     environment:
-      CRM_RELEASE: "2026-05-22-postgres-password-runtime"
+      CRM_RELEASE: "2026-05-22-postgres-field-connection"
       NODE_ENV: production
       PORT: 3001
       CRM_POSTGRES_PASSWORD: ${CRM_POSTGRES_PASSWORD:?set CRM_POSTGRES_PASSWORD}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: prymeira_crm
+      PGUSER: postgres
+      PGPASSWORD: ${CRM_POSTGRES_PASSWORD:?set CRM_POSTGRES_PASSWORD}
       PRYMEIRA_ACCOUNT_API_URL: ${PRYMEIRA_ACCOUNT_API_URL:?set PRYMEIRA_ACCOUNT_API_URL}
       PRYMEIRA_PRODUCT_KEY: ${PRYMEIRA_PRODUCT_KEY:-crm}
     networks:
@@ -93,7 +97,7 @@ services:
         npm run build
         npx vite preview --host 0.0.0.0 --port 80
     environment:
-      CRM_RELEASE: "2026-05-22-postgres-password-runtime"
+      CRM_RELEASE: "2026-05-22-postgres-field-connection"
       NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=1536}
       VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
       VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
