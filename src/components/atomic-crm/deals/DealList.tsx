@@ -233,7 +233,7 @@ const DealLayout = () => {
     <div className="w-full">
       <DealListContent />
       <DealArchivedList />
-      <DealCreate open={!!matchCreate} />
+      {matchCreate && <DealCreate open />}
       <DealEdit open={!!matchEdit && !matchCreate} id={matchEdit?.params.id} />
       <DealShow open={!!matchShow} id={matchShow?.params.id} />
     </div>

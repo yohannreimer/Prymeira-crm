@@ -63,9 +63,12 @@ export const DealCreate = ({ open }: { open: boolean }) => {
       { queryKey: ["deals", "getList"] },
       (res) => {
         if (!res) return res;
+        const existingDeal = res.data.some((d: Deal) => d.id === deal.id);
+        const updatedDeals = res.data.map((d: Deal) => dealsById[d.id] || d);
         return {
           ...res,
-          data: res.data.map((d: Deal) => dealsById[d.id] || d),
+          data: existingDeal ? updatedDeals : [deal, ...updatedDeals],
+          total: existingDeal ? res.total : (res.total ?? res.data.length) + 1,
         };
       },
       { updatedAt: now },
@@ -75,21 +78,23 @@ export const DealCreate = ({ open }: { open: boolean }) => {
   };
 
   const { identity } = useGetIdentity();
+  const defaultStage = stages[0]?.value ?? "opportunity";
 
   return (
     <Dialog open={open} onOpenChange={() => handleClose()}>
       <DialogContent className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
         <Create resource="deals" mutationOptions={{ onSuccess }}>
           <Form
+            key={`${pipelineId ?? "default"}:${defaultStage}`}
             defaultValues={{
               sales_id: identity?.id,
               contact_ids: [],
               index: 0,
               pipeline_id: pipelineId,
-              stage: stages[0]?.value ?? "opportunity",
+              stage: defaultStage,
             }}
           >
-            <DealInputs />
+            <DealInputs stageChoices={stages} />
             <FormToolbar>
               <SaveButton />
             </FormToolbar>

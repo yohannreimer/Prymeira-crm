@@ -16,7 +16,13 @@ import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 
-export const DealInputs = () => {
+type StageChoice = { value: string; label: string };
+
+export const DealInputs = ({
+  stageChoices,
+}: {
+  stageChoices?: StageChoice[];
+}) => {
   const isMobile = useIsMobile();
   return (
     <div className="flex flex-col gap-8">
@@ -25,7 +31,7 @@ export const DealInputs = () => {
       <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
         <DealLinkedToInputs />
         <Separator orientation={isMobile ? "horizontal" : "vertical"} />
-        <DealMiscInputs />
+        <DealMiscInputs stageChoices={stageChoices} />
       </div>
     </div>
   );
@@ -66,19 +72,35 @@ const DealLinkedToInputs = () => {
   );
 };
 
-const DealMiscInputs = () => {
+const DealMiscInputs = ({
+  stageChoices,
+}: {
+  stageChoices?: StageChoice[];
+}) => {
   const { dealStages, dealCategories, dealTypes, dealLostReasons } =
     useConfigurationContext();
   const translate = useTranslate();
   const { control, setValue } = useFormContext();
   const stage = useWatch({ control, name: "stage" });
   const lostReason = useWatch({ control, name: "lost_reason" });
+  const activeStageChoices = stageChoices?.length ? stageChoices : dealStages;
 
   useEffect(() => {
     if (stage !== "lost" && lostReason != null) {
       setValue("lost_reason", null, { shouldDirty: true });
     }
   }, [lostReason, setValue, stage]);
+
+  useEffect(() => {
+    const firstStage = activeStageChoices[0]?.value;
+    if (
+      firstStage &&
+      stage &&
+      !activeStageChoices.some((choice) => choice.value === stage)
+    ) {
+      setValue("stage", firstStage, { shouldDirty: true });
+    }
+  }, [activeStageChoices, setValue, stage]);
 
   return (
     <div className="flex flex-col gap-4 flex-1">
@@ -129,10 +151,10 @@ const DealMiscInputs = () => {
       <TextInput source="source" helperText={false} />
       <SelectInput
         source="stage"
-        choices={dealStages}
+        choices={activeStageChoices}
         optionText="label"
         optionValue="value"
-        defaultValue="opportunity"
+        defaultValue={activeStageChoices[0]?.value ?? "opportunity"}
         helperText={false}
         validate={required()}
       />
