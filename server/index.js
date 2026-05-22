@@ -23,7 +23,7 @@ if (!ACCOUNT_API_URL) {
 const databaseConfig = DATABASE_URL
   ? { connectionString: DATABASE_URL }
   : {
-      host: process.env.PGHOST || "postgres",
+      host: process.env.PGHOST || "vincula_postgres",
       port: Number(process.env.PGPORT || 5432),
       database: process.env.PGDATABASE || "prymeira_crm",
       user: process.env.PGUSER || "postgres",
@@ -33,6 +33,14 @@ const databaseConfig = DATABASE_URL
 if (!DATABASE_URL && !process.env.PGPASSWORD) {
   throw new Error("DATABASE_URL or PGPASSWORD is required");
 }
+
+console.log(
+  `Postgres config: host=${databaseConfig.host ?? "connection-string"} database=${
+    databaseConfig.database ?? "connection-string"
+  } user=${databaseConfig.user ?? "connection-string"} passwordLength=${
+    process.env.PGPASSWORD?.length ?? 0
+  }`,
+);
 
 const pool = new Pool({
   ...databaseConfig,
