@@ -38,6 +38,7 @@ const pool = new Pool({
   ...databaseConfig,
   max: Number(process.env.DB_POOL_SIZE || 10),
 });
+const tableColumnCache = new Map();
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -132,6 +133,21 @@ const jsonArrayColumns = {
   deal_notes: new Set(["attachments"]),
 };
 
+const nullableDateColumns = {
+  contacts: new Set(["first_seen", "last_seen"]),
+  contact_notes: new Set(["date"]),
+  deals: new Set([
+    "archived_at",
+    "expected_closing_date",
+    "next_action_at",
+    "last_activity_at",
+  ]),
+  deal_notes: new Set(["date"]),
+  leads: new Set(["next_action_at", "converted_at", "discarded_at"]),
+  proposals: new Set(["valid_until", "sent_at", "accepted_at", "rejected_at"]),
+  tasks: new Set(["due_date", "done_date"]),
+};
+
 const searchableColumns = {
   contacts: [
     "first_name",
@@ -201,6 +217,23 @@ const q = (identifier) => {
 };
 
 const tableName = (table) => `public.${q(table)}`;
+
+const getTableColumns = async (table) => {
+  const cached = tableColumnCache.get(table);
+  if (cached) return cached;
+
+  const { rows } = await pool.query(
+    `select column_name
+     from information_schema.columns
+     where table_schema = 'public' and table_name = $1`,
+    [table],
+  );
+  if (!rows.length) throw new Error(`Unknown table ${table}`);
+
+  const columns = new Set(rows.map((row) => row.column_name));
+  tableColumnCache.set(table, columns);
+  return columns;
+};
 
 const getBearerToken = (req) => {
   const header = req.headers.authorization || "";
@@ -363,6 +396,11 @@ const buildCondition = (fieldAndOperator, value, values) => {
       ? `${col} is null`
       : `${col} is not null`;
   }
+  if (operator === "not.is") {
+    return value === null || value === "null"
+      ? `${col} is not null`
+      : `${col} is null`;
+  }
   if (operator === "in") {
     const param = nextParam(parseInList(value));
     return `${col} = any(${param})`;
@@ -497,7 +535,18 @@ const sanitizeWriteData = (resource, data, auth) => {
   return copy;
 };
 
+const filterWritableColumns = async (table, payload) => {
+  const writableColumns = await getTableColumns(table);
+  return Object.fromEntries(
+    Object.entries(payload).filter(([column]) => writableColumns.has(column)),
+  );
+};
+
 const prepareWriteColumn = (table, column, value) => {
+  if (value === "" && nullableDateColumns[table]?.has(column)) {
+    return { value: null, cast: null };
+  }
+
   const jsonType = jsonColumnTypes[table]?.[column];
   if (jsonType) {
     return {
@@ -527,7 +576,10 @@ const parameterForColumn = (index, cast) =>
 
 const insertRecord = async (auth, resource, data) => {
   const table = ensureResource(resource, "write");
-  const payload = sanitizeWriteData(resource, data, auth);
+  const payload = await filterWritableColumns(
+    table,
+    sanitizeWriteData(resource, data, auth),
+  );
   if (!Object.keys(payload).length) {
     throw new Error("Cannot create empty record");
   }
@@ -548,7 +600,10 @@ const insertRecord = async (auth, resource, data) => {
 
 const updateRecord = async (auth, resource, id, data) => {
   const table = ensureResource(resource, "write");
-  const payload = sanitizeWriteData(resource, data, auth);
+  const payload = await filterWritableColumns(
+    table,
+    sanitizeWriteData(resource, data, auth),
+  );
   delete payload.workspace_id;
   const columns = Object.keys(payload).filter(isIdentifier);
   if (!columns.length) return getRecord(auth, resource, id);

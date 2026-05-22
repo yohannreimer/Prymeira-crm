@@ -72,11 +72,7 @@ const DealLinkedToInputs = () => {
   );
 };
 
-const DealMiscInputs = ({
-  stageChoices,
-}: {
-  stageChoices?: StageChoice[];
-}) => {
+const DealMiscInputs = ({ stageChoices }: { stageChoices?: StageChoice[] }) => {
   const { dealStages, dealCategories, dealTypes, dealLostReasons } =
     useConfigurationContext();
   const translate = useTranslate();
@@ -143,11 +139,7 @@ const DealMiscInputs = ({
         helperText={false}
         defaultValue={new Date().toISOString().split("T")[0]}
       />
-      <DateTimeInput
-        source="next_action_at"
-        helperText={false}
-        defaultValue=""
-      />
+      <DateTimeInput source="next_action_at" helperText={false} />
       <TextInput source="source" helperText={false} />
       <SelectInput
         source="stage"

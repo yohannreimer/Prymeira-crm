@@ -34,9 +34,7 @@ import {
   getNextProposalStatusData,
 } from "../../proposals/proposalUtils";
 import { getPostgresAccessToken } from "./authToken";
-import {
-  invitePrymeiraProductMember,
-} from "../../prymeira/accountApi";
+import { invitePrymeiraProductMember } from "../../prymeira/accountApi";
 
 export type SyncCurrentSaleInput = {
   clerk_user_id: string;
@@ -219,10 +217,13 @@ const getDataProviderWithCustomMethods = () => {
       return updatedData;
     },
     async syncCurrentSale(input: SyncCurrentSaleInput) {
-      const response = await request<{ data: Sale }>("/auth/sync-current-sale", {
-        method: "POST",
-        body: JSON.stringify(input),
-      });
+      const response = await request<{ data: Sale }>(
+        "/auth/sync-current-sale",
+        {
+          method: "POST",
+          body: JSON.stringify(input),
+        },
+      );
       return response.data;
     },
     async updatePassword(_id: Identifier) {
@@ -261,8 +262,9 @@ const getDataProviderWithCustomMethods = () => {
       return convertLeadRecord(baseDataProvider, input);
     },
     async getConfiguration(): Promise<ConfigurationContextValue> {
-      const { data } =
-        await request<{ data: ConfigurationContextValue }>("/configuration");
+      const { data } = await request<{ data: ConfigurationContextValue }>(
+        "/configuration",
+      );
       return data ?? {};
     },
     async updateConfiguration(
@@ -281,7 +283,9 @@ const getDataProviderWithCustomMethods = () => {
 };
 
 export interface CrmDataProvider extends DataProvider {
-  signUp: (data: SignUpData) => Promise<{ id: Identifier; email: string; password: string }>;
+  signUp: (
+    data: SignUpData,
+  ) => Promise<{ id: Identifier; email: string; password: string }>;
   salesCreate: (body: SalesFormData) => Promise<Sale>;
   salesUpdate: (
     id: Identifier,
@@ -291,7 +295,10 @@ export interface CrmDataProvider extends DataProvider {
   updatePassword: (id: Identifier) => Promise<boolean>;
   unarchiveDeal: (deal: Deal) => Promise<unknown>;
   isInitialized: () => Promise<boolean>;
-  mergeContacts: (sourceId: Identifier, targetId: Identifier) => Promise<unknown>;
+  mergeContacts: (
+    sourceId: Identifier,
+    targetId: Identifier,
+  ) => Promise<unknown>;
   convertLead: (input: ConvertLeadInput) => Promise<ConvertLeadResult>;
   getConfiguration: () => Promise<ConfigurationContextValue>;
   updateConfiguration: (
@@ -340,6 +347,13 @@ const getDealProbability = (
   return probability === undefined ? 25 : probability;
 };
 
+const emptyStringToNull = <T>(value: T | "") => (value === "" ? null : value);
+
+const nullableFieldValue = <T>(
+  value: T | "" | undefined,
+  fallback: T | null,
+) => (value === undefined ? fallback : emptyStringToNull(value));
+
 const applyDealCommercialDefaults = <
   T extends CreateParams<Deal> | UpdateParams<Deal>,
 >(
@@ -362,14 +376,25 @@ const applyDealCommercialDefaults = <
     ...params,
     data: {
       ...params.data,
-      deal_type: params.data.deal_type ?? previousData?.deal_type ?? "consultative",
+      deal_type:
+        params.data.deal_type ?? previousData?.deal_type ?? "consultative",
       probability,
-      source: params.data.source ?? previousData?.source ?? null,
-      lost_reason: params.data.lost_reason ?? previousData?.lost_reason ?? null,
-      next_action_at:
-        params.data.next_action_at ?? previousData?.next_action_at ?? null,
-      last_activity_at:
-        params.data.last_activity_at ?? previousData?.last_activity_at ?? now,
+      source: nullableFieldValue(
+        params.data.source,
+        previousData?.source ?? null,
+      ),
+      lost_reason: nullableFieldValue(
+        params.data.lost_reason,
+        previousData?.lost_reason ?? null,
+      ),
+      next_action_at: nullableFieldValue(
+        params.data.next_action_at,
+        previousData?.next_action_at ?? null,
+      ),
+      last_activity_at: nullableFieldValue(
+        params.data.last_activity_at,
+        previousData?.last_activity_at ?? now,
+      ),
     },
   };
 };
@@ -502,7 +527,10 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         (params.previousData as Deal | undefined) ??
         (await dataProvider.getOne<Deal>("deals", { id: params.id })).data;
       previousDealsForAutomation.set(params.id, previousDeal);
-      return applyDealCommercialDefaults({ ...params, previousData: previousDeal });
+      return applyDealCommercialDefaults({
+        ...params,
+        previousData: previousDeal,
+      });
     },
     afterUpdate: async (result, dataProvider) => {
       const previousDeal = previousDealsForAutomation.get(result.data.id);
@@ -544,7 +572,10 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         (await dataProvider.getOne<Proposal>("proposals", { id: params.id }))
           .data;
       previousProposalsForAutomation.set(params.id, previousProposal);
-      return applyProposalDefaults({ ...params, previousData: previousProposal });
+      return applyProposalDefaults({
+        ...params,
+        previousData: previousProposal,
+      });
     },
     afterUpdate: async (result, dataProvider) => {
       const previousProposal = previousProposalsForAutomation.get(

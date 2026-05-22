@@ -152,7 +152,7 @@ export const DateTimeInput = ({
       !isNaN(new Date(localInputRef.current.value).getTime());
 
     if (isNewValueValid && field.value !== newValue) {
-      field.onChange(newValue ?? "");
+      field.onChange(newValue === "" ? null : newValue);
     }
 
     if (onBlurFromField) {
@@ -257,6 +257,7 @@ const formatDateTime = (value: string | Date) => {
 // converts a date string entered usinf a datetime-local input
 // into an ISO date using the browser timezone
 const convertDateStringToISO = (date: string) => {
+  if (!date) return null;
   const localDate = new Date(date);
   return localDate.toISOString();
 };

@@ -7,6 +7,9 @@ const token = "smoke-token";
 const postgresPassword = "postgres";
 const postgresDatabase = "prymeira_crm";
 const containerName = `atomic-crm-smoke-${Date.now()}`;
+const dockerRunTimeoutMs = Number(
+  process.env.SMOKE_DOCKER_TIMEOUT_MS || 120_000,
+);
 
 const children = new Set();
 
@@ -123,7 +126,7 @@ const startPostgres = async () => {
       "127.0.0.1::5432",
       "postgres:16-alpine",
     ],
-    { timeoutMs: 45_000 },
+    { timeoutMs: dockerRunTimeoutMs },
   );
 
   const { stdout } = await run("docker", ["port", containerName, "5432/tcp"], {
@@ -227,6 +230,27 @@ const listPath = (resource, query = {}) => {
 
 const ok = (label) => console.log(`[ok] ${label}`);
 
+const assert = (condition, message) => {
+  if (!condition) throw new Error(message);
+};
+
+const assertRecord = (records, id, label) => {
+  assert(
+    records.some((record) => String(record.id) === String(id)),
+    `${label} did not include record ${id}`,
+  );
+};
+
+const updateFromReadRecord = async (client, resource, id, patch = {}) => {
+  const record = (await client.get(`/api/records/${resource}/${id}`)).data;
+  return (
+    await client.patch(`/api/records/${resource}/${id}`, {
+      ...record,
+      ...patch,
+    })
+  ).data;
+};
+
 const main = async () => {
   let accountApi;
   let api;
@@ -274,6 +298,13 @@ const main = async () => {
     await client.patch(`/api/records/pipelines/${pipeline.id}`, {
       stages: [...pipeline.stages, { value: "won", label: "Ganho" }],
     });
+    const updatedPipeline = (
+      await client.get(`/api/records/pipelines/${pipeline.id}`)
+    ).data;
+    assert(
+      updatedPipeline.stages.some((stage) => stage.value === "won"),
+      "pipeline stage update did not persist",
+    );
     ok("pipeline stages jsonb");
 
     const company = (
@@ -307,9 +338,17 @@ const main = async () => {
     await client.get(listPath("contacts_summary"));
     ok("contacts + contacts_summary");
 
+    await updateFromReadRecord(client, "contacts", contact.id, {
+      company_id: company.id,
+      first_seen: "",
+      last_seen: "",
+    });
+    ok("contact update from contacts_summary payload");
+
     await client.post("/api/records/contact_notes", {
       contact_id: contact.id,
       text: "Nota smoke",
+      date: "",
       sales_id: sale.id,
       status: "todo",
       attachments: [{ src: "data:text/plain;base64,SGk=", title: "note.txt" }],
@@ -327,6 +366,7 @@ const main = async () => {
         interest: "crm",
         temperature: "warm",
         status: "new",
+        next_action_at: "",
         sales_id: sale.id,
       })
     ).data;
@@ -349,15 +389,105 @@ const main = async () => {
         pipeline_id: pipeline.id,
       })
     ).data;
+    const secondDeal = (
+      await client.post("/api/records/deals", {
+        name: "Smoke Negocio Follow-up",
+        company_id: company.id,
+        contact_ids: [contact.id],
+        category: "design-interface",
+        stage: "opportunity",
+        description: "Segundo negocio criado pelo smoke",
+        amount: 150000,
+        expected_closing_date: "2026-07-15",
+        sales_id: sale.id,
+        index: 1,
+        deal_type: "consultative",
+        probability: 20,
+        next_action_at: "",
+        pipeline_id: pipeline.id,
+      })
+    ).data;
+    const pipelineDeals = await client.get(
+      listPath("deals", {
+        filter: { "pipeline_id@eq": pipeline.id, "archived_at@is": null },
+        sort: { field: "index", order: "ASC" },
+      }),
+    );
+    assertRecord(pipelineDeals.data, deal.id, "pipeline deals");
+    assertRecord(pipelineDeals.data, secondDeal.id, "pipeline deals");
     await client.get(
-      listPath("deals", { filter: { pipeline_id: pipeline.id } }),
+      listPath("deals", {
+        filter: { "id@in": [deal.id, secondDeal.id] },
+        sort: { field: "id", order: "ASC" },
+      }),
+    );
+    await client.get(
+      listPath("deals", {
+        filter: { "contact_ids@cs": [contact.id] },
+      }),
     );
     ok("deals in selected pipeline");
+
+    await client.patch(`/api/records/deals/${deal.id}`, {
+      stage: "proposal-sent",
+      index: 0,
+      probability: 60,
+      last_activity_at: "2026-05-22T12:00:00.000Z",
+      next_action_at: "2026-05-25T12:00:00.000Z",
+    });
+    await client.patch(`/api/records/deals/${secondDeal.id}`, {
+      index: 0,
+    });
+    const proposalStageDeals = await client.get(
+      listPath("deals", {
+        filter: {
+          "pipeline_id@eq": pipeline.id,
+          "stage@eq": "proposal-sent",
+          "archived_at@is": null,
+        },
+        sort: { field: "index", order: "ASC" },
+      }),
+    );
+    assertRecord(proposalStageDeals.data, deal.id, "proposal stage deals");
+    assert(
+      proposalStageDeals.data.find((record) => record.id === deal.id)
+        ?.probability === 60,
+      "deal probability update did not persist",
+    );
+    const opportunityStageDeals = await client.get(
+      listPath("deals", {
+        filter: {
+          "pipeline_id@eq": pipeline.id,
+          "stage@eq": "opportunity",
+          "archived_at@is": null,
+        },
+      }),
+    );
+    assertRecord(
+      opportunityStageDeals.data,
+      secondDeal.id,
+      "opportunity deals",
+    );
+    const scheduledDeals = await client.get(
+      listPath("deals", {
+        filter: {
+          "next_action_at@not.is": null,
+        },
+      }),
+    );
+    assertRecord(scheduledDeals.data, deal.id, "scheduled deals");
+    ok("pipeline filters and stage movement");
+
+    await updateFromReadRecord(client, "companies", company.id, {
+      description: "Empresa atualizada com payload da summary",
+    });
+    ok("company update from companies_summary payload");
 
     await client.post("/api/records/deal_notes", {
       deal_id: deal.id,
       type: "note",
       text: "Nota do negocio",
+      date: "",
       sales_id: sale.id,
       attachments: [{ src: "data:text/plain;base64,SGk=", title: "deal.txt" }],
     });
@@ -382,14 +512,29 @@ const main = async () => {
         active: true,
       })
     ).data;
-    await client.post("/api/records/proposal_template_items", {
-      template_id: template.id,
-      description: "Servico",
-      quantity: 1,
-      unit_price: 100000,
-      discount_amount: 0,
-      index: 0,
-    });
+    const templateItem = (
+      await client.post("/api/records/proposal_template_items", {
+        template_id: template.id,
+        description: "Servico",
+        quantity: 1,
+        unit_price: 100000,
+        discount_amount: 0,
+        index: 0,
+      })
+    ).data;
+    await client.patch(
+      `/api/records/proposal_template_items/${templateItem.id}`,
+      {
+        quantity: 2,
+        unit_price: 120000,
+      },
+    );
+    const templateItems = await client.get(
+      listPath("proposal_template_items", {
+        filter: { "template_id@eq": template.id },
+      }),
+    );
+    assertRecord(templateItems.data, templateItem.id, "template items");
     const proposal = (
       await client.post("/api/records/proposals", {
         deal_id: deal.id,
@@ -421,8 +566,66 @@ const main = async () => {
         index: 0,
       })
     ).data;
-    await client.get(listPath("proposals"));
+    await client.patch(`/api/records/proposal_items/${proposalItem.id}`, {
+      quantity: 2,
+      unit_price: 100000,
+      total: 200000,
+    });
+    const proposalItems = await client.get(
+      listPath("proposal_items", {
+        filter: { "proposal_id@eq": proposal.id },
+        sort: { field: "index", order: "ASC" },
+      }),
+    );
+    assert(
+      proposalItems.data.find((item) => item.id === proposalItem.id)?.total ===
+        200000,
+      "proposal item update did not persist",
+    );
+    await client.patch(`/api/records/proposals/${proposal.id}`, {
+      status: "sent",
+      subtotal: 200000,
+      total: 200000,
+      sent_at: "",
+      updated_at: "2026-05-22T12:00:00.000Z",
+    });
+    await client.patch(`/api/records/proposals/${proposal.id}`, {
+      sent_at: "2026-05-22T12:00:00.000Z",
+    });
+    const sentProposals = await client.get(
+      listPath("proposals", {
+        filter: {
+          "deal_id@eq": deal.id,
+          "status@in": ["sent", "accepted"],
+          "contact_id@is": "not_null",
+        },
+      }),
+    );
+    assertRecord(sentProposals.data, proposal.id, "sent proposals");
     ok("proposals full create flow");
+
+    await client.patch(`/api/records/proposals/${proposal.id}`, {
+      status: "accepted",
+      accepted_at: "",
+      updated_at: "2026-05-23T12:00:00.000Z",
+    });
+    await client.patch(`/api/records/proposals/${proposal.id}`, {
+      accepted_at: "2026-05-23T12:00:00.000Z",
+    });
+    await client.patch(`/api/records/deals/${deal.id}`, {
+      stage: "won",
+      probability: 100,
+    });
+    const wonDeals = await client.get(
+      listPath("deals", {
+        filter: {
+          "pipeline_id@eq": pipeline.id,
+          "stage@in": ["won", "proposal-sent"],
+        },
+      }),
+    );
+    assertRecord(wonDeals.data, deal.id, "won/proposal stage deals");
+    ok("proposal acceptance and deal won update");
 
     const rule = (
       await client.post("/api/records/automation_rules", {
@@ -452,10 +655,37 @@ const main = async () => {
       automation_run_id: runRecord.id,
       type: "call",
       text: "Follow up",
-      due_date: "2026-06-01T12:00:00.000Z",
+      due_date: "",
+      done_date: "",
       sales_id: sale.id,
     });
     ok("automation rules/runs + tasks");
+
+    const contactSearch = await client.get(
+      listPath("contacts", {
+        filter: {
+          q: "ana@example.com",
+          "@or": {
+            "company_name@ilike": "Smoke",
+            "email_fts@ilike": "ana@example.com",
+          },
+        },
+      }),
+    );
+    assertRecord(contactSearch.data, contact.id, "contact search");
+    const openTaskSearch = await client.get(
+      listPath("tasks", {
+        filter: {
+          "done_date@is": null,
+          "due_date@is": null,
+        },
+      }),
+    );
+    assert(
+      openTaskSearch.total > 0,
+      "task null-date filters did not return created task",
+    );
+    ok("search and null-date filters");
 
     await client.post("/api/records/favicons_excluded_domains", {
       domain: "example.com",
