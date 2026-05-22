@@ -60,6 +60,7 @@ export const List = <RecordType extends RaRecord = RaRecord>(
     exporter,
     filter,
     filterDefaultValues,
+    empty,
     loading,
     perPage,
     queryOptions,
@@ -77,6 +78,7 @@ export const List = <RecordType extends RaRecord = RaRecord>(
       exporter={exporter}
       filter={filter}
       filterDefaultValues={filterDefaultValues}
+      empty={empty}
       loading={loading}
       perPage={perPage}
       queryOptions={queryOptions}

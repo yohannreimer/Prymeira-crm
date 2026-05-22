@@ -210,6 +210,7 @@ const DealList = () => {
           sort={{ field: "index", order: "DESC" }}
           filters={dealFilters}
           actions={<DealActions />}
+          empty={false}
           pagination={null}
         >
           <DealLayout />

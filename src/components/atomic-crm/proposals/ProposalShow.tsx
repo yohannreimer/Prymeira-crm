@@ -17,6 +17,14 @@ import { formatProposalAmount, formatProposalDate } from "./proposalUtils";
 
 const LOCALE = "pt-BR";
 
+const toDisplayText = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return "-";
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+  return JSON.stringify(value);
+};
+
 export const ProposalShow = () => (
   <ShowBase>
     <ProposalShowContent />
@@ -76,7 +84,7 @@ const ProposalShowContent = () => {
           Comercial
         </p>
         <h1 className="text-[18px] font-bold text-foreground leading-tight">
-          {record.title}
+          {toDisplayText(record.title)}
         </h1>
       </div>
       <div className={cn("flex gap-8")}>
@@ -97,7 +105,7 @@ const ProposalShowContent = () => {
                 {translate("resources.proposals.fields.number")}
               </p>
               <p className="mt-0.5 text-[13px] text-foreground">
-                {record.number}
+                {toDisplayText(record.number)}
               </p>
             </div>
             {validUntil && (

@@ -9,6 +9,14 @@ import { formatProposalAmount } from "./proposalUtils";
 
 const LOCALE = "pt-BR";
 
+const toDisplayText = (value: unknown) => {
+  if (value === null || value === undefined || value === "") return "-";
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+  return JSON.stringify(value);
+};
+
 export const ProposalPreview = ({
   proposal,
   company,
@@ -55,9 +63,9 @@ export const ProposalPreview = ({
                   className="ml-auto mb-2 h-10 max-w-32 object-contain"
                 />
               ) : null}
-              <div className="font-medium">{company.name}</div>
+              <div className="font-medium">{toDisplayText(company.name)}</div>
               <div className="text-sm text-muted-foreground">
-                {company.website}
+                {toDisplayText(company.website)}
               </div>
             </div>
           ) : null}
@@ -68,27 +76,27 @@ export const ProposalPreview = ({
         <div className="grid gap-6 md:grid-cols-2">
           {company ? (
             <PreviewText title={translate("resources.companies.name")}>
-              {company.name}
+              {toDisplayText(company.name)}
             </PreviewText>
           ) : null}
           <PreviewText title={translate("resources.proposals.fields.scope")}>
-            {proposal.scope}
+            {toDisplayText(proposal.scope)}
           </PreviewText>
           <PreviewText title={translate("resources.proposals.fields.terms")}>
-            {proposal.terms}
+            {toDisplayText(proposal.terms)}
           </PreviewText>
           {proposal.delivery_time ? (
             <PreviewText
               title={translate("resources.proposals.fields.delivery_time")}
             >
-              {proposal.delivery_time}
+              {toDisplayText(proposal.delivery_time)}
             </PreviewText>
           ) : null}
           {proposal.payment_terms ? (
             <PreviewText
               title={translate("resources.proposals.fields.payment_terms")}
             >
-              {proposal.payment_terms}
+              {toDisplayText(proposal.payment_terms)}
             </PreviewText>
           ) : null}
         </div>
@@ -116,8 +124,12 @@ export const ProposalPreview = ({
             <tbody className="divide-y">
               {items.map((item) => (
                 <tr key={item.id}>
-                  <td className="py-3 pr-4">{item.description}</td>
-                  <td className="py-3 pr-4 text-right">{item.quantity}</td>
+                  <td className="py-3 pr-4">
+                    {toDisplayText(item.description)}
+                  </td>
+                  <td className="py-3 pr-4 text-right">
+                    {toDisplayText(item.quantity)}
+                  </td>
                   <td className="py-3 pr-4 text-right">
                     {formatAmount(item.unit_price)}
                   </td>

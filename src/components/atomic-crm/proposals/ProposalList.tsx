@@ -20,6 +20,7 @@ import { useBulkSelection } from "../misc/useBulkSelection";
 import type { Proposal } from "../types";
 import { proposalStatuses } from "./proposalChoices";
 import { ProposalStatusBadge } from "./ProposalStatusBadge";
+import { formatProposalAmount, formatProposalDate } from "./proposalUtils";
 
 const LOCALE = "pt-BR";
 
@@ -173,11 +174,6 @@ const ProposalRow = ({
   isSelected: boolean;
   onToggle: () => void;
 }) => {
-  const formatter = new Intl.NumberFormat(LOCALE, {
-    style: "currency",
-    currency: proposal.currency || "USD",
-  });
-
   return (
     <div className="grid gap-3 px-4 py-3 transition-colors hover:bg-muted md:grid-cols-[28px_1.5fr_0.8fr_0.7fr_0.8fr]">
       <div className="hidden md:flex items-center">
@@ -205,14 +201,10 @@ const ProposalRow = ({
           <ProposalStatusBadge proposal={proposal} />
         </div>
         <div className="text-[12px] text-muted-foreground">
-          {proposal.valid_until
-            ? new Intl.DateTimeFormat(LOCALE, {
-                dateStyle: "medium",
-              }).format(new Date(`${proposal.valid_until}T00:00:00`))
-            : null}
+          {formatProposalDate(proposal.valid_until, LOCALE)}
         </div>
         <div className="text-[13px] font-semibold text-foreground md:text-right">
-          {formatter.format(proposal.total / 100)}
+          {formatProposalAmount(proposal.total, proposal.currency, LOCALE)}
         </div>
       </Link>
     </div>
