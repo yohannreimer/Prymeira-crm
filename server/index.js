@@ -267,6 +267,11 @@ const waitForDatabase = async () => {
       await pool.query("select 1");
       return;
     } catch (err) {
+      if (err?.code === "28P01") {
+        throw new Error(
+          "Postgres rejected CRM_POSTGRES_PASSWORD for user postgres. If this is a blank Vincula database, remove the vincula_postgres_data volume and redeploy with the current password. If you need to keep the volume, change the postgres password inside the database to match CRM_POSTGRES_PASSWORD.",
+        );
+      }
       if (Date.now() - startedAt > 60_000) throw err;
       console.log("Waiting for Postgres...");
       await new Promise((resolve) => setTimeout(resolve, 2000));
