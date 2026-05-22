@@ -46,7 +46,9 @@ const repoRoot = path.resolve(
 
 const tenantResources = new Set([
   "companies",
+  "companies_summary",
   "contacts",
+  "contacts_summary",
   "contact_notes",
   "pipelines",
   "deals",
@@ -69,7 +71,9 @@ const tenantResources = new Set([
 const resources = {
   activity_log: { read: "activity_log", write: null },
   companies: { read: "companies_summary", write: "companies" },
+  companies_summary: { read: "companies_summary", write: null },
   contacts: { read: "contacts_summary", write: "contacts" },
+  contacts_summary: { read: "contacts_summary", write: null },
   contact_notes: { read: "contact_notes", write: "contact_notes" },
   pipelines: { read: "pipelines", write: "pipelines" },
   deals: { read: "deals", write: "deals" },
@@ -96,6 +100,35 @@ const resources = {
     read: "favicons_excluded_domains",
     write: "favicons_excluded_domains",
   },
+};
+
+const jsonColumnTypes = {
+  companies: {
+    context_links: "json",
+    logo: "jsonb",
+  },
+  contacts: {
+    avatar: "jsonb",
+    email_jsonb: "jsonb",
+    phone_jsonb: "jsonb",
+  },
+  sales: {
+    avatar: "jsonb",
+  },
+  pipelines: {
+    stages: "jsonb",
+  },
+  automation_rules: {
+    params: "jsonb",
+  },
+  configuration: {
+    config: "jsonb",
+  },
+};
+
+const jsonArrayColumns = {
+  contact_notes: new Set(["attachments"]),
+  deal_notes: new Set(["attachments"]),
 };
 
 const searchableColumns = {
@@ -454,6 +487,34 @@ const sanitizeWriteData = (resource, data, auth) => {
   return copy;
 };
 
+const prepareWriteColumn = (table, column, value) => {
+  const jsonType = jsonColumnTypes[table]?.[column];
+  if (jsonType) {
+    return {
+      value: value == null ? null : JSON.stringify(value),
+      cast: jsonType,
+    };
+  }
+
+  if (jsonArrayColumns[table]?.has(column)) {
+    return {
+      value: Array.isArray(value)
+        ? value.map((item) =>
+            item == null || typeof item === "string"
+              ? item
+              : JSON.stringify(item),
+          )
+        : value,
+      cast: "jsonb[]",
+    };
+  }
+
+  return { value, cast: null };
+};
+
+const parameterForColumn = (index, cast) =>
+  cast ? `$${index}::${cast}` : `$${index}`;
+
 const insertRecord = async (auth, resource, data) => {
   const table = ensureResource(resource, "write");
   const payload = sanitizeWriteData(resource, data, auth);
@@ -461,8 +522,13 @@ const insertRecord = async (auth, resource, data) => {
     throw new Error("Cannot create empty record");
   }
   const columns = Object.keys(payload).filter(isIdentifier);
-  const values = columns.map((column) => payload[column]);
-  const params = columns.map((_, index) => `$${index + 1}`);
+  const preparedColumns = columns.map((column) =>
+    prepareWriteColumn(table, column, payload[column]),
+  );
+  const values = preparedColumns.map((column) => column.value);
+  const params = preparedColumns.map((column, index) =>
+    parameterForColumn(index + 1, column.cast),
+  );
   const sql = `insert into ${tableName(table)} (${columns
     .map(q)
     .join(", ")}) values (${params.join(", ")}) returning *`;
@@ -476,7 +542,10 @@ const updateRecord = async (auth, resource, id, data) => {
   delete payload.workspace_id;
   const columns = Object.keys(payload).filter(isIdentifier);
   if (!columns.length) return getRecord(auth, resource, id);
-  const values = columns.map((column) => payload[column]);
+  const preparedColumns = columns.map((column) =>
+    prepareWriteColumn(table, column, payload[column]),
+  );
+  const values = preparedColumns.map((column) => column.value);
   values.push(id);
   let where = `where id = $${values.length}`;
   if (tenantResources.has(resource)) {
@@ -484,7 +553,13 @@ const updateRecord = async (auth, resource, id, data) => {
     where += ` and workspace_id = $${values.length}`;
   }
   const sql = `update ${tableName(table)} set ${columns
-    .map((column, index) => `${q(column)} = $${index + 1}`)
+    .map(
+      (column, index) =>
+        `${q(column)} = ${parameterForColumn(
+          index + 1,
+          preparedColumns[index].cast,
+        )}`,
+    )
     .join(", ")} ${where} returning *`;
   const { rows } = await pool.query(sql, values);
   if (!rows[0]) {
