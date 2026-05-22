@@ -544,6 +544,10 @@ export const frenchCrmMessages = {
         administrator: "Admin",
         disabled: "Désactivé",
       },
+      status: {
+        active: "Actif",
+        invited: "Invité",
+      },
       create: {
         error:
           "Une erreur s'est produite lors de la création de l'utilisateur.",

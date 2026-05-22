@@ -21,8 +21,25 @@ const OptionsField = (_props: { label?: string | boolean }) => {
   const record = useRecordContext();
   const translate = useTranslate();
   if (!record) return null;
+  const isInvited =
+    typeof record.clerk_user_id === "string" &&
+    record.clerk_user_id.startsWith("manual:");
   return (
     <div className="flex flex-row gap-1">
+      <Badge
+        variant="outline"
+        className={
+          isInvited
+            ? "border-amber-300 dark:border-amber-700"
+            : "border-emerald-300 dark:border-emerald-700"
+        }
+      >
+        {translate(
+          isInvited
+            ? "resources.sales.status.invited"
+            : "resources.sales.status.active",
+        )}
+      </Badge>
       {record.administrator && (
         <Badge
           variant="outline"

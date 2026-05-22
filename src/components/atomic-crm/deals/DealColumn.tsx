@@ -64,9 +64,16 @@ export const DealColumn = ({
             ref={droppableProvided.innerRef}
             {...droppableProvided.droppableProps}
             className={`flex flex-col rounded-xl gap-2 transition-colors ${
-              snapshot.isDraggingOver ? "bg-primary/5" : ""
-            }`}
+              deals.length === 0
+                ? "min-h-28 border border-dashed border-border/40 bg-muted/10 p-2"
+                : ""
+            } ${snapshot.isDraggingOver ? "bg-primary/5" : ""}`}
           >
+            {deals.length === 0 && (
+              <div className="flex flex-1 items-center justify-center rounded-lg text-[12px] text-muted-foreground">
+                Sem negócios nesta coluna
+              </div>
+            )}
             {deals.map((deal, index) => (
               <DealCard key={deal.id} deal={deal} index={index} />
             ))}

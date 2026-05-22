@@ -1,7 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@/components/admin/use-theme";
-import { ChevronRight } from "lucide-react";
-import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Item,
@@ -43,7 +41,6 @@ import {
 
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
-import { ChangelogPage } from "../misc/ChangelogPage";
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
 import type { SalesFormData } from "../types";
@@ -68,8 +65,6 @@ export const SettingsPageMobile = () => {
             <ProfileSection />
             <PreferencesSection />
             <InboundEmailSection />
-            <McpServerSection />
-            <AboutSection />
           </div>
 
           <div className="mt-auto pt-6 space-y-3 mb-4">
@@ -420,7 +415,7 @@ const InboundEmailSection = () => {
       <SectionLabel>{translate("crm.profile.inbound.title")}</SectionLabel>
       <p className="text-sm text-muted-foreground mb-2 px-1">
         {translate("crm.profile.inbound.description", {
-          _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
+          _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Prymeira Vincula will process the emails and add notes to the corresponding contacts.",
           field: "Cc:",
         })}
       </p>
@@ -431,51 +426,6 @@ const InboundEmailSection = () => {
   );
 };
 
-const McpServerSection = () => {
-  const translate = useTranslate();
-
-  return (
-    <div>
-      <SectionLabel>
-        {translate("crm.profile.mcp.title", { _: "MCP Server" })}
-      </SectionLabel>
-      <p className="text-sm text-muted-foreground mb-2 px-1">
-        {translate("crm.profile.mcp.description", {
-          _: "Use this URL to connect your AI assistant to your CRM data via the Model Context Protocol (MCP).",
-        })}
-      </p>
-      <ItemGroup className="rounded-lg border overflow-hidden">
-        <CopyPasteRow
-          value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp`}
-        />
-      </ItemGroup>
-    </div>
-  );
-};
-
-const AboutSection = () => {
-  const translate = useTranslate();
-
-  return (
-    <div>
-      <SectionLabel>{translate("crm.settings.about")}</SectionLabel>
-      <ItemGroup className="rounded-lg border overflow-hidden">
-        <Item asChild size="sm" className="cursor-pointer">
-          <Link to={ChangelogPage.path}>
-            <ItemContent>
-              <ItemTitle className="font-normal">
-                {translate("crm.changelog.title")}
-              </ItemTitle>
-            </ItemContent>
-            <ItemActions>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </ItemActions>
-          </Link>
-        </Item>
-      </ItemGroup>
-    </div>
-  );
-};
 
 const CopyPasteRow = ({ value }: { value: string }) => {
   const translate = useTranslate();

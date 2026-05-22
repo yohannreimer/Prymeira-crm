@@ -7,6 +7,7 @@ import {
   useRedirect,
   type GetListResult,
 } from "ra-core";
+import { useContext } from "react";
 import { Create } from "@/components/admin/create";
 import { SaveButton } from "@/components/admin/form";
 import { FormToolbar } from "@/components/admin/simple-form";
@@ -14,11 +15,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
+import { PipelineContext } from "./DealList";
 
 export const DealCreate = ({ open }: { open: boolean }) => {
   const redirect = useRedirect();
   const dataProvider = useDataProvider();
   const { data: allDeals } = useListContext<Deal>();
+  const { pipelineId, stages } = useContext(PipelineContext);
 
   const handleClose = () => {
     redirect("/deals");
@@ -67,6 +70,7 @@ export const DealCreate = ({ open }: { open: boolean }) => {
       },
       { updatedAt: now },
     );
+    queryClient.invalidateQueries({ queryKey: ["deals"] });
     redirect("/deals");
   };
 
@@ -81,6 +85,8 @@ export const DealCreate = ({ open }: { open: boolean }) => {
               sales_id: identity?.id,
               contact_ids: [],
               index: 0,
+              pipeline_id: pipelineId,
+              stage: stages[0]?.value ?? "opportunity",
             }}
           >
             <DealInputs />

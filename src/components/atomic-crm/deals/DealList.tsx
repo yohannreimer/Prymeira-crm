@@ -1,9 +1,10 @@
-import React, { type ReactNode, useEffect, useState } from "react";
+import React, { type ReactNode, useEffect, useRef, useState } from "react";
 import type { InputProps } from "ra-core";
 import {
   useCreate,
   useGetList,
   useListContext,
+  useNotify,
   useTranslate,
 } from "ra-core";
 import { matchPath, useLocation } from "react-router";
@@ -24,7 +25,6 @@ import { TopToolbar } from "../layout/TopToolbar";
 import { DealArchivedList } from "./DealArchivedList";
 import { DealCreate } from "./DealCreate";
 import { DealEdit } from "./DealEdit";
-import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
 import { DealShow } from "./DealShow";
 import { OnlyMineInput } from "./OnlyMineInput";
@@ -49,11 +49,16 @@ const DealList = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<number | null>(null);
   const [creatingPipeline, setCreatingPipeline] = useState(false);
   const [newPipelineName, setNewPipelineName] = useState("");
-  const [create] = useCreate();
+  const [create, { isPending: isCreatingPipeline }] = useCreate();
+  const notify = useNotify();
+  const creatingPipelineRequestRef = useRef(false);
 
-  const { data: pipelines } = useGetList<Pipeline>("pipelines", {
-    pagination: { page: 1, perPage: 100 },
-  });
+  const { data: pipelines, refetch: refetchPipelines } = useGetList<Pipeline>(
+    "pipelines",
+    {
+      pagination: { page: 1, perPage: 100 },
+    },
+  );
 
   useEffect(() => {
     if (pipelines && pipelines.length > 0 && selectedPipeline === null) {
@@ -62,20 +67,29 @@ const DealList = () => {
   }, [pipelines, selectedPipeline]);
 
   const handleCreatePipeline = () => {
-    if (!newPipelineName.trim()) return;
+    const name = newPipelineName.trim();
+    if (!name || isCreatingPipeline || creatingPipelineRequestRef.current) return;
+    creatingPipelineRequestRef.current = true;
     create(
       "pipelines",
       {
         data: {
-          name: newPipelineName.trim(),
-          stages: DEFAULT_STAGES,
+          name,
+          stages: [],
         },
       },
       {
-        onSuccess: (data) => {
-          setSelectedPipeline(Number(data.id));
+        onSuccess: async (result) => {
+          const pipeline = "data" in result ? result.data : result;
+          await refetchPipelines();
+          setSelectedPipeline(Number(pipeline.id));
           setCreatingPipeline(false);
           setNewPipelineName("");
+        },
+        onError: () =>
+          notify("Não foi possível criar o pipeline.", { type: "error" }),
+        onSettled: () => {
+          creatingPipelineRequestRef.current = false;
         },
       },
     );
@@ -123,9 +137,7 @@ const DealList = () => {
     (p) => Number(p.id) === selectedPipeline,
   );
   const currentPipelineStages =
-    currentPipeline?.stages && currentPipeline.stages.length > 0
-      ? currentPipeline.stages
-      : DEFAULT_STAGES;
+    currentPipeline?.stages ?? (selectedPipeline ? [] : DEFAULT_STAGES);
 
   return (
     <div className="flex flex-col gap-4">
@@ -160,16 +172,24 @@ const DealList = () => {
             value={newPipelineName}
             onChange={(e) => setNewPipelineName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handleCreatePipeline();
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleCreatePipeline();
+              }
               if (e.key === "Escape") {
                 setCreatingPipeline(false);
                 setNewPipelineName("");
               }
             }}
             onBlur={() => {
+              if (newPipelineName.trim()) {
+                handleCreatePipeline();
+                return;
+              }
               setCreatingPipeline(false);
               setNewPipelineName("");
             }}
+            disabled={isCreatingPipeline}
           />
         ) : (
           <button
@@ -205,19 +225,9 @@ const DealLayout = () => {
   const matchShow = matchPath("/deals/:id/show", location.pathname);
   const matchEdit = matchPath("/deals/:id", location.pathname);
 
-  const { data, isPending, filterValues } = useListContext();
-  const hasFilters = filterValues && Object.keys(filterValues).length > 0;
+  const { isPending } = useListContext();
 
   if (isPending) return <Skeleton className="h-64 w-full" />;
-  if (!data?.length && !hasFilters)
-    return (
-      <>
-        <DealEmpty>
-          <DealShow open={!!matchShow} id={matchShow?.params.id} />
-          <DealArchivedList />
-        </DealEmpty>
-      </>
-    );
 
   return (
     <div className="w-full">

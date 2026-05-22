@@ -34,14 +34,6 @@ if (!DATABASE_URL && !process.env.PGPASSWORD) {
   throw new Error("DATABASE_URL or PGPASSWORD is required");
 }
 
-console.log(
-  `Postgres config: host=${databaseConfig.host ?? "connection-string"} database=${
-    databaseConfig.database ?? "connection-string"
-  } user=${databaseConfig.user ?? "connection-string"} passwordLength=${
-    process.env.PGPASSWORD?.length ?? 0
-  }`,
-);
-
 const pool = new Pool({
   ...databaseConfig,
   max: Number(process.env.DB_POOL_SIZE || 10),
@@ -546,8 +538,44 @@ const syncCurrentSale = async (auth, body) => {
     const last_name = body.last_name || rest.join(" ") || " ";
     const administrator =
       auth.productRole === "admin" || auth.workspaceRole === "owner";
-    const { rows } = await client.query(
-      `insert into public.sales (
+    const placeholder = await client.query(
+      `update public.sales
+      set
+        clerk_user_id = $2,
+        first_name = $3,
+        last_name = $4,
+        email = $5,
+        administrator = $6,
+        workspace_role = $7,
+        product_role = $8,
+        disabled = false
+      where workspace_id = $1
+        and lower(email::text) = lower($5::text)
+        and clerk_user_id like 'manual:%'
+        and not exists (
+          select 1
+          from public.sales existing
+          where existing.workspace_id = $1
+            and existing.clerk_user_id = $2
+        )
+      returning *`,
+      [
+        auth.workspaceId,
+        body.clerk_user_id,
+        first_name,
+        last_name,
+        body.email,
+        administrator,
+        auth.workspaceRole,
+        auth.productRole,
+      ],
+    );
+
+    const rows = placeholder.rows.length
+      ? placeholder.rows
+      : (
+          await client.query(
+            `insert into public.sales (
         workspace_id, clerk_user_id, first_name, last_name, email,
         administrator, workspace_role, product_role, disabled
       )
@@ -562,17 +590,18 @@ const syncCurrentSale = async (auth, body) => {
         product_role = excluded.product_role,
         disabled = false
       returning *`,
-      [
-        auth.workspaceId,
-        body.clerk_user_id,
-        first_name,
-        last_name,
-        body.email,
-        administrator,
-        auth.workspaceRole,
-        auth.productRole,
-      ],
-    );
+            [
+              auth.workspaceId,
+              body.clerk_user_id,
+              first_name,
+              last_name,
+              body.email,
+              administrator,
+              auth.workspaceRole,
+              auth.productRole,
+            ],
+          )
+        ).rows;
     await client.query("commit");
     return { data: normalizeRow(rows[0]) };
   } catch (err) {

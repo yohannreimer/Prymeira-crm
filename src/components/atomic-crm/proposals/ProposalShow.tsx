@@ -13,6 +13,7 @@ import type { Company, Proposal, ProposalItem } from "../types";
 import { ProposalActions } from "./ProposalActions";
 import { ProposalPreview } from "./ProposalPreview";
 import { ProposalStatusBadge } from "./ProposalStatusBadge";
+import { formatProposalAmount, formatProposalDate } from "./proposalUtils";
 
 const LOCALE = "pt-BR";
 
@@ -66,16 +67,7 @@ const ProposalShowContent = () => {
     );
   }
 
-  const formatter = new Intl.NumberFormat(LOCALE, {
-    style: "currency",
-    currency: record.currency || "BRL",
-  });
-
-  const validUntil = record.valid_until
-    ? new Intl.DateTimeFormat(LOCALE, { dateStyle: "medium" }).format(
-        new Date(`${record.valid_until}T00:00:00`),
-      )
-    : null;
+  const validUntil = formatProposalDate(record.valid_until, LOCALE);
 
   return (
     <div className="flex flex-col gap-4">
@@ -123,7 +115,7 @@ const ProposalShowContent = () => {
                 {translate("resources.proposals.fields.total")}
               </p>
               <p className="mt-0.5 text-[15px] font-semibold text-primary">
-                {formatter.format(record.total / 100)}
+                {formatProposalAmount(record.total, record.currency, LOCALE)}
               </p>
             </div>
           </div>

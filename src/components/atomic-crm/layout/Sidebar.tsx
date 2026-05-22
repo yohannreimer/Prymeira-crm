@@ -22,7 +22,6 @@ import {
 
 import { GlobalSearch } from "../misc/GlobalSearch";
 import { ImportPage } from "../misc/ImportPage";
-import { ChangelogPage } from "../misc/ChangelogPage";
 
 const NAV_ITEMS = [
   { to: "/", icon: LayoutDashboard, labelKey: "ra.page.dashboard", match: "/" },
@@ -127,7 +126,6 @@ export const Sidebar = () => {
               <SidebarSettingsMenu />
             </CanAccess>
             <SidebarImportMenu />
-            <SidebarChangelogMenu />
           </UserMenu>
         </div>
       </aside>
@@ -186,20 +184,6 @@ const SidebarImportMenu = () => {
       <Link to={ImportPage.path} className="flex items-center gap-2">
         <FileText className="h-4 w-4" />
         {translate("crm.header.import_data")}
-      </Link>
-    </DropdownMenuItem>
-  );
-};
-
-const SidebarChangelogMenu = () => {
-  const translate = useTranslate();
-  const ctx = useUserMenu();
-  if (!ctx) throw new Error("<SidebarChangelogMenu> must be inside <UserMenu>");
-  return (
-    <DropdownMenuItem asChild onClick={ctx.onClose}>
-      <Link to={ChangelogPage.path} className="flex items-center gap-2">
-        <FileText className="h-4 w-4" />
-        {translate("crm.changelog.title")}
       </Link>
     </DropdownMenuItem>
   );

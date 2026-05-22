@@ -34,6 +34,9 @@ import {
   getNextProposalStatusData,
 } from "../../proposals/proposalUtils";
 import { getPostgresAccessToken } from "./authToken";
+import {
+  invitePrymeiraProductMember,
+} from "../../prymeira/accountApi";
 
 export type SyncCurrentSaleInput = {
   clerk_user_id: string;
@@ -183,6 +186,14 @@ const getDataProviderWithCustomMethods = () => {
       return { id: email, email, password };
     },
     async salesCreate(body: SalesFormData) {
+      const token = await getPostgresAccessToken();
+      if (!token) throw new Error("Missing Prymeira access token");
+      await invitePrymeiraProductMember(token, {
+        email: body.email,
+        name: [body.first_name, body.last_name].filter(Boolean).join(" "),
+        role: body.administrator ? "admin" : "member",
+      });
+
       const { data } = await baseDataProvider.create<Sale>("sales", {
         data: {
           ...body,

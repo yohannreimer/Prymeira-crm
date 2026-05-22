@@ -151,3 +151,39 @@ export const buildDuplicateProposalPayload = (
 
 export const getProposalPrintPath = (id: Proposal["id"]) =>
   `/proposals/${id}/show?print=1`;
+
+const DEFAULT_PROPOSAL_CURRENCY = "BRL";
+
+export const getProposalCurrencyCode = (currency?: string | null) => {
+  const normalized = currency?.trim().toUpperCase();
+  return normalized && /^[A-Z]{3}$/.test(normalized)
+    ? normalized
+    : DEFAULT_PROPOSAL_CURRENCY;
+};
+
+export const formatProposalAmount = (
+  value: number | null | undefined,
+  currency?: string | null,
+  locale = "pt-BR",
+) => {
+  const amount = Number(value);
+  const safeAmount = Number.isFinite(amount) ? amount : 0;
+
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: getProposalCurrencyCode(currency),
+  }).format(safeAmount / 100);
+};
+
+export const formatProposalDate = (
+  value: string | Date | null | undefined,
+  locale = "pt-BR",
+) => {
+  if (!value) return null;
+  const date =
+    value instanceof Date ? value : new Date(`${String(value).slice(0, 10)}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(date);
+};

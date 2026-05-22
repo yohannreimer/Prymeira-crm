@@ -27,7 +27,6 @@ import proposals from "../proposals";
 import proposalTemplates from "../proposal-templates";
 import salesGoals from "../sales-goals";
 import { ImportPage } from "../misc/ImportPage";
-import { ChangelogPage } from "../misc/ChangelogPage";
 import {
   getDataProvider as defaultDataProviderBuilder,
 } from "../providers/postgres";
@@ -291,7 +290,6 @@ const DesktopAdmin = (
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
-        <Route path={ChangelogPage.path} element={<ChangelogPage />} />
       </CustomRoutes>
       <Resource name="agenda" {...agenda} />
       <Resource name="leads" {...leads} />
@@ -350,7 +348,6 @@ const MobileAdmin = (
             path={SettingsPageMobile.path}
             element={<SettingsPageMobile />}
           />
-          <Route path={ChangelogPage.path} element={<ChangelogPage />} />
         </CustomRoutes>
         <Resource name="agenda" {...agenda} />
         <Resource

@@ -36,7 +36,16 @@ export const useConfigurationContext = () => {
   );
   // Merge with defaults so that missing fields in stored config
   // fall back to default values (e.g. when new settings are added)
-  return useMemo(() => ({ ...defaultConfiguration, ...config }), [config]);
+  return useMemo(
+    () => ({
+      ...defaultConfiguration,
+      ...config,
+      title: defaultConfiguration.title,
+      darkModeLogo: defaultConfiguration.darkModeLogo,
+      lightModeLogo: defaultConfiguration.lightModeLogo,
+    }),
+    [config],
+  );
 };
 
 export const useConfigurationUpdater = () => {

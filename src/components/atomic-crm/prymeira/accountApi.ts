@@ -69,6 +69,76 @@ export async function checkPrymeiraProductAccess(
   return response.json() as Promise<PrymeiraAccessDecision>;
 }
 
+export type PrymeiraTeamInviteRole = "admin" | "member";
+
+export async function invitePrymeiraProductMember(
+  token: string,
+  payload: {
+    email: string;
+    name?: string;
+    role: PrymeiraTeamInviteRole;
+    product_key?: string;
+  },
+) {
+  const response = await fetch(`${getPrymeiraAccountApiUrl()}/team/members/invite`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...payload,
+      product_key: payload.product_key ?? getPrymeiraProductKey(),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await readApiError(response, "Nao foi possivel convidar este membro."),
+    );
+  }
+
+  return response.json() as Promise<
+    | { status: "pending"; invitation: { id: string; email: string } }
+    | { status: "active"; member: { customerId?: string; customer_id?: string } }
+  >;
+}
+
+export async function updatePrymeiraProductMember(
+  token: string,
+  customerId: string,
+  payload: {
+    role?: PrymeiraTeamInviteRole;
+    status?: "active" | "disabled";
+    product_key?: string;
+  },
+) {
+  const response = await fetch(
+    `${getPrymeiraAccountApiUrl()}/team/members/${encodeURIComponent(
+      customerId,
+    )}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...payload,
+        product_key: payload.product_key ?? getPrymeiraProductKey(),
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await readApiError(response, "Nao foi possivel atualizar este membro."),
+    );
+  }
+
+  return response.json() as Promise<{ member: unknown }>;
+}
+
 export function buildPrymeiraAccessDeniedUrl(
   decision: Pick<PrymeiraAccessDecision, "product_key" | "reason">,
   returnUrl = window.location.href,

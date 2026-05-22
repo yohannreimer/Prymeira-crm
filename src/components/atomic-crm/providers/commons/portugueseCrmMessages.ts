@@ -534,7 +534,7 @@ export const portugueseCrmMessages = {
       },
     },
     sales: {
-      name: "Usuário |||| Usuários",
+      name: "Pessoa da equipe |||| Equipe",
       fields: {
         first_name: "Nome",
         last_name: "Sobrenome",
@@ -542,20 +542,24 @@ export const portugueseCrmMessages = {
         administrator: "Admin",
         disabled: "Desativado",
       },
+      status: {
+        active: "Ativo",
+        invited: "Convidado",
+      },
       create: {
-        error: "Ocorreu um erro ao criar o usuário.",
+        error: "Ocorreu um erro ao convidar a pessoa.",
         success:
-          "Usuário criado. Ele receberá em breve um email para definir a senha.",
-        title: "Criar novo usuário",
+          "Convite criado. A pessoa já pode entrar pela Prymeira Auth com este email.",
+        title: "Convidar pessoa",
       },
       edit: {
         error: "Ocorreu um erro. Tente novamente.",
         record_not_found: "Registro não encontrado",
-        success: "Usuário atualizado com sucesso",
+        success: "Pessoa atualizada com sucesso",
         title: "Editar %{name}",
       },
       action: {
-        new: "Novo usuário",
+        new: "Convidar pessoa",
       },
     },
     tasks: {
@@ -641,7 +645,7 @@ export const portugueseCrmMessages = {
         creating: "Criando...",
         initial_user_created: "Usuário inicial criado com sucesso",
       },
-      welcome_title: "Bem-vindo ao Atomic CRM",
+      welcome_title: "Bem-vindo ao Prymeira Vincula",
     },
     common: {
       activity: "Atividade",
@@ -767,7 +771,7 @@ export const portugueseCrmMessages = {
         },
       },
       stepper: {
-        install: "Instalar Atomic CRM",
+        install: "Instalar Prymeira Vincula",
         progress: "%{step}/3 concluído",
         whats_next: "Próximo passo",
       },
@@ -869,13 +873,12 @@ export const portugueseCrmMessages = {
     profile: {
       inbound: {
         description:
-          "Você pode enviar emails para o endereço de entrada do servidor, por exemplo adicionando-o ao campo %{field}. O Atomic CRM processará os emails e adicionará notas aos contatos correspondentes.",
+          "Você pode enviar emails para o endereço de entrada do servidor, por exemplo adicionando-o ao campo %{field}. O Prymeira Vincula processará os emails e adicionará notas aos contatos correspondentes.",
         title: "Email de entrada",
       },
       mcp: {
-        title: "Servidor MCP",
-        description:
-          "Use esta URL para conectar seu assistente de IA aos dados do CRM via Model Context Protocol (MCP).",
+        title: "Integrações",
+        description: "Integrações avançadas do produto.",
       },
       password: {
         change: "Alterar senha",

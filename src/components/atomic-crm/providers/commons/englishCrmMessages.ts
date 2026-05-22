@@ -531,7 +531,7 @@ export const englishCrmMessages = {
       },
     },
     sales: {
-      name: "User |||| Users",
+      name: "Team member |||| Team",
       fields: {
         first_name: "First name",
         last_name: "Last name",
@@ -539,20 +539,24 @@ export const englishCrmMessages = {
         administrator: "Admin",
         disabled: "Disabled",
       },
+      status: {
+        active: "Active",
+        invited: "Invited",
+      },
       create: {
-        error: "An error occurred while creating the user.",
+        error: "An error occurred while inviting the team member.",
         success:
-          "User created. They will soon receive an email to set their password.",
-        title: "Create a new user",
+          "Invitation created. They can now sign in with this email through Prymeira Auth.",
+        title: "Invite team member",
       },
       edit: {
         error: "An error occurred. Please try again.",
         record_not_found: "Record not found",
-        success: "User updated successfully",
+        success: "Team member updated successfully",
         title: "Edit %{name}",
       },
       action: {
-        new: "New user",
+        new: "Invite member",
       },
     },
     tasks: {

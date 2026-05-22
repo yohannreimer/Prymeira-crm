@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 import type { Company, Proposal, ProposalItem } from "../types";
 import { ProposalStatusBadge } from "./ProposalStatusBadge";
+import { formatProposalAmount } from "./proposalUtils";
 
 const LOCALE = "pt-BR";
 
@@ -20,10 +21,8 @@ export const ProposalPreview = ({
   printMode?: boolean;
 }) => {
   const translate = useTranslate();
-  const formatter = new Intl.NumberFormat(LOCALE, {
-    style: "currency",
-    currency: proposal.currency || "USD",
-  });
+  const formatAmount = (value: number | null | undefined) =>
+    formatProposalAmount(value, proposal.currency, LOCALE);
 
   return (
     <Card
@@ -120,10 +119,10 @@ export const ProposalPreview = ({
                   <td className="py-3 pr-4">{item.description}</td>
                   <td className="py-3 pr-4 text-right">{item.quantity}</td>
                   <td className="py-3 pr-4 text-right">
-                    {formatter.format(item.unit_price / 100)}
+                    {formatAmount(item.unit_price)}
                   </td>
                   <td className="py-3 text-right">
-                    {formatter.format(item.total / 100)}
+                    {formatAmount(item.total)}
                   </td>
                 </tr>
               ))}
@@ -144,20 +143,20 @@ export const ProposalPreview = ({
         <div className="ml-auto w-full max-w-sm space-y-2 text-sm">
           <AmountRow
             label={translate("resources.proposals.fields.subtotal")}
-            value={formatter.format(proposal.subtotal / 100)}
+            value={formatAmount(proposal.subtotal)}
           />
           <AmountRow
             label={translate("resources.proposals.fields.discount_amount")}
-            value={formatter.format(proposal.discount_amount / 100)}
+            value={formatAmount(proposal.discount_amount)}
           />
           <AmountRow
             label={translate("resources.proposals.fields.tax_amount")}
-            value={formatter.format((proposal.tax_amount ?? 0) / 100)}
+            value={formatAmount(proposal.tax_amount)}
           />
           <Separator />
           <AmountRow
             label={translate("resources.proposals.fields.total")}
-            value={formatter.format(proposal.total / 100)}
+            value={formatAmount(proposal.total)}
             strong
           />
         </div>

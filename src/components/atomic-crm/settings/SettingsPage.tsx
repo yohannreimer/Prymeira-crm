@@ -22,7 +22,6 @@ import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 
-import ImageEditorField from "../misc/ImageEditorField";
 import {
   useConfigurationContext,
   useConfigurationUpdater,
@@ -31,11 +30,6 @@ import {
 import { defaultConfiguration } from "../root/defaultConfiguration";
 
 const SECTIONS = [
-  {
-    id: "branding",
-    label: "crm.settings.sections.branding",
-    fallback: "Branding",
-  },
   {
     id: "automations",
     label: "crm.settings.automations",
@@ -125,9 +119,9 @@ const getCurrencyChoices = () => {
 
 const transformFormValues = (data: Record<string, any>) => ({
   config: {
-    title: data.title,
-    lightModeLogo: data.lightModeLogo,
-    darkModeLogo: data.darkModeLogo,
+    title: defaultConfiguration.title,
+    lightModeLogo: defaultConfiguration.lightModeLogo,
+    darkModeLogo: defaultConfiguration.darkModeLogo,
     currency: data.currency,
     companySectors: ensureValues(data.companySectors),
     dealCategories: ensureValues(data.dealCategories),
@@ -177,9 +171,6 @@ const SettingsForm = () => {
 
   const defaultValues = useMemo(
     () => ({
-      title: config.title,
-      lightModeLogo: { src: config.lightModeLogo },
-      darkModeLogo: { src: config.darkModeLogo },
       currency: config.currency,
       companySectors: config.companySectors,
       dealCategories: config.dealCategories,
@@ -335,42 +326,6 @@ const SettingsFormFields = () => {
 
       {/* Main content */}
       <div className="flex-1 min-w-0 max-w-2xl space-y-6">
-        {/* Branding */}
-        <Card id="branding">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              {translate("crm.settings.sections.branding")}
-            </h2>
-            <TextInput source="title" label="crm.settings.app_title" />
-            <div className="flex gap-8">
-              <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">
-                  {translate("crm.settings.light_mode_logo")}
-                </p>
-                <ImageEditorField
-                  source="lightModeLogo"
-                  width={100}
-                  height={100}
-                  linkPosition="bottom"
-                  backgroundImageColor="#f5f5f5"
-                />
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">
-                  {translate("crm.settings.dark_mode_logo")}
-                </p>
-                <ImageEditorField
-                  source="darkModeLogo"
-                  width={100}
-                  height={100}
-                  linkPosition="bottom"
-                  backgroundImageColor="#1a1a1a"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         <Card id="automations">
           <CardContent className="space-y-3">
             <h2 className="text-xl font-semibold text-muted-foreground">
@@ -608,13 +563,7 @@ const SettingsFormFields = () => {
               type="button"
               variant="ghost"
               onClick={() =>
-                reset({
-                  ...defaultConfiguration,
-                  lightModeLogo: {
-                    src: defaultConfiguration.lightModeLogo,
-                  },
-                  darkModeLogo: { src: defaultConfiguration.darkModeLogo },
-                })
+                reset(defaultConfiguration)
               }
             >
               <RotateCcw className="h-4 w-4 mr-1" />

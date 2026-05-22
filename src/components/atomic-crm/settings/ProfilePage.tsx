@@ -197,7 +197,7 @@ const ProfileForm = ({
               </h2>
               <p className="text-sm text-muted-foreground">
                 {translate("crm.profile.inbound.description", {
-                  _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
+                  _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Prymeira Vincula will process the emails and add notes to the corresponding contacts.",
                   field: "Cc:",
                 })}
               </p>
@@ -206,25 +206,6 @@ const ProfileForm = ({
           </CardContent>
         </Card>
       )}
-      <Card>
-        <CardContent>
-          <div className="space-y-4 justify-between">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              {translate("crm.profile.mcp.title", {
-                _: "MCP Server",
-              })}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {translate("crm.profile.mcp.description", {
-                _: "Use this URL to connect your AI assistant to your CRM data via the Model Context Protocol (MCP).",
-              })}
-            </p>
-            <CopyPaste
-              value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp`}
-            />
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
