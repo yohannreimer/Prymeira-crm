@@ -305,6 +305,7 @@ const DesktopAdmin = (
       <Resource name="contact_notes" />
       <Resource name="deal_notes" />
       <Resource name="tasks" />
+      <Resource name="stage_task_templates" />
       <Resource name="sales" {...sales} />
       <Resource name="tags" />
     </Admin>
@@ -374,6 +375,7 @@ const MobileAdmin = (
         </Resource>
         <Resource name="companies" show={CompanyShow} />
         <Resource name="tasks" list={MobileTasksList} />
+        <Resource name="stage_task_templates" />
       </Admin>
     </PersistQueryClientProvider>
   );

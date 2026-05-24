@@ -307,6 +307,35 @@ const main = async () => {
     );
     ok("pipeline stages jsonb");
 
+    const stageTemplate = (
+      await client.post("/api/records/stage_task_templates", {
+        pipeline_id: pipeline.id,
+        stage: "proposal-sent",
+        name: "Smoke follow-up",
+        task_text: "Retomar proposta de {{deal.name}}",
+        task_type: "follow-up",
+        due_in_days: 2,
+        mode: "manual",
+        enabled: true,
+        assignee: "record_owner",
+        index: 0,
+      })
+    ).data;
+    assert(stageTemplate.workspace_id, "stage task template gets workspace_id");
+    await client.patch(`/api/records/stage_task_templates/${stageTemplate.id}`, {
+      name: "Smoke follow-up updated",
+    });
+    const listedStageTemplates = await client.get(
+      listPath("stage_task_templates", {
+        "pipeline_id@eq": pipeline.id,
+        "stage@eq": "proposal-sent",
+      }),
+    );
+    assert(
+      listedStageTemplates.data.some((record) => record.id === stageTemplate.id),
+      "stage task template should be listed",
+    );
+
     const company = (
       await client.post("/api/records/companies", {
         name: "Smoke Empresa",

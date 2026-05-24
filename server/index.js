@@ -66,6 +66,7 @@ const tenantResources = new Set([
   "proposal_items",
   "automation_rules",
   "tasks",
+  "stage_task_templates",
   "configuration",
   "favicons_excluded_domains",
 ]);
@@ -97,6 +98,10 @@ const resources = {
   proposal_items: { read: "proposal_items", write: "proposal_items" },
   automation_rules: { read: "automation_rules", write: "automation_rules" },
   tasks: { read: "tasks", write: "tasks" },
+  stage_task_templates: {
+    read: "stage_task_templates",
+    write: "stage_task_templates",
+  },
   configuration: { read: "configuration", write: "configuration" },
   favicons_excluded_domains: {
     read: "favicons_excluded_domains",

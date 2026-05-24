@@ -132,6 +132,26 @@ export type Pipeline = {
 } & TenantRecord &
   Pick<RaRecord, "id">;
 
+export type StageTaskTemplateMode = "manual" | "automatic";
+export type StageTaskTemplateAssignee = "record_owner";
+
+export type StageTaskTemplate = {
+  pipeline_id: Identifier;
+  stage: string;
+  name: string;
+  task_text: string;
+  task_type: string;
+  due_in_days: number;
+  mode: StageTaskTemplateMode;
+  enabled: boolean;
+  instructions?: string | null;
+  assignee: StageTaskTemplateAssignee;
+  index: number;
+  created_at: string;
+  updated_at: string;
+} & TenantRecord &
+  Pick<RaRecord, "id">;
+
 export type Deal = {
   name: string;
   company_id: Identifier;
