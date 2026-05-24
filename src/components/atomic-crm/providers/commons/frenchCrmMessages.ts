@@ -642,6 +642,8 @@ export const frenchCrmMessages = {
       created_task: "Tâche suggérée créée",
       existing_task_title:
         "Une tâche ouverte existe déjà pour cette suggestion",
+      stage_in_use:
+        "Cette étape contient des playbooks liés. Supprimez ou déplacez les playbooks avant de supprimer l'étape.",
       settings: {
         count: "%{smart_count} règle |||| %{smart_count} règles",
         create: "Créer la règle",

@@ -635,6 +635,8 @@ export const englishCrmMessages = {
       create_task_error: "Could not create the suggested task",
       created_task: "Suggested task created",
       existing_task_title: "An open task already exists for this suggestion",
+      stage_in_use:
+        "This stage has linked playbooks. Remove or move the playbooks before deleting the stage.",
       settings: {
         count: "%{smart_count} rule |||| %{smart_count} rules",
         create: "Create rule",

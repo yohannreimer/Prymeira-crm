@@ -638,6 +638,8 @@ export const portugueseCrmMessages = {
       create_task_error: "Não foi possível criar a tarefa sugerida",
       created_task: "Tarefa sugerida criada",
       existing_task_title: "Já existe uma tarefa aberta para esta sugestão",
+      stage_in_use:
+        "Esta etapa tem playbooks vinculados. Remova ou mova os playbooks antes de apagar a etapa.",
       settings: {
         count: "%{smart_count} regra |||| %{smart_count} regras",
         create: "Criar regra",

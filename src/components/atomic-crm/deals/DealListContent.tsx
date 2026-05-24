@@ -3,6 +3,7 @@ import isEqual from "lodash/isEqual";
 import {
   useDataProvider,
   useListContext,
+  useNotify,
   useTranslate,
   useUpdate,
   type DataProvider,
@@ -23,6 +24,7 @@ export const DealListContent = () => {
   const { stages: pipelineStages, pipelineId } = useContext(PipelineContext);
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
+  const notify = useNotify();
   const translate = useTranslate();
   const [updatePipeline] = useUpdate();
 
@@ -81,7 +83,25 @@ export const DealListContent = () => {
     setNewStageName("");
   };
 
-  const handleDeleteStage = (stageValue: string) => {
+  const handleDeleteStage = async (stageValue: string) => {
+    if (!pipelineId) return;
+
+    const { total } = await dataProvider.getList("stage_task_templates", {
+      filter: {
+        "pipeline_id@eq": pipelineId,
+        "stage@eq": stageValue,
+      },
+      pagination: { page: 1, perPage: 1 },
+      sort: { field: "id", order: "ASC" },
+    });
+
+    if (total && total > 0) {
+      notify("resources.stage_task_templates.stage_in_use", {
+        type: "warning",
+      });
+      return;
+    }
+
     const newStages = activeStages.filter((s) => s.value !== stageValue);
     saveStages(newStages);
   };
@@ -136,7 +156,7 @@ export const DealListContent = () => {
             key={stage.value}
             stageLabel={stage.label}
             onDelete={
-              pipelineId ? () => handleDeleteStage(stage.value) : undefined
+              pipelineId ? () => void handleDeleteStage(stage.value) : undefined
             }
             onEditPlaybook={
               pipelineId
