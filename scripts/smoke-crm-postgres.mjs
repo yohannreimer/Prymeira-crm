@@ -322,9 +322,18 @@ const main = async () => {
       })
     ).data;
     assert(stageTemplate.workspace_id, "stage task template gets workspace_id");
-    await client.patch(`/api/records/stage_task_templates/${stageTemplate.id}`, {
-      name: "Smoke follow-up updated",
-    });
+    const updatedStageTemplate = (
+      await client.patch(
+        `/api/records/stage_task_templates/${stageTemplate.id}`,
+        {
+          name: "Smoke follow-up updated",
+        },
+      )
+    ).data;
+    assert(
+      updatedStageTemplate.name === "Smoke follow-up updated",
+      "stage task template update should persist",
+    );
     const listedStageTemplates = await client.get(
       listPath("stage_task_templates", {
         filter: {
@@ -334,7 +343,9 @@ const main = async () => {
       }),
     );
     assert(
-      listedStageTemplates.data.some((record) => record.id === stageTemplate.id),
+      listedStageTemplates.data.some(
+        (record) => record.id === stageTemplate.id,
+      ),
       "stage task template should be listed",
     );
 

@@ -21,6 +21,7 @@ alter table public.proposals enable row level security;
 alter table public.proposal_items enable row level security;
 alter table public.automation_rules enable row level security;
 alter table public.tasks enable row level security;
+alter table public.stage_task_templates enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 
@@ -84,6 +85,11 @@ create policy "Tenant read" on public.tasks for select to authenticated using (p
 create policy "Tenant insert" on public.tasks for insert to authenticated with check (public.can_access_workspace(workspace_id) and public.workspace_has_contact(workspace_id, contact_id) and public.workspace_has_lead(workspace_id, lead_id) and public.workspace_has_deal(workspace_id, deal_id) and public.workspace_has_automation_run(workspace_id, automation_run_id) and public.workspace_has_sale(workspace_id, sales_id));
 create policy "Tenant update" on public.tasks for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id) and public.workspace_has_contact(workspace_id, contact_id) and public.workspace_has_lead(workspace_id, lead_id) and public.workspace_has_deal(workspace_id, deal_id) and public.workspace_has_automation_run(workspace_id, automation_run_id) and public.workspace_has_sale(workspace_id, sales_id));
 create policy "Tenant delete" on public.tasks for delete to authenticated using (public.can_access_workspace(workspace_id));
+
+create policy "Tenant read" on public.stage_task_templates for select to authenticated using (public.can_access_workspace(workspace_id));
+create policy "Tenant insert" on public.stage_task_templates for insert to authenticated with check (public.can_access_workspace(workspace_id) and public.workspace_has_pipeline(workspace_id, pipeline_id));
+create policy "Tenant update" on public.stage_task_templates for update to authenticated using (public.can_access_workspace(workspace_id)) with check (public.can_access_workspace(workspace_id) and public.workspace_has_pipeline(workspace_id, pipeline_id));
+create policy "Tenant delete" on public.stage_task_templates for delete to authenticated using (public.can_access_workspace(workspace_id));
 
 -- Sales are readable by workspace members and writable only by workspace admins.
 create policy "Tenant read" on public.sales for select to authenticated using (public.can_access_workspace(workspace_id));
