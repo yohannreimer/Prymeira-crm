@@ -647,6 +647,8 @@ export const englishCrmMessages = {
         due_badge: "%{smart_count} day |||| %{smart_count} days",
         edit: "Edit rule",
         empty: "No rules configured for this stage.",
+        invalid_due_in_days:
+          "Use a whole number of days greater than or equal to zero.",
         new: "New rule",
         save: "Save rule",
         select_pipeline: "Select pipeline",

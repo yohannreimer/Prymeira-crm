@@ -654,6 +654,8 @@ export const frenchCrmMessages = {
         due_badge: "%{smart_count} jour |||| %{smart_count} jours",
         edit: "Modifier la règle",
         empty: "Aucune règle configurée pour cette étape.",
+        invalid_due_in_days:
+          "Utilisez un nombre entier de jours supérieur ou égal à zéro.",
         new: "Nouvelle règle",
         save: "Enregistrer la règle",
         select_pipeline: "Sélectionner un pipeline",

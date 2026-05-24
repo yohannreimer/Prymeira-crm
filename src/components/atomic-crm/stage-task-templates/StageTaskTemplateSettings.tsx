@@ -8,8 +8,14 @@ import {
   useTranslate,
   useUpdate,
 } from "ra-core";
-import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,6 +116,24 @@ export const StageTaskTemplateSettings = () => {
   const [updateTemplate, { isPending: isUpdating }] = useUpdate();
   const [deleteTemplate, { isPending: isDeleting }] = useDelete();
   const isSaving = isCreating || isUpdating;
+  const parsedDueInDays = Number(formState.due_in_days);
+  const isDueInDaysValid =
+    formState.due_in_days.trim() !== "" &&
+    Number.isInteger(parsedDueInDays) &&
+    parsedDueInDays >= 0;
+  const canSubmit =
+    !isSaving &&
+    Boolean(selectedPipelineId) &&
+    Boolean(selectedStage) &&
+    Boolean(formState.name.trim()) &&
+    Boolean(formState.task_text.trim()) &&
+    Boolean(formState.task_type) &&
+    isDueInDaysValid;
+
+  const resetForm = useCallback(() => {
+    setEditingTemplateId(undefined);
+    setFormState(defaultFormState(fallbackTaskType));
+  }, [fallbackTaskType]);
 
   useEffect(() => {
     if (selectedPipelineId || pipelines.length === 0) return;
@@ -129,9 +153,14 @@ export const StageTaskTemplateSettings = () => {
 
   useEffect(() => {
     const handleEditStagePlaybook = (event: Event) => {
+      if (!(event instanceof CustomEvent) || !event.detail) return;
+
       const { pipelineId, stage } = (event as EditStagePlaybookEvent).detail;
-      if (pipelineId) setSelectedPipelineId(pipelineId);
-      if (stage) setSelectedStage(stage);
+      if (!pipelineId || !stage) return;
+
+      setSelectedPipelineId(pipelineId);
+      setSelectedStage(stage);
+      resetForm();
       window.setTimeout(() => {
         document
           .getElementById("stage-task-template-settings")
@@ -146,12 +175,7 @@ export const StageTaskTemplateSettings = () => {
         handleEditStagePlaybook,
       );
     };
-  }, []);
-
-  const resetForm = () => {
-    setEditingTemplateId(undefined);
-    setFormState(defaultFormState(fallbackTaskType));
-  };
+  }, [resetForm]);
 
   const buildPayload = (index: number) => ({
     pipeline_id: selectedPipelineId,
@@ -159,7 +183,7 @@ export const StageTaskTemplateSettings = () => {
     name: formState.name.trim(),
     task_text: formState.task_text.trim(),
     task_type: formState.task_type,
-    due_in_days: Number(formState.due_in_days),
+    due_in_days: parsedDueInDays,
     mode: formState.mode,
     enabled: formState.enabled,
     instructions: formState.instructions.trim() || null,
@@ -169,6 +193,12 @@ export const StageTaskTemplateSettings = () => {
 
   const handleSubmit = () => {
     if (!selectedPipelineId || !selectedStage) return;
+    if (!isDueInDaysValid) {
+      notify("resources.stage_task_templates.settings.invalid_due_in_days", {
+        type: "warning",
+      });
+      return;
+    }
 
     const currentTemplate = templates.find(
       (template) => template.id === editingTemplateId,
@@ -257,9 +287,21 @@ export const StageTaskTemplateSettings = () => {
     );
   };
 
+  const handlePanelKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter") return;
+    if (!(event.target instanceof HTMLInputElement)) return;
+
+    event.preventDefault();
+    if (canSubmit) handleSubmit();
+  };
+
   return (
     <Card id="stage-task-templates">
-      <CardContent id="stage-task-template-settings" className="space-y-4">
+      <CardContent
+        id="stage-task-template-settings"
+        className="space-y-4"
+        onKeyDown={handlePanelKeyDown}
+      >
         <div className="space-y-1">
           <h2 className="text-xl font-semibold text-muted-foreground">
             {translate("crm.settings.stage_task_templates")}
@@ -271,6 +313,7 @@ export const StageTaskTemplateSettings = () => {
 
         <div className="grid gap-3 md:grid-cols-2">
           <Field
+            id="stage-playbook-pipeline"
             label={translate("resources.pipelines.name", { smart_count: 1 })}
           >
             <Select
@@ -282,10 +325,10 @@ export const StageTaskTemplateSettings = () => {
                   pipelines.find((pipeline) => String(pipeline.id) === value)
                     ?.id,
                 );
-                setEditingTemplateId(undefined);
+                resetForm();
               }}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="stage-playbook-pipeline" className="w-full">
                 <SelectValue
                   placeholder={translate(
                     "resources.stage_task_templates.settings.select_pipeline",
@@ -303,17 +346,18 @@ export const StageTaskTemplateSettings = () => {
           </Field>
 
           <Field
+            id="stage-playbook-stage"
             label={translate("resources.stage_task_templates.fields.stage")}
           >
             <Select
               value={selectedStage}
               onValueChange={(value) => {
                 setSelectedStage(value);
-                setEditingTemplateId(undefined);
+                resetForm();
               }}
               disabled={stages.length === 0}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="stage-playbook-stage" className="w-full">
                 <SelectValue
                   placeholder={translate(
                     "resources.stage_task_templates.settings.select_stage",
@@ -432,9 +476,11 @@ export const StageTaskTemplateSettings = () => {
 
           <div className="grid gap-3 md:grid-cols-2">
             <Field
+              id="stage-playbook-name"
               label={translate("resources.stage_task_templates.fields.name")}
             >
               <Input
+                id="stage-playbook-name"
                 value={formState.name}
                 onChange={(event) =>
                   setFormState((current) => ({
@@ -446,6 +492,7 @@ export const StageTaskTemplateSettings = () => {
               />
             </Field>
             <Field
+              id="stage-playbook-task-type"
               label={translate(
                 "resources.stage_task_templates.fields.task_type",
               )}
@@ -456,7 +503,7 @@ export const StageTaskTemplateSettings = () => {
                   setFormState((current) => ({ ...current, task_type }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="stage-playbook-task-type" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -471,9 +518,11 @@ export const StageTaskTemplateSettings = () => {
           </div>
 
           <Field
+            id="stage-playbook-task-text"
             label={translate("resources.stage_task_templates.fields.task_text")}
           >
             <Textarea
+              id="stage-playbook-task-text"
               value={formState.task_text}
               onChange={(event) =>
                 setFormState((current) => ({
@@ -488,11 +537,13 @@ export const StageTaskTemplateSettings = () => {
 
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
             <Field
+              id="stage-playbook-due-in-days"
               label={translate(
                 "resources.stage_task_templates.fields.due_in_days",
               )}
             >
               <Input
+                id="stage-playbook-due-in-days"
                 type="number"
                 min={0}
                 step={1}
@@ -507,6 +558,7 @@ export const StageTaskTemplateSettings = () => {
               />
             </Field>
             <Field
+              id="stage-playbook-mode"
               label={translate("resources.stage_task_templates.fields.mode")}
             >
               <Select
@@ -518,7 +570,7 @@ export const StageTaskTemplateSettings = () => {
                   }))
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="stage-playbook-mode" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -545,11 +597,13 @@ export const StageTaskTemplateSettings = () => {
           </div>
 
           <Field
+            id="stage-playbook-instructions"
             label={translate(
               "resources.stage_task_templates.fields.instructions",
             )}
           >
             <Textarea
+              id="stage-playbook-instructions"
               value={formState.instructions}
               onChange={(event) =>
                 setFormState((current) => ({
@@ -565,14 +619,7 @@ export const StageTaskTemplateSettings = () => {
             <Button
               type="button"
               onClick={handleSubmit}
-              disabled={
-                isSaving ||
-                !selectedPipelineId ||
-                !selectedStage ||
-                !formState.name.trim() ||
-                !formState.task_text.trim() ||
-                !formState.task_type
-              }
+              disabled={!canSubmit}
             >
               {editingTemplateId ? (
                 <Save className="h-4 w-4" />
@@ -590,9 +637,17 @@ export const StageTaskTemplateSettings = () => {
   );
 };
 
-const Field = ({ label, children }: { label: string; children: ReactNode }) => (
+const Field = ({
+  id,
+  label,
+  children,
+}: {
+  id?: string;
+  label: string;
+  children: ReactNode;
+}) => (
   <div className="space-y-1.5">
-    <Label>{label}</Label>
+    <Label htmlFor={id}>{label}</Label>
     {children}
   </div>
 );

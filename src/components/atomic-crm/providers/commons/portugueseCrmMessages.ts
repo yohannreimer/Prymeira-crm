@@ -650,6 +650,8 @@ export const portugueseCrmMessages = {
         due_badge: "%{smart_count} dia |||| %{smart_count} dias",
         edit: "Editar regra",
         empty: "Nenhuma regra configurada para esta etapa.",
+        invalid_due_in_days:
+          "Use um número inteiro de dias maior ou igual a zero.",
         new: "Nova regra",
         save: "Salvar regra",
         select_pipeline: "Selecione o pipeline",
