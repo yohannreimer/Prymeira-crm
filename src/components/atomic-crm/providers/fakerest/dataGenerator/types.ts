@@ -14,6 +14,7 @@ import type {
   ProposalTemplateItem,
   Sale,
   SalesGoal,
+  StageTaskTemplate,
   Tag,
   Task,
 } from "../../../types";
@@ -25,6 +26,7 @@ export interface Db {
   contact_notes: ContactNote[];
   deals: Deal[];
   pipelines: Pipeline[];
+  stage_task_templates: StageTaskTemplate[];
   deal_notes: DealNote[];
   leads: Lead[];
   proposal_templates: ProposalTemplate[];

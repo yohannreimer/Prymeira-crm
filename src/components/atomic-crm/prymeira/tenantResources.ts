@@ -5,6 +5,7 @@ export const tenantResources = [
   "contacts",
   "contact_notes",
   "pipelines",
+  "stage_task_templates",
   "deals",
   "deal_notes",
   "leads",

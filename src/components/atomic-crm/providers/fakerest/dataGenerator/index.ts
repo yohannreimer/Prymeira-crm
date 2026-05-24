@@ -15,6 +15,7 @@ import { generateProposalTemplateItems } from "./proposalTemplateItems";
 import { generateProposalTemplates } from "./proposalTemplates";
 import { generateSales } from "./sales";
 import { generateSalesGoals } from "./salesGoals";
+import { generateStageTaskTemplates } from "./stageTaskTemplates";
 import { generateTags } from "./tags";
 import { generateTasks } from "./tasks";
 import type { Db } from "./types";
@@ -26,6 +27,7 @@ const tenantSeedResources = [
   "contacts",
   "contact_notes",
   "pipelines",
+  "stage_task_templates",
   "deals",
   "deal_notes",
   "leads",
@@ -64,6 +66,7 @@ export default (): Db => {
   db.contacts = generateContacts(db);
   db.contact_notes = generateContactNotes(db);
   db.pipelines = generatePipelines();
+  db.stage_task_templates = generateStageTaskTemplates(db);
   db.deals = generateDeals(db);
   db.proposal_templates = generateProposalTemplates();
   db.proposal_template_items = generateProposalTemplateItems();
