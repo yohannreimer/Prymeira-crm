@@ -53,6 +53,7 @@ export const DealCardContent = ({
         "pipeline_id@eq": deal.pipeline_id,
         "stage@eq": deal.stage,
         "enabled@eq": true,
+        "mode@eq": "manual",
       },
       pagination: { page: 1, perPage: 25 },
       sort: { field: "index", order: "ASC" },
