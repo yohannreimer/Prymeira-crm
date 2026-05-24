@@ -6,8 +6,14 @@ import type {
   Deal,
   Lead,
   Proposal,
+  StageTaskTemplate,
   Task,
 } from "../../types";
+import {
+  buildStageTemplateRuleKey,
+  buildTaskFromStageTemplate,
+  filterStageTaskTemplates,
+} from "../../deals/stageTaskTemplates";
 
 const FIRST_CONTACT_RULE = "lead.first-contact";
 const DEAL_FOLLOW_UP_RULE = "deal.follow-up-required";
@@ -397,15 +403,72 @@ export const runDealCreatedAutomations = async (
   ];
 };
 
+const runAutomaticStageTemplates = async (
+  dataProvider: DataProvider,
+  {
+    deal,
+    previousDeal,
+    now,
+  }: {
+    deal: Deal;
+    previousDeal: Deal;
+    now: Date;
+  },
+): Promise<AutomationResult[]> => {
+  if (deal.stage === previousDeal.stage || !deal.pipeline_id) {
+    return [];
+  }
+
+  const { data: templates } = await dataProvider.getList<StageTaskTemplate>(
+    "stage_task_templates",
+    {
+      filter: {
+        "pipeline_id@eq": deal.pipeline_id,
+        "stage@eq": deal.stage,
+        "mode@eq": "automatic",
+        "enabled@eq": true,
+      },
+      pagination: { page: 1, perPage: 100 },
+      sort: { field: "index", order: "ASC" },
+    },
+  );
+
+  const activeTemplates = filterStageTaskTemplates(templates, {
+    pipelineId: deal.pipeline_id,
+    stage: deal.stage,
+    mode: "automatic",
+  });
+
+  return Promise.all(
+    activeTemplates.map((template) =>
+      runTaskAutomation(dataProvider, {
+        ruleKey: buildStageTemplateRuleKey(template, deal.stage),
+        triggerResource: "deals",
+        triggerRecordId: deal.id,
+        salesId: deal.sales_id,
+        message: `Negócio movido para ${deal.stage}: ${template.name}`,
+        task: buildTaskFromStageTemplate(template, { deal, now }),
+      }),
+    ),
+  );
+};
+
 export const runDealUpdatedAutomations = async (
   dataProvider: DataProvider,
   { deal, previousDeal, now = new Date() }: DealUpdatedAutomationContext,
 ): Promise<AutomationResult[]> => {
+  const stageTemplateResults = await runAutomaticStageTemplates(dataProvider, {
+    deal,
+    previousDeal,
+    now,
+  });
+
   if (
     deal.stage !== "proposal-sent" ||
     previousDeal.stage === "proposal-sent"
   ) {
     return [
+      ...stageTemplateResults,
       {
         ruleKey: DEAL_PROPOSAL_FOLLOW_UP_RULE,
         created: false,
@@ -417,6 +480,7 @@ export const runDealUpdatedAutomations = async (
   const rule = await getRuleParams(dataProvider, DEAL_PROPOSAL_FOLLOW_UP_RULE);
   if (!rule.enabled) {
     return [
+      ...stageTemplateResults,
       {
         ruleKey: DEAL_PROPOSAL_FOLLOW_UP_RULE,
         created: false,
@@ -432,6 +496,7 @@ export const runDealUpdatedAutomations = async (
   );
 
   return [
+    ...stageTemplateResults,
     await runTaskAutomation(dataProvider, {
       ruleKey: DEAL_PROPOSAL_FOLLOW_UP_RULE,
       triggerResource: "deals",

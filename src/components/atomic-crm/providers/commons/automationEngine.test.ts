@@ -302,6 +302,92 @@ describe("automationEngine", () => {
     });
   });
 
+  it("creates automatic stage template tasks when a deal enters a configured stage", async () => {
+    const calls: Array<{ resource: string; params: unknown }> = [];
+    const provider = {
+      getList: async (resource: string) => {
+        if (resource === "automation_rules") {
+          return { data: [], total: 0 };
+        }
+        if (resource === "automation_runs") {
+          return { data: [], total: 0 };
+        }
+        if (resource === "stage_task_templates") {
+          return {
+            data: [
+              {
+                id: 77,
+                workspace_id: "workspace-1",
+                pipeline_id: 1,
+                stage: "proposal-sent",
+                name: "Follow-up automatico",
+                task_text: "Retomar {{deal.name}}",
+                task_type: "follow-up",
+                due_in_days: 2,
+                mode: "automatic",
+                enabled: true,
+                instructions: null,
+                assignee: "record_owner",
+                index: 0,
+                created_at: "2026-05-24T00:00:00.000Z",
+                updated_at: "2026-05-24T00:00:00.000Z",
+              },
+            ],
+            total: 1,
+          };
+        }
+        return { data: [], total: 0 };
+      },
+      create: async (resource: string, params: any) => {
+        calls.push({ resource, params });
+        if (resource === "automation_runs") {
+          return { data: { id: 91, ...params.data } };
+        }
+        return { data: { id: 101, ...params.data } };
+      },
+      update: async (resource: string, params: any) => {
+        calls.push({ resource, params });
+        return { data: { id: params.id, ...params.data } };
+      },
+    } as unknown as DataProvider;
+
+    const previousDeal = {
+      ...deal,
+      pipeline_id: 1,
+      stage: "opportunity",
+    } satisfies Deal;
+    const updatedDeal = {
+      ...deal,
+      pipeline_id: 1,
+      stage: "proposal-sent",
+    } satisfies Deal;
+
+    const result = await runDealUpdatedAutomations(provider, {
+      previousDeal,
+      deal: updatedDeal,
+      now: new Date("2026-05-24T10:00:00.000Z"),
+    });
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          ruleKey: "stage-task-template.77.proposal-sent",
+          created: true,
+        }),
+      ]),
+    );
+    expect(calls).toContainEqual({
+      resource: "tasks",
+      params: {
+        data: expect.objectContaining({
+          deal_id: 33,
+          text: "Retomar Implantação CRM",
+          due_date: "2026-05-26T10:00:00.000Z",
+        }),
+      },
+    });
+  });
+
   it("uses automation rule params to create proposal sent follow-up", async () => {
     const { provider, calls } = createProvider(
       [],
