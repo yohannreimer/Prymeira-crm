@@ -61,6 +61,9 @@ export const englishCrmMessages = {
         only_mine: "Only companies I manage",
       },
     },
+    pipelines: {
+      name: "Pipeline |||| Pipelines",
+    },
     contacts: {
       name: "Contact |||| Contacts",
       forcedCaseName: "Contact",
@@ -614,9 +617,44 @@ export const englishCrmMessages = {
       updated: "Task updated",
     },
     stage_task_templates: {
+      name: "Stage playbook |||| Stage playbooks",
+      fields: {
+        due_in_days: "Due in days",
+        enabled: "Active",
+        instructions: "Instructions",
+        mode: "Mode",
+        name: "Name",
+        stage: "Stage",
+        task_text: "Task text",
+        task_type: "Task type",
+      },
+      modes: {
+        automatic: "Automatic",
+        manual: "Quick task",
+      },
       create_task_error: "Could not create the suggested task",
       created_task: "Suggested task created",
       existing_task_title: "An open task already exists for this suggestion",
+      settings: {
+        count: "%{smart_count} rule |||| %{smart_count} rules",
+        create: "Create rule",
+        create_error: "Could not create the playbook rule",
+        created: "Playbook rule created",
+        delete_error: "Could not delete the playbook rule",
+        deleted: "Playbook rule deleted",
+        description:
+          "Create fast task suggestions or automatic tasks for each pipeline stage.",
+        due_badge: "%{smart_count} day |||| %{smart_count} days",
+        edit: "Edit rule",
+        empty: "No rules configured for this stage.",
+        new: "New rule",
+        save: "Save rule",
+        select_pipeline: "Select pipeline",
+        select_stage: "Select stage",
+        templates: "Rules",
+        update_error: "Could not update the playbook rule",
+        updated: "Playbook rule updated",
+      },
       suggested_next_actions: "Suggested next actions",
       suggestions_count:
         "%{smart_count} suggestion |||| %{smart_count} suggestions",
@@ -831,6 +869,7 @@ export const englishCrmMessages = {
     settings: {
       about: "About",
       automations: "Automations",
+      stage_task_templates: "Playbooks",
       companies: {
         sectors: "Sectors",
       },

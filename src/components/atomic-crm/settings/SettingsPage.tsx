@@ -28,6 +28,7 @@ import {
   type ConfigurationContextValue,
 } from "../root/ConfigurationContext";
 import { defaultConfiguration } from "../root/defaultConfiguration";
+import { StageTaskTemplateSettings } from "../stage-task-templates/StageTaskTemplateSettings";
 
 const SECTIONS = [
   {
@@ -41,6 +42,11 @@ const SECTIONS = [
     fallback: "Companies",
   },
   { id: "deals", label: "resources.deals.name", fallback: "Deals" },
+  {
+    id: "stage-task-templates",
+    label: "crm.settings.stage_task_templates",
+    fallback: "Playbooks",
+  },
   { id: "notes", label: "resources.notes.name", fallback: "Notes" },
   { id: "tasks", label: "resources.tasks.name", fallback: "Tasks" },
 ];
@@ -514,6 +520,8 @@ const SettingsFormFields = () => {
           </CardContent>
         </Card>
 
+        <StageTaskTemplateSettings />
+
         {/* Notes */}
         <Card id="notes">
           <CardContent className="space-y-4">
@@ -562,9 +570,7 @@ const SettingsFormFields = () => {
             <Button
               type="button"
               variant="ghost"
-              onClick={() =>
-                reset(defaultConfiguration)
-              }
+              onClick={() => reset(defaultConfiguration)}
             >
               <RotateCcw className="h-4 w-4 mr-1" />
               {translate("crm.settings.reset_defaults")}

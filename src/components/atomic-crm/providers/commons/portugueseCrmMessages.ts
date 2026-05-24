@@ -63,6 +63,9 @@ export const portugueseCrmMessages = {
         only_mine: "Somente empresas que eu gerencio",
       },
     },
+    pipelines: {
+      name: "Pipeline |||| Pipelines",
+    },
     contacts: {
       name: "Contato |||| Contatos",
       forcedCaseName: "Contato",
@@ -617,9 +620,44 @@ export const portugueseCrmMessages = {
       updated: "Tarefa atualizada",
     },
     stage_task_templates: {
+      name: "Playbook de etapa |||| Playbooks de etapa",
+      fields: {
+        due_in_days: "Prazo em dias",
+        enabled: "Ativa",
+        instructions: "Instruções",
+        mode: "Modo",
+        name: "Nome",
+        stage: "Etapa",
+        task_text: "Texto da tarefa",
+        task_type: "Tipo da tarefa",
+      },
+      modes: {
+        automatic: "Automática",
+        manual: "Tarefa rápida",
+      },
       create_task_error: "Não foi possível criar a tarefa sugerida",
       created_task: "Tarefa sugerida criada",
       existing_task_title: "Já existe uma tarefa aberta para esta sugestão",
+      settings: {
+        count: "%{smart_count} regra |||| %{smart_count} regras",
+        create: "Criar regra",
+        create_error: "Não foi possível criar a regra do playbook",
+        created: "Regra do playbook criada",
+        delete_error: "Não foi possível excluir a regra do playbook",
+        deleted: "Regra do playbook excluída",
+        description:
+          "Crie sugestões rápidas ou tarefas automáticas para cada etapa do pipeline.",
+        due_badge: "%{smart_count} dia |||| %{smart_count} dias",
+        edit: "Editar regra",
+        empty: "Nenhuma regra configurada para esta etapa.",
+        new: "Nova regra",
+        save: "Salvar regra",
+        select_pipeline: "Selecione o pipeline",
+        select_stage: "Selecione a etapa",
+        templates: "Regras",
+        update_error: "Não foi possível atualizar a regra do playbook",
+        updated: "Regra do playbook atualizada",
+      },
       suggested_next_actions: "Próximas ações sugeridas",
       suggestions_count:
         "%{smart_count} sugestão |||| %{smart_count} sugestões",
@@ -833,6 +871,7 @@ export const portugueseCrmMessages = {
     settings: {
       about: "Sobre",
       automations: "Automações",
+      stage_task_templates: "Playbooks",
       companies: {
         sectors: "Setores",
       },
