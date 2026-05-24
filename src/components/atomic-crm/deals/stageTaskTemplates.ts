@@ -125,7 +125,7 @@ export const hasOpenTaskForTemplate = (
     if (
       task.deal_id != null &&
       context?.deal.id != null &&
-      task.deal_id !== context.deal.id
+      String(task.deal_id) !== String(context.deal.id)
     ) {
       return false;
     }

@@ -179,6 +179,25 @@ describe("stageTaskTemplates", () => {
     expect(hasOpenTaskForTemplate(stageTemplate, tasks, context)).toBe(true);
   });
 
+  it("matches deal ids across string and numeric identifiers", () => {
+    const stageTemplate = template();
+    const context = {
+      deal: deal({ id: 5 }),
+      company: { name: "Empresa X" } as Company,
+      contact: { first_name: "Ana", last_name: "Silva" } as Contact,
+    };
+    const tasks = [
+      {
+        text: buildTaskFromStageTemplate(stageTemplate, context).text,
+        done_date: null,
+        deal_id: "5",
+        type: "follow-up",
+      } as Task,
+    ];
+
+    expect(hasOpenTaskForTemplate(stageTemplate, tasks, context)).toBe(true);
+  });
+
   it("ignores completed tasks that otherwise match the template", () => {
     const tasks = [
       {
