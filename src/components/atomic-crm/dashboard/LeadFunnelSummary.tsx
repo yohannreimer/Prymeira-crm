@@ -5,20 +5,26 @@ import { Card } from "@/components/ui/card";
 
 import type { Lead } from "../types";
 import { summarizeLeads } from "./commercialDashboardUtils";
+import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 1000;
 
 export const LeadFunnelSummary = () => {
   const translate = useTranslate();
-  const { data: leads, isPending } = useGetList<Lead>("leads", {
-    pagination: { page: 1, perPage: PAGE_SIZE },
-    sort: { field: "updated_at", order: "DESC" },
-    filter: {},
-  });
+  const scope = useDashboardScope();
+  const { data: leads, isPending } = useGetList<Lead>(
+    "leads",
+    {
+      pagination: { page: 1, perPage: PAGE_SIZE },
+      sort: { field: "updated_at", order: "DESC" },
+      filter: { ...scope.salesFilter, ...scope.periodFilter },
+    },
+    { enabled: !scope.isPending },
+  );
 
   const summary = useMemo(() => summarizeLeads(leads ?? []), [leads]);
 
-  if (isPending) return null;
+  if (scope.isPending || isPending) return null;
 
   const metrics = [
     {
@@ -42,9 +48,7 @@ export const LeadFunnelSummary = () => {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.leads.title")}
-
       </p>
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3">

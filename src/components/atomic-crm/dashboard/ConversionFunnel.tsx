@@ -2,10 +2,15 @@ import { useGetList, useLocaleState, useTranslate } from "ra-core";
 import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import {
+  centsToCurrencyUnits,
+  formatCurrencyAmount,
+} from "../misc/formatCurrency";
 import { summarizeLeads } from "./commercialDashboardUtils";
 import { summarizeDeals } from "../deals/dealCommercialUtils";
 import { summarizeProposals } from "./commercialDashboardUtils";
 import type { Deal, Lead, Proposal } from "../types";
+import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 1000;
 
@@ -21,24 +26,42 @@ export const ConversionFunnel = () => {
   const translate = useTranslate();
   const [locale = "pt-BR"] = useLocaleState();
   const { currency } = useConfigurationContext();
+  const scope = useDashboardScope();
 
-  const { data: leads, isPending: isPendingLeads } = useGetList<Lead>("leads", {
-    pagination: { page: 1, perPage: PAGE_SIZE },
-    filter: {},
-  });
+  const { data: leads, isPending: isPendingLeads } = useGetList<Lead>(
+    "leads",
+    {
+      pagination: { page: 1, perPage: PAGE_SIZE },
+      filter: { ...scope.salesFilter, ...scope.periodFilter },
+    },
+    { enabled: !scope.isPending },
+  );
 
-  const { data: deals, isPending: isPendingDeals } = useGetList<Deal>("deals", {
-    pagination: { page: 1, perPage: PAGE_SIZE },
-    filter: { "archived_at@is": null },
-  });
+  const { data: deals, isPending: isPendingDeals } = useGetList<Deal>(
+    "deals",
+    {
+      pagination: { page: 1, perPage: PAGE_SIZE },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
+    },
+    { enabled: !scope.isPending },
+  );
 
   const { data: proposals, isPending: isPendingProposals } =
-    useGetList<Proposal>("proposals", {
-      pagination: { page: 1, perPage: PAGE_SIZE },
-      filter: {},
-    });
+    useGetList<Proposal>(
+      "proposals",
+      {
+        pagination: { page: 1, perPage: PAGE_SIZE },
+        filter: { ...scope.salesFilter, ...scope.periodFilter },
+      },
+      { enabled: !scope.isPending },
+    );
 
-  const isPending = isPendingLeads || isPendingDeals || isPendingProposals;
+  const isPending =
+    scope.isPending || isPendingLeads || isPendingDeals || isPendingProposals;
 
   const steps = useMemo<FunnelStep[]>(() => {
     const leadSummary = summarizeLeads(leads ?? []);
@@ -67,7 +90,7 @@ export const ConversionFunnel = () => {
       {
         label: translate("resources.proposals.name", { smart_count: 2 }),
         count: totalProposals,
-        amount: proposalSummary.openAmount,
+        amount: centsToCurrencyUnits(proposalSummary.openAmount),
         color: "bg-primary/40",
         rate:
           totalDeals > 0 ? Math.round((totalProposals / totalDeals) * 100) : 0,
@@ -86,9 +109,7 @@ export const ConversionFunnel = () => {
   }, [leads, deals, proposals, translate]);
 
   const formatAmount = (amount: number) =>
-    (amount / 100).toLocaleString(locale, {
-      style: "currency",
-      currency,
+    formatCurrencyAmount(amount, currency, locale, {
       maximumFractionDigits: 0,
     });
 

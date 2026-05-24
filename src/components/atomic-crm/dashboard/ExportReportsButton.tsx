@@ -1,33 +1,60 @@
 import { Download } from "lucide-react";
 import { useGetList, useLocaleState } from "ra-core";
 import { Button } from "@/components/ui/button";
+import {
+  formatCurrencyAmount,
+  formatCurrencyCents,
+} from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { summarizeDeals } from "../deals/dealCommercialUtils";
 import { summarizeLeads } from "./commercialDashboardUtils";
 import type { Deal, Lead, Proposal } from "../types";
 import * as XLSX from "xlsx";
+import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 1000;
 
 export const ExportReportsButton = () => {
   const [locale = "pt-BR"] = useLocaleState();
   const { currency } = useConfigurationContext();
+  const scope = useDashboardScope();
 
-  const { data: leads } = useGetList<Lead>("leads", {
-    pagination: { page: 1, perPage: PAGE_SIZE },
-  });
-  const { data: deals } = useGetList<Deal>("deals", {
-    pagination: { page: 1, perPage: PAGE_SIZE },
-    filter: { "archived_at@is": null },
-  });
-  const { data: proposals } = useGetList<Proposal>("proposals", {
-    pagination: { page: 1, perPage: PAGE_SIZE },
-  });
+  const { data: leads } = useGetList<Lead>(
+    "leads",
+    {
+      pagination: { page: 1, perPage: PAGE_SIZE },
+      filter: { ...scope.salesFilter, ...scope.periodFilter },
+    },
+    { enabled: !scope.isPending },
+  );
+  const { data: deals } = useGetList<Deal>(
+    "deals",
+    {
+      pagination: { page: 1, perPage: PAGE_SIZE },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
+    },
+    { enabled: !scope.isPending },
+  );
+  const { data: proposals } = useGetList<Proposal>(
+    "proposals",
+    {
+      pagination: { page: 1, perPage: PAGE_SIZE },
+      filter: { ...scope.salesFilter, ...scope.periodFilter },
+    },
+    { enabled: !scope.isPending },
+  );
 
-  const formatAmount = (amount: number) =>
-    (amount / 100).toLocaleString(locale, {
-      style: "currency",
-      currency,
+  const formatDealAmount = (amount: number) =>
+    formatCurrencyAmount(amount, currency, locale, {
+      maximumFractionDigits: 0,
+    });
+
+  const formatProposalAmount = (amount: number) =>
+    formatCurrencyCents(amount, currency, locale, {
       maximumFractionDigits: 0,
     });
 
@@ -41,10 +68,10 @@ export const ExportReportsButton = () => {
     const kpiData = [
       ["Métrica", "Valor"],
       ["Negócios abertos", dealSummary.openCount],
-      ["Valor em aberto", formatAmount(dealSummary.openAmount)],
-      ["Valor ponderado", formatAmount(dealSummary.weightedOpenAmount)],
-      ["Valor ganho", formatAmount(dealSummary.wonAmount)],
-      ["Valor perdido", formatAmount(dealSummary.lostAmount)],
+      ["Valor em aberto", formatDealAmount(dealSummary.openAmount)],
+      ["Valor ponderado", formatDealAmount(dealSummary.weightedOpenAmount)],
+      ["Valor ganho", formatDealAmount(dealSummary.wonAmount)],
+      ["Valor perdido", formatDealAmount(dealSummary.lostAmount)],
     ];
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kpiData), "KPIs");
 
@@ -104,7 +131,7 @@ export const ExportReportsButton = () => {
       ...(deals ?? []).map((d) => [
         d.name,
         d.stage,
-        formatAmount(d.amount),
+        formatDealAmount(d.amount),
         d.sales_id ?? "",
       ]),
     ];
@@ -121,7 +148,7 @@ export const ExportReportsButton = () => {
         p.title,
         p.number,
         p.status,
-        formatAmount(p.total),
+        formatProposalAmount(p.total),
         p.valid_until ?? "",
       ]),
     ];

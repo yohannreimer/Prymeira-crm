@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { Card } from "@/components/ui/card";
 
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal, Proposal, Sale, Task } from "../types";
 import { calculateSellerRanking } from "./advancedCommercialDashboardUtils";
@@ -10,13 +11,6 @@ import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 500;
 const LOCALE = "pt-BR";
-
-const formatCurrency = (amount: number, currency: string) =>
-  (amount / 100).toLocaleString(LOCALE, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  });
 
 export const AdvancedSellerRanking = () => {
   const translate = useTranslate();
@@ -36,7 +30,11 @@ export const AdvancedSellerRanking = () => {
     {
       pagination: { page: 1, perPage: PAGE_SIZE },
       sort: { field: "updated_at", order: "DESC" },
-      filter: { "archived_at@is": null, ...scope.salesFilter },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
     },
     { enabled: !scope.isPending },
   );
@@ -46,7 +44,7 @@ export const AdvancedSellerRanking = () => {
       {
         pagination: { page: 1, perPage: PAGE_SIZE },
         sort: { field: "updated_at", order: "DESC" },
-        filter: scope.salesFilter,
+        filter: { ...scope.salesFilter, ...scope.periodFilter },
       },
       { enabled: !scope.isPending },
     );
@@ -55,7 +53,7 @@ export const AdvancedSellerRanking = () => {
     {
       pagination: { page: 1, perPage: PAGE_SIZE },
       sort: { field: "due_date", order: "ASC" },
-      filter: scope.salesFilter,
+      filter: { ...scope.salesFilter, ...scope.buildPeriodFilter("due_date") },
     },
     { enabled: !scope.isPending },
   );
@@ -84,11 +82,9 @@ export const AdvancedSellerRanking = () => {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.advanced.seller_ranking.title", {
-            _: "Ranking comercial",
-          })}
-
+          _: "Ranking comercial",
+        })}
       </p>
       <Card className="p-4">
         {ranking.length ? (
@@ -109,7 +105,9 @@ export const AdvancedSellerRanking = () => {
                     )}
                   </div>
                   <div className="truncate">
-                    {formatCurrency(seller.wonAmount, currency)}
+                    {formatCurrencyAmount(seller.wonAmount, currency, LOCALE, {
+                      maximumFractionDigits: 0,
+                    })}
                   </div>
                 </div>
                 <div className="min-w-0 text-sm">
@@ -120,7 +118,12 @@ export const AdvancedSellerRanking = () => {
                     )}
                   </div>
                   <div className="truncate">
-                    {formatCurrency(seller.weightedAmount, currency)}
+                    {formatCurrencyAmount(
+                      seller.weightedAmount,
+                      currency,
+                      LOCALE,
+                      { maximumFractionDigits: 0 },
+                    )}
                   </div>
                 </div>
                 <div className="text-sm">

@@ -2,6 +2,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import { useLocaleState, useTranslate } from "ra-core";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import type { Deal, Task } from "../types";
 import { getWeightedAmount } from "./dealCommercialUtils";
 import { DealCard } from "./DealCard";
@@ -30,12 +31,8 @@ export const DealColumn = ({
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const formatAmount = (amount: number) =>
-    amount.toLocaleString(locale, {
-      notation: "compact",
-      style: "currency",
-      currency,
-      currencyDisplay: "narrowSymbol",
-      minimumSignificantDigits: 3,
+    formatCurrencyAmount(amount, currency, locale, {
+      maximumFractionDigits: 0,
     });
 
   const label = stageLabel ?? stage;

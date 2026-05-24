@@ -1,45 +1,42 @@
 import { ResponsiveBar } from "@nivo/bar";
 import { format, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useGetList, useTranslate } from "ra-core";
+import { useGetList, useLocaleState, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
 
+import { getWeightedAmount } from "../deals/dealCommercialUtils";
 import { findDealLabel } from "../deals/dealUtils";
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
-
-const multiplier = {
-  opportunity: 0.2,
-  "proposal-sent": 0.5,
-  "in-negociation": 0.8,
-  delayed: 0.3,
-};
-
-const threeMonthsAgo = new Date(
-  new Date().setMonth(new Date().getMonth() - 6),
-).toISOString();
+import { useDashboardScope } from "./useDashboardScope";
 
 const DEFAULT_LOCALE = "pt-BR";
 
 export const DealsChart = memo(() => {
   const translate = useTranslate();
+  const [locale = DEFAULT_LOCALE] = useLocaleState();
   const { dealStages, currency } = useConfigurationContext();
-  const acceptedLanguages = navigator
-    ? navigator.languages || [navigator.language]
-    : [DEFAULT_LOCALE];
+  const scope = useDashboardScope();
   const wonLabel = findDealLabel(dealStages, "won") ?? "Won";
   const lostLabel = findDealLabel(dealStages, "lost") ?? "Lost";
 
-  const { data, isPending } = useGetList<Deal>("deals", {
-    pagination: { perPage: 100, page: 1 },
-    sort: {
-      field: "created_at",
-      order: "ASC",
+  const { data, isPending } = useGetList<Deal>(
+    "deals",
+    {
+      pagination: { perPage: 100, page: 1 },
+      sort: {
+        field: "created_at",
+        order: "ASC",
+      },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
     },
-    filter: {
-      "created_at@gte": threeMonthsAgo,
-    },
-  });
+    { enabled: !scope.isPending },
+  );
   const months = useMemo(() => {
     if (!data) return [];
     const dealsByMonth = data.reduce((acc, deal) => {
@@ -57,20 +54,19 @@ export const DealsChart = memo(() => {
         won: dealsByMonth[month]
           .filter((deal: Deal) => deal.stage === "won")
           .reduce((acc: number, deal: Deal) => {
-            acc += deal.amount / 100;
+            acc += deal.amount;
             return acc;
           }, 0),
         pending: dealsByMonth[month]
           .filter((deal: Deal) => !["won", "lost"].includes(deal.stage))
           .reduce((acc: number, deal: Deal) => {
-            // @ts-expect-error - multiplier type issue
-            acc += (deal.amount / 100) * multiplier[deal.stage];
+            acc += getWeightedAmount(deal);
             return acc;
           }, 0),
         lost: dealsByMonth[month]
           .filter((deal: Deal) => deal.stage === "lost")
           .reduce((acc: number, deal: Deal) => {
-            acc -= deal.amount / 100;
+            acc -= deal.amount;
             return acc;
           }, 0),
       };
@@ -79,7 +75,7 @@ export const DealsChart = memo(() => {
     return amountByMonth;
   }, [data]);
 
-  if (isPending) return null; // FIXME return skeleton instead
+  if (scope.isPending || isPending) return null; // FIXME return skeleton instead
   const range = months.reduce(
     (acc, month) => {
       acc.min = Math.min(acc.min, month.lost);
@@ -88,6 +84,13 @@ export const DealsChart = memo(() => {
     },
     { min: 0, max: 0 },
   );
+  const scaleMax = range.max === 0 ? 1 : range.max * 1.2;
+  const scaleMin = range.min === 0 ? 0 : range.min * 1.2;
+  const formatAmount = (amount: number) =>
+    formatCurrencyAmount(amount, currency, locale, {
+      maximumFractionDigits: 0,
+    });
+
   return (
     <div className="flex flex-col">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-2">
@@ -103,8 +106,8 @@ export const DealsChart = memo(() => {
           padding={0.3}
           valueScale={{
             type: "linear",
-            min: range.min * 1.2,
-            max: range.max * 1.2,
+            min: scaleMin,
+            max: scaleMax,
           }}
           indexScale={{ type: "band", round: true }}
           enableGridX={true}
@@ -113,10 +116,7 @@ export const DealsChart = memo(() => {
           tooltip={({ value, indexValue }) => (
             <div className="p-2 bg-secondary rounded shadow inline-flex items-center gap-1 text-secondary-foreground">
               <strong>{indexValue}: </strong>&nbsp;{value > 0 ? "+" : ""}
-              {value.toLocaleString(acceptedLanguages.at(0) ?? DEFAULT_LOCALE, {
-                style: "currency",
-                currency,
-              })}
+              {formatAmount(value)}
             </div>
           )}
           axisTop={{
@@ -155,7 +155,7 @@ export const DealsChart = memo(() => {
           }}
           axisLeft={null}
           axisRight={{
-            format: (v: any) => `${Math.abs(v / 1000)}k`,
+            format: (value: number | string) => formatAmount(Number(value)),
             tickValues: 8,
             style: {
               ticks: {

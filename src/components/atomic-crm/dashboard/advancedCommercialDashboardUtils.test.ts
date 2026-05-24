@@ -110,7 +110,7 @@ describe("advanced dashboard metrics", () => {
     const result = calculateGoalProgress(
       [sale(1, "Ana")],
       [salesGoal({ id: 1 })],
-      [deal({ id: 1, stage: "won", amount: 100000 })],
+      [deal({ id: 1, stage: "won", amount: 1000 })],
       [
         proposal({ id: 1, status: "sent" }),
         proposal({ id: 2, status: "accepted" }),
@@ -139,7 +139,7 @@ describe("advanced dashboard metrics", () => {
             sent_proposals_goal: 0,
           }),
         ],
-        [deal({ id: 1, stage: "won", amount: 100000 })],
+        [deal({ id: 1, stage: "won", amount: 1000 })],
         [proposal({ id: 1, status: "sent" })],
         "2026-05-15",
       )[0],
@@ -208,15 +208,15 @@ describe("advanced dashboard metrics", () => {
         }),
       ],
       [
-        deal({ id: 1, stage: "won", amount: 100000, sales_id: 1 }),
+        deal({ id: 1, stage: "won", amount: 1000, sales_id: 1 }),
         deal({
           id: 2,
           stage: "won",
-          amount: 900000,
+          amount: 9000,
           sales_id: 1,
           updated_at: "2026-04-30T00:00:00.000Z",
         }),
-        deal({ id: 3, stage: "won", amount: 300000, sales_id: 2 }),
+        deal({ id: 3, stage: "won", amount: 3000, sales_id: 2 }),
       ],
       [
         proposal({ id: 1, status: "sent", sales_id: 1 }),
@@ -243,8 +243,8 @@ describe("advanced dashboard metrics", () => {
     expect(result).toEqual([
       expect.objectContaining({
         salesId: 1,
-        revenueGoal: 200000,
-        revenueActual: 100000,
+        revenueGoal: 2000,
+        revenueActual: 1000,
         revenueProgress: 50,
         wonDealsActual: 1,
         sentProposalsActual: 2,
@@ -252,8 +252,8 @@ describe("advanced dashboard metrics", () => {
       }),
       expect.objectContaining({
         salesId: 2,
-        revenueGoal: 300000,
-        revenueActual: 300000,
+        revenueGoal: 3000,
+        revenueActual: 3000,
         revenueProgress: 100,
         wonDealsActual: 1,
         wonDealsProgress: 33,
@@ -267,9 +267,9 @@ describe("advanced dashboard metrics", () => {
     expect(
       calculateRevenueForecast(
         [
-          deal({ id: 1, amount: 100000, probability: 40 }),
-          deal({ id: 2, amount: 900000, probability: 90, stage: "won" }),
-          deal({ id: 3, amount: 800000, probability: 80, stage: "lost" }),
+          deal({ id: 1, amount: 1000, probability: 40 }),
+          deal({ id: 2, amount: 9000, probability: 90, stage: "won" }),
+          deal({ id: 3, amount: 8000, probability: 80, stage: "lost" }),
         ],
         [
           proposal({ id: 1, total: 200000, status: "sent" }),
@@ -278,9 +278,9 @@ describe("advanced dashboard metrics", () => {
         ],
       ),
     ).toEqual({
-      dealWeightedAmount: 40000,
-      proposalOpenAmount: 200000,
-      forecastAmount: 240000,
+      dealWeightedAmount: 400,
+      proposalOpenAmount: 2000,
+      forecastAmount: 2400,
     });
   });
 

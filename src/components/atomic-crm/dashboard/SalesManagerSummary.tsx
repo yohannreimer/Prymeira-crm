@@ -4,9 +4,11 @@ import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 
 import { summarizeDeals } from "../deals/dealCommercialUtils";
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal, Sale } from "../types";
 import { rankSalesByDeals } from "./commercialDashboardUtils";
+import { useDashboardScope } from "./useDashboardScope";
 
 const DEAL_SUMMARY_PAGE_SIZE = 1000;
 
@@ -14,17 +16,30 @@ export const SalesManagerSummary = () => {
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const { currency } = useConfigurationContext();
+  const scope = useDashboardScope();
 
-  const { data: deals, isPending } = useGetList<Deal>("deals", {
-    pagination: { page: 1, perPage: DEAL_SUMMARY_PAGE_SIZE },
-    sort: { field: "updated_at", order: "DESC" },
-    filter: { "archived_at@is": null },
-  });
-  const { data: sales } = useGetList<Sale>("sales", {
-    pagination: { page: 1, perPage: DEAL_SUMMARY_PAGE_SIZE },
-    sort: { field: "first_name", order: "ASC" },
-    filter: { disabled: false },
-  });
+  const { data: deals, isPending } = useGetList<Deal>(
+    "deals",
+    {
+      pagination: { page: 1, perPage: DEAL_SUMMARY_PAGE_SIZE },
+      sort: { field: "updated_at", order: "DESC" },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
+    },
+    { enabled: !scope.isPending },
+  );
+  const { data: sales } = useGetList<Sale>(
+    "sales",
+    {
+      pagination: { page: 1, perPage: DEAL_SUMMARY_PAGE_SIZE },
+      sort: { field: "first_name", order: "ASC" },
+      filter: { disabled: false, ...scope.ownRecordFilter },
+    },
+    { enabled: !scope.isPending },
+  );
 
   const summary = useMemo(() => summarizeDeals(deals ?? []), [deals]);
   const salesRanking = useMemo(
@@ -33,9 +48,7 @@ export const SalesManagerSummary = () => {
   );
 
   const formatAmount = (amount: number) =>
-    (amount / 100).toLocaleString(locale, {
-      style: "currency",
-      currency,
+    formatCurrencyAmount(amount, currency, locale, {
       maximumFractionDigits: 0,
     });
 
@@ -60,16 +73,14 @@ export const SalesManagerSummary = () => {
     },
   ];
 
-  if (isPending) {
+  if (scope.isPending || isPending) {
     return null;
   }
 
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.sales_summary.title")}
-
       </p>
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3">

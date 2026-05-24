@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { Card } from "@/components/ui/card";
 
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal, Proposal } from "../types";
 import { calculateRevenueForecast } from "./advancedCommercialDashboardUtils";
@@ -10,13 +11,6 @@ import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 500;
 const LOCALE = "pt-BR";
-
-const formatCurrency = (amount: number, currency: string) =>
-  (amount / 100).toLocaleString(LOCALE, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  });
 
 export const RevenueForecastSummary = () => {
   const translate = useTranslate();
@@ -27,7 +21,11 @@ export const RevenueForecastSummary = () => {
     {
       pagination: { page: 1, perPage: PAGE_SIZE },
       sort: { field: "updated_at", order: "DESC" },
-      filter: { "archived_at@is": null, ...scope.salesFilter },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
     },
     { enabled: !scope.isPending },
   );
@@ -37,7 +35,7 @@ export const RevenueForecastSummary = () => {
       {
         pagination: { page: 1, perPage: PAGE_SIZE },
         sort: { field: "updated_at", order: "DESC" },
-        filter: scope.salesFilter,
+        filter: { ...scope.salesFilter, ...scope.periodFilter },
       },
       { enabled: !scope.isPending },
     );
@@ -57,7 +55,14 @@ export const RevenueForecastSummary = () => {
           _: "Negócios ponderados",
         },
       ),
-      value: formatCurrency(forecast.dealWeightedAmount, currency),
+      value: formatCurrencyAmount(
+        forecast.dealWeightedAmount,
+        currency,
+        LOCALE,
+        {
+          maximumFractionDigits: 0,
+        },
+      ),
     },
     {
       label: translate(
@@ -66,24 +71,31 @@ export const RevenueForecastSummary = () => {
           _: "Propostas abertas",
         },
       ),
-      value: formatCurrency(forecast.proposalOpenAmount, currency),
+      value: formatCurrencyAmount(
+        forecast.proposalOpenAmount,
+        currency,
+        LOCALE,
+        {
+          maximumFractionDigits: 0,
+        },
+      ),
     },
     {
       label: translate("crm.dashboard.advanced.revenue_forecast.total", {
         _: "Previsão total",
       }),
-      value: formatCurrency(forecast.forecastAmount, currency),
+      value: formatCurrencyAmount(forecast.forecastAmount, currency, LOCALE, {
+        maximumFractionDigits: 0,
+      }),
     },
   ];
 
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.advanced.revenue_forecast.title", {
-            _: "Previsão de receita",
-          })}
-
+          _: "Previsão de receita",
+        })}
       </p>
       <Card className="p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

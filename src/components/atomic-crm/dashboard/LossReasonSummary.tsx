@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { Card } from "@/components/ui/card";
 
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { calculateLossReasons } from "./advancedCommercialDashboardUtils";
@@ -10,13 +11,6 @@ import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 500;
 const LOCALE = "pt-BR";
-
-const formatCurrency = (amount: number, currency: string) =>
-  (amount / 100).toLocaleString(LOCALE, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  });
 
 export const LossReasonSummary = () => {
   const translate = useTranslate();
@@ -27,7 +21,11 @@ export const LossReasonSummary = () => {
     {
       pagination: { page: 1, perPage: PAGE_SIZE },
       sort: { field: "updated_at", order: "DESC" },
-      filter: { "archived_at@is": null, ...scope.salesFilter },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
     },
     { enabled: !scope.isPending },
   );
@@ -41,11 +39,9 @@ export const LossReasonSummary = () => {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.advanced.loss_reasons.title", {
-            _: "Motivos de perda",
-          })}
-
+          _: "Motivos de perda",
+        })}
       </p>
       <Card className="p-4">
         {reasons.length ? (
@@ -57,7 +53,10 @@ export const LossReasonSummary = () => {
               >
                 <span className="truncate">{reasonLabel(reason.reason)}</span>
                 <span className="shrink-0 text-muted-foreground">
-                  {reason.count} · {formatCurrency(reason.amount, currency)}
+                  {reason.count} ·{" "}
+                  {formatCurrencyAmount(reason.amount, currency, LOCALE, {
+                    maximumFractionDigits: 0,
+                  })}
                 </span>
               </div>
             ))}

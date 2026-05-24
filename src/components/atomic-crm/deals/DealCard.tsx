@@ -9,12 +9,12 @@ import {
   useTranslate,
 } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
-import { NumberField } from "@/components/admin/number-field";
 import { SelectField } from "@/components/admin/select-field";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal, StageTaskTemplate, Task } from "../types";
 import { getDealRiskState, getWeightedAmount } from "./dealCommercialUtils";
@@ -80,13 +80,11 @@ export const DealCardContent = ({
   const dealTypeLabel =
     dealTypes.find((type) => type.value === deal.deal_type)?.label ??
     deal.deal_type;
-  const formattedWeightedAmount = weightedAmount.toLocaleString(locale, {
-    notation: "compact",
-    style: "currency",
-    currency,
-    currencyDisplay: "narrowSymbol",
-    minimumSignificantDigits: 3,
-  });
+  const formatAmount = (amount: number) =>
+    formatCurrencyAmount(amount, currency, locale, {
+      maximumFractionDigits: 0,
+    });
+  const formattedWeightedAmount = formatAmount(weightedAmount);
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
       _scrollToTop: false,
@@ -145,17 +143,7 @@ export const DealCardContent = ({
               </ReferenceField>
             </div>
             <p className="text-[11px] text-muted-foreground truncate">
-              <NumberField
-                source="amount"
-                options={{
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                }}
-                locales={locale}
-              />
+              {formatAmount(deal.amount)}
               {deal.category && ", "}
               <SelectField
                 source="category"

@@ -17,7 +17,11 @@ export const PipelineAgingSummary = () => {
     {
       pagination: { page: 1, perPage: PAGE_SIZE },
       sort: { field: "updated_at", order: "DESC" },
-      filter: { "archived_at@is": null, ...scope.salesFilter },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
     },
     { enabled: !scope.isPending },
   );
@@ -27,7 +31,7 @@ export const PipelineAgingSummary = () => {
       {
         pagination: { page: 1, perPage: PAGE_SIZE },
         sort: { field: "updated_at", order: "DESC" },
-        filter: scope.salesFilter,
+        filter: { ...scope.salesFilter, ...scope.periodFilter },
       },
       { enabled: !scope.isPending },
     );
@@ -66,11 +70,9 @@ export const PipelineAgingSummary = () => {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.advanced.pipeline_aging.title", {
-            _: "Envelhecimento do pipeline",
-          })}
-
+          _: "Envelhecimento do pipeline",
+        })}
       </p>
       <Card className="p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

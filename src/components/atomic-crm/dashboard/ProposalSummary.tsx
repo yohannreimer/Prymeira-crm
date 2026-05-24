@@ -5,9 +5,11 @@ import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
+import { formatCurrencyCents } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Proposal } from "../types";
 import { summarizeProposals } from "./commercialDashboardUtils";
+import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 1000;
 
@@ -15,11 +17,16 @@ export const ProposalSummary = () => {
   const translate = useTranslate();
   const [locale = "pt-BR"] = useLocaleState();
   const { currency } = useConfigurationContext();
-  const { data: proposals, isPending } = useGetList<Proposal>("proposals", {
-    pagination: { page: 1, perPage: PAGE_SIZE },
-    sort: { field: "updated_at", order: "DESC" },
-    filter: {},
-  });
+  const scope = useDashboardScope();
+  const { data: proposals, isPending } = useGetList<Proposal>(
+    "proposals",
+    {
+      pagination: { page: 1, perPage: PAGE_SIZE },
+      sort: { field: "updated_at", order: "DESC" },
+      filter: { ...scope.salesFilter, ...scope.periodFilter },
+    },
+    { enabled: !scope.isPending },
+  );
 
   const summary = useMemo(
     () => summarizeProposals(proposals ?? []),
@@ -27,9 +34,7 @@ export const ProposalSummary = () => {
   );
 
   const formatAmount = (amount: number) =>
-    (amount / 100).toLocaleString(locale, {
-      style: "currency",
-      currency,
+    formatCurrencyCents(amount, currency, locale, {
       maximumFractionDigits: 0,
     });
 
@@ -54,14 +59,12 @@ export const ProposalSummary = () => {
     },
   ];
 
-  if (isPending) return null;
+  if (scope.isPending || isPending) return null;
 
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.proposals.title")}
-
       </p>
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3">

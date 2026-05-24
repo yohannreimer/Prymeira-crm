@@ -17,7 +17,7 @@ export const FunnelConversionSummary = () => {
     {
       pagination: { page: 1, perPage: PAGE_SIZE },
       sort: { field: "updated_at", order: "DESC" },
-      filter: scope.salesFilter,
+      filter: { ...scope.salesFilter, ...scope.periodFilter },
     },
     { enabled: !scope.isPending },
   );
@@ -26,7 +26,11 @@ export const FunnelConversionSummary = () => {
     {
       pagination: { page: 1, perPage: PAGE_SIZE },
       sort: { field: "updated_at", order: "DESC" },
-      filter: { "archived_at@is": null, ...scope.salesFilter },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
     },
     { enabled: !scope.isPending },
   );
@@ -36,7 +40,7 @@ export const FunnelConversionSummary = () => {
       {
         pagination: { page: 1, perPage: PAGE_SIZE },
         sort: { field: "updated_at", order: "DESC" },
-        filter: scope.salesFilter,
+        filter: { ...scope.salesFilter, ...scope.periodFilter },
       },
       { enabled: !scope.isPending },
     );
@@ -90,11 +94,9 @@ export const FunnelConversionSummary = () => {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.advanced.funnel_conversion.title", {
-            _: "Conversão do funil",
-          })}
-
+          _: "Conversão do funil",
+        })}
       </p>
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">

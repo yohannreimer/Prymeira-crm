@@ -22,6 +22,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { DealProposalsPanel } from "../proposals/DealProposalsPanel";
@@ -60,13 +61,10 @@ const DealShowContent = () => {
   if (!record) return null;
 
   const weightedAmount = getWeightedAmount(record);
-  const currencyFormatOptions = {
-    notation: "compact",
-    style: "currency",
-    currency,
-    currencyDisplay: "narrowSymbol",
-    minimumSignificantDigits: 3,
-  } satisfies Intl.NumberFormatOptions;
+  const formatAmount = (amount: number) =>
+    formatCurrencyAmount(amount, currency, locale, {
+      maximumFractionDigits: 0,
+    });
   const dealTypeLabel =
     dealTypes.find((type) => type.value === record.deal_type)?.label ??
     record.deal_type;
@@ -132,7 +130,7 @@ const DealShowContent = () => {
                 {translate("resources.deals.fields.amount")}
               </span>
               <span className="text-[13px] text-foreground">
-                {record.amount.toLocaleString(locale, currencyFormatOptions)}
+                {formatAmount(record.amount)}
               </span>
             </div>
 
@@ -141,7 +139,7 @@ const DealShowContent = () => {
                 {translate("resources.deals.fields.weighted_amount")}
               </span>
               <span className="text-[13px] text-foreground">
-                {weightedAmount.toLocaleString(locale, currencyFormatOptions)}
+                {formatAmount(weightedAmount)}
               </span>
             </div>
 

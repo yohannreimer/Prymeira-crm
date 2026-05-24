@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import { Card } from "@/components/ui/card";
 
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal, Proposal, Sale, SalesGoal } from "../types";
 import { calculateGoalProgress } from "./advancedCommercialDashboardUtils";
@@ -10,13 +11,6 @@ import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 500;
 const LOCALE = "pt-BR";
-
-const formatCurrency = (amount: number, currency: string) =>
-  (amount / 100).toLocaleString(LOCALE, {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  });
 
 const getIdentitySale = (identity: {
   id: Sale["id"];
@@ -72,7 +66,11 @@ export const GoalProgressSummary = () => {
     {
       pagination: { page: 1, perPage: PAGE_SIZE },
       sort: { field: "updated_at", order: "DESC" },
-      filter: { "archived_at@is": null, ...scope.salesFilter },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
     },
     { enabled: !scope.isPending },
   );
@@ -82,7 +80,7 @@ export const GoalProgressSummary = () => {
       {
         pagination: { page: 1, perPage: PAGE_SIZE },
         sort: { field: "updated_at", order: "DESC" },
-        filter: scope.salesFilter,
+        filter: { ...scope.salesFilter, ...scope.periodFilter },
       },
       { enabled: !scope.isPending },
     );
@@ -121,11 +119,9 @@ export const GoalProgressSummary = () => {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.advanced.goal_progress.title", {
-            _: "Progresso de metas",
-          })}
-
+          _: "Progresso de metas",
+        })}
       </p>
       <Card className="p-4">
         {rows.length ? (
@@ -150,8 +146,18 @@ export const GoalProgressSummary = () => {
                     </div>
                     <ProgressBar value={row.revenueProgress} />
                     <div className="truncate text-xs text-muted-foreground">
-                      {formatCurrency(row.revenueActual, currency)} /{" "}
-                      {formatCurrency(row.revenueGoal, currency)}
+                      {formatCurrencyAmount(
+                        row.revenueActual,
+                        currency,
+                        LOCALE,
+                        {
+                          maximumFractionDigits: 0,
+                        },
+                      )}{" "}
+                      /{" "}
+                      {formatCurrencyAmount(row.revenueGoal, currency, LOCALE, {
+                        maximumFractionDigits: 0,
+                      })}
                     </div>
                   </div>
                   <div className="space-y-2">

@@ -1,5 +1,6 @@
 import type { Deal, Lead, Proposal, Sale, SalesGoal, Task } from "../types";
 import { getWeightedAmount } from "../deals/dealCommercialUtils";
+import { centsToCurrencyUnits } from "../misc/formatCurrency";
 
 const CLOSED_DEAL_STAGES = new Set(["won", "lost"]);
 const DAY_MS = 1000 * 60 * 60 * 24;
@@ -53,13 +54,14 @@ export const calculateGoalProgress = (
       (sum, deal) => sum + deal.amount,
       0,
     );
+    const revenueGoal = centsToCurrencyUnits(goal?.revenue_goal ?? 0);
 
     return {
       salesId: sale.id,
       name: getSellerName(sale),
-      revenueGoal: goal?.revenue_goal ?? 0,
+      revenueGoal,
       revenueActual: wonAmount,
-      revenueProgress: percentage(wonAmount, goal?.revenue_goal ?? 0),
+      revenueProgress: percentage(wonAmount, revenueGoal),
       wonDealsGoal: goal?.won_deals_goal ?? 0,
       wonDealsActual: sellerWonDeals.length,
       wonDealsProgress: percentage(
@@ -85,7 +87,7 @@ export const calculateRevenueForecast = (
     .reduce((sum, deal) => sum + getWeightedAmount(deal), 0);
   const proposalOpenAmount = proposals
     .filter((proposal) => proposal.status === "sent")
-    .reduce((sum, proposal) => sum + proposal.total, 0);
+    .reduce((sum, proposal) => sum + centsToCurrencyUnits(proposal.total), 0);
 
   return {
     dealWeightedAmount,

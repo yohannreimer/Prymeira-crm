@@ -28,6 +28,7 @@ import { TagsList } from "../contacts/TagsList";
 import { findDealLabel } from "../deals/dealUtils";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { formatRelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
@@ -287,12 +288,8 @@ const DealsIterator = () => {
                 <div className="font-medium">{deal.name}</div>
                 <div className="text-sm text-muted-foreground">
                   {findDealLabel(dealStages, deal.stage)},{" "}
-                  {deal.amount.toLocaleString(locale, {
-                    notation: "compact",
-                    style: "currency",
-                    currency,
-                    currencyDisplay: "narrowSymbol",
-                    minimumSignificantDigits: 3,
+                  {formatCurrencyAmount(deal.amount, currency, locale, {
+                    maximumFractionDigits: 0,
                   })}
                   {deal.category
                     ? `, ${dealCategories.find((c) => c.value === deal.category)?.label ?? deal.category}`

@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
 import { getDealRiskState } from "../deals/dealCommercialUtils";
+import { formatCurrencyAmount } from "../misc/formatCurrency";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import {
   summarizeDealsByStage,
   summarizeLostReasons,
 } from "./commercialDashboardUtils";
+import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 1000;
 
@@ -19,11 +21,20 @@ export const DealRiskSummary = () => {
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const { currency, dealStages, dealLostReasons } = useConfigurationContext();
-  const { data: deals, isPending } = useGetList<Deal>("deals", {
-    pagination: { page: 1, perPage: PAGE_SIZE },
-    sort: { field: "updated_at", order: "DESC" },
-    filter: { "archived_at@is": null },
-  });
+  const scope = useDashboardScope();
+  const { data: deals, isPending } = useGetList<Deal>(
+    "deals",
+    {
+      pagination: { page: 1, perPage: PAGE_SIZE },
+      sort: { field: "updated_at", order: "DESC" },
+      filter: {
+        "archived_at@is": null,
+        ...scope.salesFilter,
+        ...scope.periodFilter,
+      },
+    },
+    { enabled: !scope.isPending },
+  );
 
   const stageSummary = useMemo(
     () => summarizeDealsByStage(deals ?? []),
@@ -38,9 +49,7 @@ export const DealRiskSummary = () => {
   );
 
   const formatAmount = (amount: number) =>
-    (amount / 100).toLocaleString(locale, {
-      style: "currency",
-      currency,
+    formatCurrencyAmount(amount, currency, locale, {
       maximumFractionDigits: 0,
     });
 
@@ -49,14 +58,12 @@ export const DealRiskSummary = () => {
   const lostReasonLabel = (reason: string) =>
     dealLostReasons.find((item) => item.value === reason)?.label ?? reason;
 
-  if (isPending) return null;
+  if (scope.isPending || isPending) return null;
 
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">
-
         {translate("crm.dashboard.deal_risk.title")}
-
       </p>
       <Card className="p-4">
         <Link
