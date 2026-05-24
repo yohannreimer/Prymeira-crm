@@ -4,6 +4,7 @@ import {
   useDataProvider,
   useListContext,
   useNotify,
+  useRedirect,
   useTranslate,
   useUpdate,
   type DataProvider,
@@ -25,6 +26,7 @@ export const DealListContent = () => {
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
   const notify = useNotify();
+  const redirect = useRedirect();
   const translate = useTranslate();
   const [updatePipeline] = useUpdate();
 
@@ -105,6 +107,20 @@ export const DealListContent = () => {
     saveStages(newStages);
   };
 
+  const handleEditStagePlaybook = (stageValue: string) => {
+    if (!pipelineId) return;
+
+    const detail = { pipelineId, stage: stageValue };
+    window.sessionStorage.setItem(
+      "crm:edit-stage-playbook",
+      JSON.stringify(detail),
+    );
+    window.dispatchEvent(
+      new CustomEvent("crm:edit-stage-playbook", { detail }),
+    );
+    redirect("/settings");
+  };
+
   const onDragEnd: OnDragEndResponder = (result) => {
     const { destination, source } = result;
 
@@ -159,13 +175,7 @@ export const DealListContent = () => {
             }
             onEditPlaybook={
               pipelineId
-                ? () => {
-                    window.dispatchEvent(
-                      new CustomEvent("crm:edit-stage-playbook", {
-                        detail: { pipelineId, stage: stage.value },
-                      }),
-                    );
-                  }
+                ? () => handleEditStagePlaybook(stage.value)
                 : undefined
             }
           />

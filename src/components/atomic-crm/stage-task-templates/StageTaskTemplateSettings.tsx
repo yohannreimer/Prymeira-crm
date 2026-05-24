@@ -55,6 +55,8 @@ type EditStagePlaybookEvent = CustomEvent<{
   stage?: string;
 }>;
 
+type EditStagePlaybookDetail = EditStagePlaybookEvent["detail"];
+
 const defaultFormState = (taskType?: string): TemplateFormState => ({
   name: "",
   task_text: "",
@@ -135,6 +137,22 @@ export const StageTaskTemplateSettings = () => {
     setFormState(defaultFormState(fallbackTaskType));
   }, [fallbackTaskType]);
 
+  const applyEditStagePlaybookDetail = useCallback(
+    (detail: EditStagePlaybookDetail | undefined) => {
+      if (!detail?.pipelineId || !detail.stage) return;
+
+      setSelectedPipelineId(detail.pipelineId);
+      setSelectedStage(detail.stage);
+      resetForm();
+      window.setTimeout(() => {
+        document
+          .getElementById("stage-task-template-settings")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    },
+    [resetForm],
+  );
+
   useEffect(() => {
     if (selectedPipelineId || pipelines.length === 0) return;
     setSelectedPipelineId(pipelines[0]?.id);
@@ -155,18 +173,20 @@ export const StageTaskTemplateSettings = () => {
     const handleEditStagePlaybook = (event: Event) => {
       if (!(event instanceof CustomEvent) || !event.detail) return;
 
-      const { pipelineId, stage } = (event as EditStagePlaybookEvent).detail;
-      if (!pipelineId || !stage) return;
-
-      setSelectedPipelineId(pipelineId);
-      setSelectedStage(stage);
-      resetForm();
-      window.setTimeout(() => {
-        document
-          .getElementById("stage-task-template-settings")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
+      applyEditStagePlaybookDetail((event as EditStagePlaybookEvent).detail);
     };
+
+    const pendingDetail = window.sessionStorage.getItem(
+      "crm:edit-stage-playbook",
+    );
+    if (pendingDetail) {
+      window.sessionStorage.removeItem("crm:edit-stage-playbook");
+      try {
+        applyEditStagePlaybookDetail(JSON.parse(pendingDetail));
+      } catch {
+        // Ignore stale or malformed shortcut state.
+      }
+    }
 
     window.addEventListener("crm:edit-stage-playbook", handleEditStagePlaybook);
     return () => {
@@ -175,7 +195,7 @@ export const StageTaskTemplateSettings = () => {
         handleEditStagePlaybook,
       );
     };
-  }, [resetForm]);
+  }, [applyEditStagePlaybookDetail]);
 
   const buildPayload = (index: number) => ({
     pipeline_id: selectedPipelineId,
