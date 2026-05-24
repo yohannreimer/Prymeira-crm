@@ -304,8 +304,10 @@ describe("automationEngine", () => {
 
   it("creates automatic stage template tasks when a deal enters a configured stage", async () => {
     const calls: Array<{ resource: string; params: unknown }> = [];
+    const listCalls: Array<{ resource: string; params: unknown }> = [];
     const provider = {
-      getList: async (resource: string) => {
+      getList: async (resource: string, params: unknown) => {
+        listCalls.push({ resource, params });
         if (resource === "automation_rules") {
           return { data: [], total: 0 };
         }
@@ -376,6 +378,19 @@ describe("automationEngine", () => {
         }),
       ]),
     );
+    expect(listCalls).toContainEqual({
+      resource: "stage_task_templates",
+      params: {
+        filter: {
+          "pipeline_id@eq": 1,
+          "stage@eq": "proposal-sent",
+          "mode@eq": "automatic",
+          "enabled@eq": true,
+        },
+        pagination: { page: 1, perPage: 100 },
+        sort: { field: "index", order: "ASC" },
+      },
+    });
     expect(calls).toContainEqual({
       resource: "tasks",
       params: {
@@ -383,6 +398,158 @@ describe("automationEngine", () => {
           deal_id: 33,
           text: "Retomar Implantação CRM",
           due_date: "2026-05-26T10:00:00.000Z",
+        }),
+      },
+    });
+  });
+
+  it("keeps proposal follow-up running when stage templates fail to load", async () => {
+    const calls: Array<{ resource: string; params: unknown }> = [];
+    const provider = {
+      getList: async (resource: string) => {
+        if (resource === "stage_task_templates") {
+          throw new Error("missing stage_task_templates collection");
+        }
+        if (resource === "automation_rules") {
+          return { data: [], total: 0 };
+        }
+        if (resource === "automation_runs") {
+          return { data: [], total: 0 };
+        }
+        return { data: [], total: 0 };
+      },
+      create: async (resource: string, params: any) => {
+        calls.push({ resource, params });
+        if (resource === "automation_runs") {
+          return { data: { id: 91, ...params.data } };
+        }
+        return { data: { id: 101, ...params.data } };
+      },
+      update: async (resource: string, params: any) => {
+        calls.push({ resource, params });
+        return { data: { id: params.id, ...params.data } };
+      },
+    } as unknown as DataProvider;
+
+    const result = await runDealUpdatedAutomations(provider, {
+      previousDeal: { ...deal, pipeline_id: 1, stage: "opportunity" },
+      deal: {
+        ...deal,
+        pipeline_id: 1,
+        stage: "proposal-sent",
+        next_action_at: null,
+      },
+      now: new Date("2026-05-24T10:00:00.000Z"),
+    });
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        {
+          ruleKey: "stage-task-templates",
+          created: false,
+          skippedReason: "failed",
+        },
+        expect.objectContaining({
+          ruleKey: "deal.proposal-follow-up",
+          created: true,
+        }),
+      ]),
+    );
+    expect(calls).toContainEqual({
+      resource: "tasks",
+      params: {
+        data: expect.objectContaining({
+          deal_id: 33,
+          text: "Retomar proposta enviada: Implantação CRM",
+          due_date: "2026-05-26T10:00:00.000Z",
+        }),
+      },
+    });
+  });
+
+  it("does not recreate automatic stage template tasks when the template run already exists", async () => {
+    const calls: Array<{ resource: string; params: unknown }> = [];
+    const provider = {
+      getList: async (resource: string, params: any) => {
+        if (resource === "automation_rules") {
+          return { data: [], total: 0 };
+        }
+        if (resource === "automation_runs") {
+          const existingRuns =
+            params.filter.rule_key === "stage-task-template.77.proposal-sent"
+              ? [{ id: 92 }]
+              : [];
+          return { data: existingRuns, total: existingRuns.length };
+        }
+        if (resource === "stage_task_templates") {
+          return {
+            data: [
+              {
+                id: 77,
+                workspace_id: "workspace-1",
+                pipeline_id: 1,
+                stage: "proposal-sent",
+                name: "Follow-up automatico",
+                task_text: "Retomar {{deal.name}}",
+                task_type: "follow-up",
+                due_in_days: 2,
+                mode: "automatic",
+                enabled: true,
+                instructions: null,
+                assignee: "record_owner",
+                index: 0,
+                created_at: "2026-05-24T00:00:00.000Z",
+                updated_at: "2026-05-24T00:00:00.000Z",
+              },
+            ],
+            total: 1,
+          };
+        }
+        return { data: [], total: 0 };
+      },
+      create: async (resource: string, params: any) => {
+        calls.push({ resource, params });
+        if (resource === "automation_runs") {
+          return { data: { id: 91, ...params.data } };
+        }
+        return { data: { id: 101, ...params.data } };
+      },
+      update: async (resource: string, params: any) => {
+        calls.push({ resource, params });
+        return { data: { id: params.id, ...params.data } };
+      },
+    } as unknown as DataProvider;
+
+    const result = await runDealUpdatedAutomations(provider, {
+      previousDeal: { ...deal, pipeline_id: 1, stage: "opportunity" },
+      deal: {
+        ...deal,
+        pipeline_id: 1,
+        stage: "proposal-sent",
+        next_action_at: null,
+      },
+      now: new Date("2026-05-24T10:00:00.000Z"),
+    });
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        {
+          ruleKey: "stage-task-template.77.proposal-sent",
+          created: false,
+          skippedReason: "already-ran",
+          automationRunId: 92,
+        },
+        expect.objectContaining({
+          ruleKey: "deal.proposal-follow-up",
+          created: true,
+        }),
+      ]),
+    );
+    expect(calls).not.toContainEqual({
+      resource: "tasks",
+      params: {
+        data: expect.objectContaining({
+          text: "Retomar Implantação CRM",
         }),
       },
     });

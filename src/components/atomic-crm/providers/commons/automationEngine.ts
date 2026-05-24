@@ -20,6 +20,7 @@ const DEAL_FOLLOW_UP_RULE = "deal.follow-up-required";
 const DEAL_PROPOSAL_FOLLOW_UP_RULE = "deal.proposal-follow-up";
 const PROPOSAL_SENT_RULE = "proposal.sent-follow-up";
 const PROPOSAL_ACCEPTED_RULE = "proposal.accepted-action";
+const STAGE_TASK_TEMPLATES_RULE = "stage-task-templates";
 
 type AutomationContext = {
   now?: Date;
@@ -46,7 +47,7 @@ type ProposalUpdatedAutomationContext = AutomationContext & {
 export type AutomationResult = {
   ruleKey: string;
   created: boolean;
-  skippedReason?: "already-ran" | "not-applicable" | "disabled";
+  skippedReason?: "already-ran" | "not-applicable" | "disabled" | "failed";
   taskId?: Identifier;
   automationRunId?: Identifier;
 };
@@ -440,28 +441,61 @@ const runAutomaticStageTemplates = async (
   });
 
   return Promise.all(
-    activeTemplates.map((template) =>
-      runTaskAutomation(dataProvider, {
-        ruleKey: buildStageTemplateRuleKey(template, deal.stage),
-        triggerResource: "deals",
-        triggerRecordId: deal.id,
-        salesId: deal.sales_id,
-        message: `Negócio movido para ${deal.stage}: ${template.name}`,
-        task: buildTaskFromStageTemplate(template, { deal, now }),
-      }),
-    ),
+    activeTemplates.map(async (template) => {
+      const ruleKey = buildStageTemplateRuleKey(template, deal.stage);
+      try {
+        return await runTaskAutomation(dataProvider, {
+          ruleKey,
+          triggerResource: "deals",
+          triggerRecordId: deal.id,
+          salesId: deal.sales_id,
+          message: `Negócio movido para ${deal.stage}: ${template.name}`,
+          task: buildTaskFromStageTemplate(template, { deal, now }),
+        });
+      } catch {
+        return {
+          ruleKey,
+          created: false,
+          skippedReason: "failed",
+        };
+      }
+    }),
   );
+};
+
+const runAutomaticStageTemplatesSafely = async (
+  dataProvider: DataProvider,
+  context: {
+    deal: Deal;
+    previousDeal: Deal;
+    now: Date;
+  },
+): Promise<AutomationResult[]> => {
+  try {
+    return await runAutomaticStageTemplates(dataProvider, context);
+  } catch {
+    return [
+      {
+        ruleKey: STAGE_TASK_TEMPLATES_RULE,
+        created: false,
+        skippedReason: "failed",
+      },
+    ];
+  }
 };
 
 export const runDealUpdatedAutomations = async (
   dataProvider: DataProvider,
   { deal, previousDeal, now = new Date() }: DealUpdatedAutomationContext,
 ): Promise<AutomationResult[]> => {
-  const stageTemplateResults = await runAutomaticStageTemplates(dataProvider, {
-    deal,
-    previousDeal,
-    now,
-  });
+  const stageTemplateResults = await runAutomaticStageTemplatesSafely(
+    dataProvider,
+    {
+      deal,
+      previousDeal,
+      now,
+    },
+  );
 
   if (
     deal.stage !== "proposal-sent" ||
