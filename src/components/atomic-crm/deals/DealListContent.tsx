@@ -29,8 +29,7 @@ export const DealListContent = () => {
   const [updatePipeline] = useUpdate();
 
   // Use pipeline stages if available, else fall back to config dealStages
-  const activeStages =
-    pipelineId !== null ? pipelineStages : dealStages;
+  const activeStages = pipelineId !== null ? pipelineStages : dealStages;
 
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
     getDealsByStage([], activeStages),

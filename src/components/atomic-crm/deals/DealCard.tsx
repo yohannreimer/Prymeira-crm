@@ -177,9 +177,12 @@ export const DealCardContent = ({
                   variant="outline"
                   className="h-4 text-[10px] py-0 px-1.5 font-normal"
                 >
-                  {translate("resources.stage_task_templates.suggestions_count", {
-                    smart_count: stageTemplates.length,
-                  })}
+                  {translate(
+                    "resources.stage_task_templates.suggestions_count",
+                    {
+                      smart_count: stageTemplates.length,
+                    },
+                  )}
                 </Badge>
               )}
               {riskState === "missing_next_action" && (

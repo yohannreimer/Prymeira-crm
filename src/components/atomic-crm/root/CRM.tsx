@@ -27,9 +27,7 @@ import proposals from "../proposals";
 import proposalTemplates from "../proposal-templates";
 import salesGoals from "../sales-goals";
 import { ImportPage } from "../misc/ImportPage";
-import {
-  getDataProvider as defaultDataProviderBuilder,
-} from "../providers/postgres";
+import { getDataProvider as defaultDataProviderBuilder } from "../providers/postgres";
 import { createClerkAuthProvider } from "../providers/supabase/clerkAuthProvider";
 import { usePrymeiraAccess } from "../prymeira/PrymeiraAccessContext";
 import sales from "../sales";

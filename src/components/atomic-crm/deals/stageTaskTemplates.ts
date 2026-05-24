@@ -40,11 +40,7 @@ export const getContactDisplayName = (contact?: Partial<Contact> | null) =>
 
 export const renderStageTaskText = (
   template: Pick<StageTaskTemplate, "task_text" | "name">,
-  {
-    deal,
-    company,
-    contact,
-  }: StageTaskRenderContext,
+  { deal, company, contact }: StageTaskRenderContext,
 ) =>
   compactWhitespace(
     (template.task_text || template.name)

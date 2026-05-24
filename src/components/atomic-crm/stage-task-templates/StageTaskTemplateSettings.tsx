@@ -616,11 +616,7 @@ export const StageTaskTemplateSettings = () => {
           </Field>
 
           <div className="flex justify-end">
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-            >
+            <Button type="button" onClick={handleSubmit} disabled={!canSubmit}>
               {editingTemplateId ? (
                 <Save className="h-4 w-4" />
               ) : (

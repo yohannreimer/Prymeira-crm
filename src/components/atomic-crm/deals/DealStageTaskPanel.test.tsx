@@ -94,34 +94,34 @@ describe("DealStageTaskPanel", () => {
       )
       .toBeInTheDocument();
     await expect
-      .element(
-        screen.getByRole("button", { name: /Follow-up da proposta/ }),
-      )
+      .element(screen.getByRole("button", { name: /Follow-up da proposta/ }))
       .toBeInTheDocument();
 
-    await screen
-      .getByRole("button", { name: /Follow-up da proposta/ })
-      .click();
+    await screen.getByRole("button", { name: /Follow-up da proposta/ }).click();
 
-    await expect.poll(() => createSpy).toHaveBeenCalledWith(
-      "tasks",
-      expect.objectContaining({
-        data: expect.objectContaining({
-          deal_id: deal.id,
-          text: expect.stringContaining(deal.name),
+    await expect
+      .poll(() => createSpy)
+      .toHaveBeenCalledWith(
+        "tasks",
+        expect.objectContaining({
+          data: expect.objectContaining({
+            deal_id: deal.id,
+            text: expect.stringContaining(deal.name),
+          }),
         }),
-      }),
-    );
-    await expect.poll(() => updateSpy).toHaveBeenCalledWith(
-      "deals",
-      expect.objectContaining({
-        id: deal.id,
-        data: expect.objectContaining({
-          next_action_at: expect.any(String),
+      );
+    await expect
+      .poll(() => updateSpy)
+      .toHaveBeenCalledWith(
+        "deals",
+        expect.objectContaining({
+          id: deal.id,
+          data: expect.objectContaining({
+            next_action_at: expect.any(String),
+          }),
+          previousData: deal,
         }),
-        previousData: deal,
-      }),
-    );
+      );
   });
 
   it("preserves an existing earlier next action", async () => {
@@ -136,9 +136,7 @@ describe("DealStageTaskPanel", () => {
 
     const screen = await renderPanel({ currentDeal, createSpy, updateSpy });
 
-    await screen
-      .getByRole("button", { name: /Follow-up da proposta/ })
-      .click();
+    await screen.getByRole("button", { name: /Follow-up da proposta/ }).click();
 
     await expect.poll(() => createSpy).toHaveBeenCalledTimes(1);
     expect(updateSpy).not.toHaveBeenCalled();
@@ -207,9 +205,7 @@ describe("DealStageTaskPanel", () => {
 
     const screen = await renderPanel({ createSpy, updateSpy });
 
-    await screen
-      .getByRole("button", { name: /Follow-up da proposta/ })
-      .click();
+    await screen.getByRole("button", { name: /Follow-up da proposta/ }).click();
 
     await expect.poll(() => createSpy).toHaveBeenCalledTimes(1);
     expect(updateSpy).not.toHaveBeenCalled();
