@@ -327,8 +327,10 @@ const main = async () => {
     });
     const listedStageTemplates = await client.get(
       listPath("stage_task_templates", {
-        "pipeline_id@eq": pipeline.id,
-        "stage@eq": "proposal-sent",
+        filter: {
+          "pipeline_id@eq": pipeline.id,
+          "stage@eq": "proposal-sent",
+        },
       }),
     );
     assert(
