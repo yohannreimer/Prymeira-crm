@@ -286,6 +286,20 @@ const main = async () => {
     const defaultPipelines = await client.get(listPath("pipelines"));
     if (!defaultPipelines.data.length)
       throw new Error("default pipeline missing");
+    const defaultPipeline = defaultPipelines.data[0];
+    const defaultStageTemplates = await client.get(
+      listPath("stage_task_templates", {
+        filter: {
+          "pipeline_id@eq": defaultPipeline.id,
+        },
+      }),
+    );
+    for (const name of ["Ligar agora", "Cobrar proposta", "Marcar decisao"]) {
+      assert(
+        defaultStageTemplates.data.some((template) => template.name === name),
+        `default stage task template missing: ${name}`,
+      );
+    }
     const pipeline = (
       await client.post("/api/records/pipelines", {
         name: "Smoke Pipeline",

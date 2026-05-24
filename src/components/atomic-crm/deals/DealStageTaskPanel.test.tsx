@@ -199,6 +199,31 @@ describe("DealStageTaskPanel", () => {
       .not.toBeInTheDocument();
   });
 
+  it("shows open deal tasks even when there are no suggestions", async () => {
+    const openTask = {
+      id: 30,
+      workspace_id: DEFAULT_WORKSPACE_ID,
+      deal_id: deal.id,
+      contact_id: null,
+      lead_id: null,
+      automation_run_id: null,
+      type: "call",
+      text: "Ligar para decisor",
+      due_date: "2026-05-25T00:00:00.000Z",
+      done_date: null,
+      sales_id: deal.sales_id,
+    } satisfies Task;
+
+    const screen = await renderPanel({ templates: [], tasks: [openTask] });
+
+    await expect
+      .element(screen.getByText(/Tarefas abertas|Open tasks/))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("Ligar para decisor"))
+      .toBeInTheDocument();
+  });
+
   it("does not update the deal when task creation fails", async () => {
     const createSpy = vi.fn().mockRejectedValue(new Error("create failed"));
     const updateSpy = vi.fn();

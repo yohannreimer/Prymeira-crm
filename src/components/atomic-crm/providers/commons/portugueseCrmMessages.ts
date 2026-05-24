@@ -614,6 +614,15 @@ export const portugueseCrmMessages = {
         tomorrow: "Amanhã",
         with_pending: "Com tarefas pendentes",
       },
+      due_states: {
+        future: "em %{smart_count} dias",
+        overdue:
+          "atrasada há %{smart_count} dia |||| atrasada há %{smart_count} dias",
+        today: "vence hoje",
+        tomorrow: "vence amanhã",
+      },
+      open_for_deal: "Tarefas abertas deste negócio",
+      open_more_count: "+%{smart_count} tarefa |||| +%{smart_count} tarefas",
       regarding_contact: "(Ref.: %{name})",
       regarding_lead: "(Lead: %{name})",
       regarding_deal: "(Negócio: %{name})",

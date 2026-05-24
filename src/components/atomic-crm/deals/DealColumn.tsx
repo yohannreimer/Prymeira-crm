@@ -2,7 +2,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import { useLocaleState, useTranslate } from "ra-core";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Deal } from "../types";
+import type { Deal, Task } from "../types";
 import { getWeightedAmount } from "./dealCommercialUtils";
 import { DealCard } from "./DealCard";
 
@@ -12,12 +12,14 @@ export const DealColumn = ({
   stageLabel,
   onDelete,
   onEditPlaybook,
+  tasksByDeal = {},
 }: {
   stage: string;
   deals: Deal[];
   stageLabel?: string;
   onDelete?: () => void;
   onEditPlaybook?: () => void;
+  tasksByDeal?: Record<string, Task[]>;
 }) => {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const weightedAmount = deals.reduce(
@@ -92,7 +94,12 @@ export const DealColumn = ({
               </div>
             )}
             {deals.map((deal, index) => (
-              <DealCard key={deal.id} deal={deal} index={index} />
+              <DealCard
+                key={deal.id}
+                deal={deal}
+                index={index}
+                openTasks={tasksByDeal[String(deal.id)] ?? []}
+              />
             ))}
             {droppableProvided.placeholder}
           </div>

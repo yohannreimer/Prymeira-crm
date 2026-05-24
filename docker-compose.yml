@@ -42,7 +42,7 @@ services:
         npm ci --omit=dev --ignore-scripts
         node server/index.js
     environment:
-      CRM_RELEASE: "2026-05-24-stage-task-playbooks"
+      CRM_RELEASE: "2026-05-24-kanban-task-visibility"
       NODE_ENV: production
       PORT: 3001
       CRM_POSTGRES_PASSWORD: ${CRM_POSTGRES_PASSWORD:?set CRM_POSTGRES_PASSWORD}
@@ -97,7 +97,7 @@ services:
         npm run build
         npx vite preview --host 0.0.0.0 --port 80
     environment:
-      CRM_RELEASE: "2026-05-24-stage-task-playbooks"
+      CRM_RELEASE: "2026-05-24-kanban-task-visibility"
       NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=1536}
       VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
       VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}

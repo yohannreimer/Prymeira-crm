@@ -3,11 +3,13 @@ import {
   useDataProvider,
   useGetList,
   useNotify,
+  ResourceContextProvider,
   useRefresh,
   useTranslate,
 } from "ra-core";
 import { Button } from "@/components/ui/button";
 
+import { Task as TaskItem } from "../tasks/Task";
 import type { Deal, StageTaskTemplate, Task } from "../types";
 import {
   buildTaskFromStageTemplate,
@@ -70,6 +72,7 @@ export const DealStageTaskPanel = ({ deal }: { deal: Deal }) => {
     stage: deal.stage,
     mode: "manual",
   });
+  const openTasks = tasks.filter((task) => !task.done_date);
 
   const handleCreate = async (template: StageTaskTemplate) => {
     const templateId = String(template.id);
@@ -119,42 +122,69 @@ export const DealStageTaskPanel = ({ deal }: { deal: Deal }) => {
     refresh();
   };
 
-  if (templatesPending || tasksPending || suggestions.length === 0) {
+  if (
+    templatesPending ||
+    tasksPending ||
+    (suggestions.length === 0 && openTasks.length === 0)
+  ) {
     return null;
   }
 
   return (
     <div className="space-y-3" data-testid="deal-stage-task-panel">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">
-          {translate("resources.stage_task_templates.suggested_next_actions")}
-        </h3>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {suggestions.map((template) => {
-          const hasOpenTask = hasOpenTaskForTemplate(template, tasks, { deal });
-          const isPending = pendingTemplateIds.has(String(template.id));
+      {openTasks.length > 0 ? (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold">
+            {translate("resources.tasks.open_for_deal")}
+          </h3>
+          <ResourceContextProvider value="tasks">
+            <div className="space-y-2 rounded-md border p-3">
+              {openTasks.map((task) => (
+                <TaskItem key={task.id} task={task} />
+              ))}
+            </div>
+          </ResourceContextProvider>
+        </div>
+      ) : null}
 
-          return (
-            <Button
-              key={template.id}
-              size="sm"
-              variant={hasOpenTask ? "secondary" : "outline"}
-              disabled={hasOpenTask || isPending}
-              title={
-                hasOpenTask
-                  ? translate(
-                      "resources.stage_task_templates.existing_task_title",
-                    )
-                  : undefined
-              }
-              onClick={() => handleCreate(template)}
-            >
-              {template.name}
-            </Button>
-          );
-        })}
-      </div>
+      {suggestions.length > 0 ? (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">
+              {translate(
+                "resources.stage_task_templates.suggested_next_actions",
+              )}
+            </h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((template) => {
+              const hasOpenTask = hasOpenTaskForTemplate(template, tasks, {
+                deal,
+              });
+              const isPending = pendingTemplateIds.has(String(template.id));
+
+              return (
+                <Button
+                  key={template.id}
+                  size="sm"
+                  variant={hasOpenTask ? "secondary" : "outline"}
+                  disabled={hasOpenTask || isPending}
+                  title={
+                    hasOpenTask
+                      ? translate(
+                          "resources.stage_task_templates.existing_task_title",
+                        )
+                      : undefined
+                  }
+                  onClick={() => handleCreate(template)}
+                >
+                  {template.name}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

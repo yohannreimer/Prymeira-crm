@@ -192,6 +192,36 @@ const defaultPipelineStages = [
   { value: "delayed", label: "Adiado" },
 ];
 
+const defaultStageTaskTemplates = [
+  {
+    stage: "opportunity",
+    name: "Ligar agora",
+    task_text:
+      "Ligar para qualificar {{deal.name}}: entender dor, urgencia, orcamento e proximo passo.",
+    task_type: "call",
+    due_in_days: 0,
+    index: 0,
+  },
+  {
+    stage: "proposal-sent",
+    name: "Cobrar proposta",
+    task_text:
+      "Confirmar recebimento da proposta de {{deal.name}} e alinhar duvidas para avancar.",
+    task_type: "follow-up",
+    due_in_days: 1,
+    index: 0,
+  },
+  {
+    stage: "in-negociation",
+    name: "Marcar decisao",
+    task_text:
+      "Agendar reuniao de decisao de {{deal.name}} com proximos passos e responsaveis.",
+    task_type: "meeting",
+    due_in_days: 2,
+    index: 0,
+  },
+];
+
 const accessCache = new Map();
 
 const json = (res, status, payload) => {
@@ -357,6 +387,73 @@ const applyInternalMigration = async (client, migration) => {
   );
 };
 
+const seedDefaultStageTaskTemplates = async (client, workspaceId = null) => {
+  const templatesJson = JSON.stringify(defaultStageTaskTemplates);
+  const workspaceFilter = workspaceId ? "and p.workspace_id = $2" : "";
+  const params = workspaceId ? [templatesJson, workspaceId] : [templatesJson];
+
+  await client.query(
+    `
+      with principal_pipelines as (
+        select distinct on (p.workspace_id) p.id, p.workspace_id
+        from public.pipelines p
+        where p.stages @> '[{"value":"opportunity"},{"value":"proposal-sent"},{"value":"in-negociation"}]'::jsonb
+        ${workspaceFilter}
+        order by p.workspace_id, p.id
+      ),
+      templates as (
+        select *
+        from jsonb_to_recordset($1::jsonb) as template(
+          stage text,
+          name text,
+          task_text text,
+          task_type text,
+          due_in_days integer,
+          index smallint
+        )
+      )
+      insert into public.stage_task_templates (
+        workspace_id,
+        pipeline_id,
+        stage,
+        name,
+        task_text,
+        task_type,
+        due_in_days,
+        mode,
+        enabled,
+        instructions,
+        assignee,
+        index
+      )
+      select
+        p.workspace_id,
+        p.id,
+        t.stage,
+        t.name,
+        t.task_text,
+        t.task_type,
+        t.due_in_days,
+        'manual',
+        true,
+        null,
+        'record_owner',
+        t.index
+      from principal_pipelines p
+      cross join templates t
+      where not exists (
+        select 1
+        from public.stage_task_templates existing
+        where existing.workspace_id = p.workspace_id
+          and existing.pipeline_id = p.id
+          and existing.stage = t.stage
+          and existing.name = t.name
+      )
+    `,
+    params,
+  );
+};
+
 const runMigrations = async () => {
   await pool.query(`
     create table if not exists public.crm_internal_migrations (
@@ -383,6 +480,7 @@ const runMigrations = async () => {
     for (const migration of internalMigrations) {
       await applyInternalMigration(client, migration);
     }
+    await seedDefaultStageTaskTemplates(client);
     await client.query("commit");
   } catch (err) {
     await client.query("rollback");
@@ -766,6 +864,7 @@ const ensureWorkspaceDefaults = async (client, workspaceId) => {
      )`,
     [workspaceId, JSON.stringify(defaultPipelineStages)],
   );
+  await seedDefaultStageTaskTemplates(client, workspaceId);
 };
 
 const syncCurrentSale = async (auth, body) => {

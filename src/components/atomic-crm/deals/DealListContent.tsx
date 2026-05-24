@@ -2,6 +2,7 @@ import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
 import {
   useDataProvider,
+  useGetList,
   useListContext,
   useNotify,
   useRedirect,
@@ -9,14 +10,15 @@ import {
   useUpdate,
   type DataProvider,
 } from "ra-core";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Deal } from "../types";
+import type { Deal, Task } from "../types";
 import { DealColumn } from "./DealColumn";
 import { PipelineContext } from "./DealList";
+import { groupOpenDealTasks } from "./dealTaskDisplay";
 import type { DealsByStage } from "./stages";
 import { getDealsByStage } from "./stages";
 
@@ -36,6 +38,23 @@ export const DealListContent = () => {
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
     getDealsByStage([], activeStages),
   );
+  const dealIds = useMemo(
+    () => (unorderedDeals ?? []).map((deal) => deal.id).filter(Boolean),
+    [unorderedDeals],
+  );
+  const { data: openTasks = [] } = useGetList<Task>(
+    "tasks",
+    {
+      filter: {
+        "deal_id@in": `(${dealIds.join(",")})`,
+        "done_date@is": null,
+      },
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "due_date", order: "ASC" },
+    },
+    { enabled: dealIds.length > 0 },
+  );
+  const tasksByDeal = useMemo(() => groupOpenDealTasks(openTasks), [openTasks]);
 
   // Track activeStages changes to reset dealsByStage when pipeline changes
   const prevActiveStagesRef = useRef(activeStages);
@@ -178,6 +197,7 @@ export const DealListContent = () => {
                 ? () => handleEditStagePlaybook(stage.value)
                 : undefined
             }
+            tasksByDeal={tasksByDeal}
           />
         ))}
         {/* Add column button */}

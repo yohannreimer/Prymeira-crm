@@ -1,5 +1,5 @@
 import { Draggable } from "@hello-pangea/dnd";
-import { AlertCircle, CalendarClock } from "lucide-react";
+import { AlertCircle, CalendarClock, CheckCircle2 } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import {
   useGetList,
@@ -16,16 +16,30 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Deal, StageTaskTemplate } from "../types";
+import type { Deal, StageTaskTemplate, Task } from "../types";
 import { getDealRiskState, getWeightedAmount } from "./dealCommercialUtils";
+import { getTaskDueState } from "./dealTaskDisplay";
 
-export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
+export const DealCard = ({
+  deal,
+  index,
+  openTasks = [],
+}: {
+  deal: Deal;
+  index: number;
+  openTasks?: Task[];
+}) => {
   if (!deal) return null;
 
   return (
     <Draggable draggableId={String(deal.id)} index={index}>
       {(provided, snapshot) => (
-        <DealCardContent provided={provided} snapshot={snapshot} deal={deal} />
+        <DealCardContent
+          provided={provided}
+          snapshot={snapshot}
+          deal={deal}
+          openTasks={openTasks}
+        />
       )}
     </Draggable>
   );
@@ -35,10 +49,12 @@ export const DealCardContent = ({
   provided,
   snapshot,
   deal,
+  openTasks = [],
 }: {
   provided?: any;
   snapshot?: any;
   deal: Deal;
+  openTasks?: Task[];
 }) => {
   const { dealCategories, dealTypes, currency } = useConfigurationContext();
   const redirect = useRedirect();
@@ -46,6 +62,7 @@ export const DealCardContent = ({
   const [locale = "en"] = useLocaleState();
   const riskState = getDealRiskState(deal);
   const weightedAmount = getWeightedAmount(deal);
+  const nextOpenTask = openTasks[0];
   const { data: stageTemplates = [] } = useGetList<StageTaskTemplate>(
     "stage_task_templates",
     {
@@ -147,6 +164,12 @@ export const DealCardContent = ({
                 optionValue="value"
               />
             </p>
+            {nextOpenTask ? (
+              <DealCardTaskSummary
+                task={nextOpenTask}
+                remainingTasks={Math.max(openTasks.length - 1, 0)}
+              />
+            ) : null}
             <div className="mt-2 flex flex-wrap gap-1">
               {deal.deal_type && (
                 <Badge
@@ -206,4 +229,60 @@ export const DealCardContent = ({
       </RecordContextProvider>
     </div>
   );
+};
+
+const DealCardTaskSummary = ({
+  task,
+  remainingTasks,
+}: {
+  task: Task;
+  remainingTasks: number;
+}) => {
+  const translate = useTranslate();
+  const { state, days } = getTaskDueState(task);
+  const isUrgent = state === "overdue" || state === "today";
+
+  return (
+    <div
+      className={`mt-2 flex items-start gap-1.5 rounded-md border px-2 py-1.5 text-[11px] ${
+        isUrgent
+          ? "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200"
+          : "border-border bg-muted/30 text-muted-foreground"
+      }`}
+    >
+      <CheckCircle2 className="mt-0.5 size-3 shrink-0" />
+      <div className="min-w-0 flex-1">
+        <div className="truncate font-medium">{task.text}</div>
+        <div className="flex flex-wrap gap-1 text-[10px]">
+          <span>{translateTaskDueState(translate, state, days)}</span>
+          {remainingTasks > 0 ? (
+            <span>
+              {translate("resources.tasks.open_more_count", {
+                smart_count: remainingTasks,
+              })}
+            </span>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const translateTaskDueState = (
+  translate: ReturnType<typeof useTranslate>,
+  state: ReturnType<typeof getTaskDueState>["state"],
+  days: number,
+) => {
+  if (state === "overdue") {
+    return translate("resources.tasks.due_states.overdue", {
+      smart_count: days,
+    });
+  }
+  if (state === "today") return translate("resources.tasks.due_states.today");
+  if (state === "tomorrow") {
+    return translate("resources.tasks.due_states.tomorrow");
+  }
+  return translate("resources.tasks.due_states.future", {
+    smart_count: days,
+  });
 };
