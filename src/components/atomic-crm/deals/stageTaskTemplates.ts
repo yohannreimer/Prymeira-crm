@@ -15,6 +15,12 @@ const addDays = (date: Date, days: number) => {
 
 const compactWhitespace = (value: string) => value.replace(/\s+/g, " ").trim();
 
+type StageTaskRenderContext = {
+  deal: Pick<Deal, "name">;
+  company?: Pick<Company, "name"> | null;
+  contact?: Partial<Contact> | null;
+};
+
 export const getContactDisplayName = (contact?: Partial<Contact> | null) =>
   compactWhitespace(
     [contact?.first_name, contact?.last_name].filter(Boolean).join(" "),
@@ -26,11 +32,7 @@ export const renderStageTaskText = (
     deal,
     company,
     contact,
-  }: {
-    deal: Pick<Deal, "name">;
-    company?: Pick<Company, "name"> | null;
-    contact?: Partial<Contact> | null;
-  },
+  }: StageTaskRenderContext,
 ) =>
   compactWhitespace(
     (template.task_text || template.name)
@@ -98,9 +100,16 @@ export const buildTaskFromStageTemplate = (
 export const hasOpenTaskForTemplate = (
   template: Pick<StageTaskTemplate, "name" | "task_text">,
   tasks: readonly Pick<Task, "text" | "done_date">[],
+  context?: StageTaskRenderContext,
 ) =>
-  tasks.some(
-    (task) =>
-      !task.done_date &&
-      (task.text === template.name || task.text === template.task_text),
-  );
+  tasks.some((task) => {
+    if (task.done_date) return false;
+
+    const expectedTexts = [
+      template.name,
+      template.task_text,
+      context ? renderStageTaskText(template, context) : undefined,
+    ];
+
+    return expectedTexts.some((text) => task.text === text);
+  });

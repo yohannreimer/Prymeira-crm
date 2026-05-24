@@ -73,6 +73,37 @@ describe("stageTaskTemplates", () => {
     ).toEqual([1]);
   });
 
+  it("filters all enabled stage templates when mode is omitted", () => {
+    const templates = [
+      template({ id: 1, mode: "manual" }),
+      template({ id: 2, mode: "automatic" }),
+      template({ id: 3, enabled: false }),
+      template({ id: 4, stage: "won" }),
+    ];
+
+    expect(
+      filterStageTaskTemplates(templates, {
+        pipelineId: 1,
+        stage: "proposal-sent",
+      }).map((item) => item.id),
+    ).toEqual([1, 2]);
+  });
+
+  it("sorts filtered templates by index then id", () => {
+    const templates = [
+      template({ id: 20, index: 2 }),
+      template({ id: 3, index: 1 }),
+      template({ id: 1, index: 1 }),
+    ];
+
+    expect(
+      filterStageTaskTemplates(templates, {
+        pipelineId: 1,
+        stage: "proposal-sent",
+      }).map((item) => item.id),
+    ).toEqual([1, 3, 20]);
+  });
+
   it("renders deal, company and contact variables", () => {
     expect(
       renderStageTaskText(template(), {
@@ -97,8 +128,10 @@ describe("stageTaskTemplates", () => {
       lead_id: null,
       automation_run_id: null,
       type: "follow-up",
+      text: "Retomar Gerar proposta com Empresa X e Ana Silva",
       sales_id: 3,
       due_date: "2026-05-26T12:00:00.000Z",
+      done_date: null,
     });
   });
 
@@ -109,6 +142,23 @@ describe("stageTaskTemplates", () => {
     ];
 
     expect(hasOpenTaskForTemplate(template(), tasks)).toBe(true);
+  });
+
+  it("detects an open task with rendered text created from the same template", () => {
+    const stageTemplate = template();
+    const context = {
+      deal: deal(),
+      company: { name: "Empresa X" } as Company,
+      contact: { first_name: "Ana", last_name: "Silva" } as Contact,
+    };
+    const tasks = [
+      {
+        text: buildTaskFromStageTemplate(stageTemplate, context).text,
+        done_date: null,
+      } as Task,
+    ];
+
+    expect(hasOpenTaskForTemplate(stageTemplate, tasks, context)).toBe(true);
   });
 
   it("builds stable automatic rule keys", () => {
