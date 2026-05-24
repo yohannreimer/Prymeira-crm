@@ -612,6 +612,10 @@ export const frenchCrmMessages = {
       regarding_deal: "(Affaire : %{name})",
       updated: "Tâche mise à jour",
     },
+    stage_task_templates: {
+      created_task: "Tâche suggérée créée",
+      suggested_next_actions: "Prochaines actions suggérées",
+    },
     tags: {
       name: "Étiquette |||| Étiquettes",
       action: {

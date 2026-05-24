@@ -29,6 +29,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { getWeightedAmount } from "./dealCommercialUtils";
 import { ContactList } from "./ContactList";
+import { DealStageTaskPanel } from "./DealStageTaskPanel";
 import { findDealLabel, formatISODateString } from "./dealUtils";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
@@ -234,6 +235,10 @@ const DealShowContent = () => {
               <p className="text-sm leading-6">{record.description}</p>
             </div>
           )}
+
+          <div className="m-4">
+            <DealStageTaskPanel deal={record} />
+          </div>
 
           <div className="m-4">
             <DealProposalsPanel deal={record} />

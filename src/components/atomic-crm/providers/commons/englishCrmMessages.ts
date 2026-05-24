@@ -606,6 +606,10 @@ export const englishCrmMessages = {
       regarding_deal: "(Deal: %{name})",
       updated: "Task updated",
     },
+    stage_task_templates: {
+      created_task: "Suggested task created",
+      suggested_next_actions: "Suggested next actions",
+    },
     tags: {
       name: "Tag |||| Tags",
       action: {

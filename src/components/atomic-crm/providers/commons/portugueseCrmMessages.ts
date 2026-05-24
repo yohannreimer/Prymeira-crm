@@ -609,6 +609,10 @@ export const portugueseCrmMessages = {
       regarding_deal: "(Negócio: %{name})",
       updated: "Tarefa atualizada",
     },
+    stage_task_templates: {
+      created_task: "Tarefa sugerida criada",
+      suggested_next_actions: "Próximas ações sugeridas",
+    },
     tags: {
       name: "Etiqueta |||| Etiquetas",
       action: {
