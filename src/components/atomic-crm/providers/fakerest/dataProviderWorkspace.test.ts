@@ -111,6 +111,36 @@ describe("FakeRest workspace isolation", () => {
     });
   });
 
+  it("generates deals with stages from their assigned pipeline", () => {
+    const db = generateData() as any;
+    const pipelineById = new Map<any, any>(
+      db.pipelines.map((pipeline: any) => [pipeline.id, pipeline]),
+    );
+
+    db.deals.forEach((deal: any) => {
+      const pipeline = pipelineById.get(deal.pipeline_id);
+      const stageValues = pipeline.stages.map((stage: any) => stage.value);
+
+      expect(stageValues, deal.name).toContain(deal.stage);
+    });
+
+    db.pipelines.forEach((pipeline: any) => {
+      pipeline.stages.forEach((stage: any) => {
+        const indexes = db.deals
+          .filter(
+            (deal: any) =>
+              deal.pipeline_id === pipeline.id && deal.stage === stage.value,
+          )
+          .map((deal: any) => deal.index)
+          .sort((left: number, right: number) => left - right);
+
+        expect(indexes, `${pipeline.name}:${stage.value}`).toEqual(
+          indexes.map((_: number, index: number) => index),
+        );
+      });
+    });
+  });
+
   it("filters tenant list reads to the demo workspace", async () => {
     const dataProvider = createDataProvider({
       db: createDb(),

@@ -4,7 +4,6 @@ import { datatype, lorem, random } from "faker/locale/en_US";
 import {
   defaultDealCategories,
   defaultDealLostReasons,
-  defaultDealStages,
   defaultDealTypes,
 } from "../../../root/defaultConfiguration";
 import type { Deal } from "../../../types";
@@ -14,6 +13,7 @@ import { randomDate } from "./utils";
 export const generateDeals = (db: Db): Deal[] => {
   const deals = Array.from(Array(50).keys()).map((id) => {
     const company = random.arrayElement(db.companies);
+    const pipeline = random.arrayElement(db.pipelines);
     company.nb_deals = (company.nb_deals ?? 0) + 1;
     const contacts = random.arrayElements(
       db.contacts.filter((contact) => contact.company_id === company.id),
@@ -21,7 +21,7 @@ export const generateDeals = (db: Db): Deal[] => {
     );
     const lowercaseName = lorem.words();
     const created_at = randomDate(new Date(company.created_at)).toISOString();
-    const stage = random.arrayElement(defaultDealStages).value;
+    const stage = random.arrayElement(pipeline.stages).value;
 
     const expected_closing_date = randomDate(
       new Date(created_at),
@@ -49,19 +49,28 @@ export const generateDeals = (db: Db): Deal[] => {
       updated_at: randomDate(new Date(created_at)).toISOString(),
       expected_closing_date,
       sales_id: company.sales_id!,
-      pipeline_id: random.arrayElement(db.pipelines).id,
+      pipeline_id: pipeline.id,
       index: 0,
     };
   });
-  // compute index based on stage
-  defaultDealStages.forEach((stage) => {
-    deals
-      .filter((deal) => deal.stage === stage.value)
-      .forEach((deal, index) => {
-        deals[deal.id].index = index;
-      });
+  // Compute indexes within each pipeline stage.
+  db.pipelines.forEach((pipeline) => {
+    pipeline.stages.forEach((stage) => {
+      deals
+        .filter(
+          (deal) =>
+            deal.pipeline_id === pipeline.id && deal.stage === stage.value,
+        )
+        .forEach((deal, index) => {
+          deals[deal.id].index = index;
+        });
+    });
   });
+  const vendas = db.pipelines.find((pipeline) => pipeline.name === "Vendas");
   deals.forEach((deal) => {
+    if (deal.pipeline_id !== vendas?.id) {
+      return;
+    }
     if (deal.stage === "lost") {
       deal.lost_reason = random.arrayElement(defaultDealLostReasons).value;
       deal.probability = 0;
