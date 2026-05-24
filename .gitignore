@@ -41,6 +41,7 @@ public/r/
 
 !supabase/functions/.env
 .claude/settings.local.json
+.superpowers/
 
 # Playwright
 node_modules/
