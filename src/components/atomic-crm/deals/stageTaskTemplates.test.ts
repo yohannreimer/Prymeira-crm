@@ -6,6 +6,7 @@ import {
   filterStageTaskTemplates,
   hasOpenTaskForTemplate,
   renderStageTaskText,
+  type StageTemplateTaskPayload,
 } from "./stageTaskTemplates";
 
 const template = (
@@ -104,6 +105,20 @@ describe("stageTaskTemplates", () => {
     ).toEqual([1, 3, 20]);
   });
 
+  it("sorts numeric ids naturally when indexes match", () => {
+    const templates = [
+      template({ id: 10, index: 1 }),
+      template({ id: 2, index: 1 }),
+    ];
+
+    expect(
+      filterStageTaskTemplates(templates, {
+        pipelineId: 1,
+        stage: "proposal-sent",
+      }).map((item) => item.id),
+    ).toEqual([2, 10]);
+  });
+
   it("renders deal, company and contact variables", () => {
     expect(
       renderStageTaskText(template(), {
@@ -115,12 +130,15 @@ describe("stageTaskTemplates", () => {
   });
 
   it("builds a task payload with relative due date and primary contact", () => {
-    const payload = buildTaskFromStageTemplate(template(), {
-      deal: deal(),
-      now: new Date("2026-05-24T12:00:00.000Z"),
-      company: { name: "Empresa X" } as Company,
-      contact: { first_name: "Ana", last_name: "Silva" } as Contact,
-    });
+    const payload: StageTemplateTaskPayload = buildTaskFromStageTemplate(
+      template(),
+      {
+        deal: deal(),
+        now: new Date("2026-05-24T12:00:00.000Z"),
+        company: { name: "Empresa X" } as Company,
+        contact: { first_name: "Ana", last_name: "Silva" } as Contact,
+      },
+    );
 
     expect(payload).toMatchObject({
       deal_id: 5,
@@ -159,6 +177,74 @@ describe("stageTaskTemplates", () => {
     ];
 
     expect(hasOpenTaskForTemplate(stageTemplate, tasks, context)).toBe(true);
+  });
+
+  it("ignores completed tasks that otherwise match the template", () => {
+    const tasks = [
+      {
+        text: "Follow-up proposta",
+        done_date: "2026-05-24T12:00:00.000Z",
+      } as Task,
+    ];
+
+    expect(hasOpenTaskForTemplate(template(), tasks)).toBe(false);
+  });
+
+  it("ignores a rendered task for another deal when deal context is provided", () => {
+    const stageTemplate = template();
+    const context = {
+      deal: deal({ id: 5 }),
+      company: { name: "Empresa X" } as Company,
+      contact: { first_name: "Ana", last_name: "Silva" } as Contact,
+    };
+    const tasks = [
+      {
+        text: buildTaskFromStageTemplate(stageTemplate, context).text,
+        done_date: null,
+        deal_id: 6,
+        type: "follow-up",
+      } as Task,
+    ];
+
+    expect(hasOpenTaskForTemplate(stageTemplate, tasks, context)).toBe(false);
+  });
+
+  it("ignores tasks with nonmatching rendered text", () => {
+    const stageTemplate = template();
+    const context = {
+      deal: deal(),
+      company: { name: "Empresa X" } as Company,
+      contact: { first_name: "Ana", last_name: "Silva" } as Contact,
+    };
+    const tasks = [
+      {
+        text: "Retomar outro negócio com Empresa X e Ana Silva",
+        done_date: null,
+        deal_id: 5,
+        type: "follow-up",
+      } as Task,
+    ];
+
+    expect(hasOpenTaskForTemplate(stageTemplate, tasks, context)).toBe(false);
+  });
+
+  it("ignores tasks with matching text but different type", () => {
+    const stageTemplate = template();
+    const context = {
+      deal: deal(),
+      company: { name: "Empresa X" } as Company,
+      contact: { first_name: "Ana", last_name: "Silva" } as Contact,
+    };
+    const tasks = [
+      {
+        text: buildTaskFromStageTemplate(stageTemplate, context).text,
+        done_date: null,
+        deal_id: 5,
+        type: "call",
+      } as Task,
+    ];
+
+    expect(hasOpenTaskForTemplate(stageTemplate, tasks, context)).toBe(false);
   });
 
   it("builds stable automatic rule keys", () => {

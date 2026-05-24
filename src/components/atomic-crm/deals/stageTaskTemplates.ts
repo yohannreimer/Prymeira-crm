@@ -16,9 +16,21 @@ const addDays = (date: Date, days: number) => {
 const compactWhitespace = (value: string) => value.replace(/\s+/g, " ").trim();
 
 type StageTaskRenderContext = {
-  deal: Pick<Deal, "name">;
+  deal: Pick<Deal, "name"> & Partial<Pick<Deal, "id">>;
   company?: Pick<Company, "name"> | null;
   contact?: Partial<Contact> | null;
+};
+
+export type StageTemplateTaskPayload = {
+  contact_id: Task["contact_id"];
+  lead_id: null;
+  deal_id: Deal["id"];
+  automation_run_id: null;
+  type: Task["type"];
+  text: Task["text"];
+  due_date: Task["due_date"];
+  done_date: null;
+  sales_id: Deal["sales_id"];
 };
 
 export const getContactDisplayName = (contact?: Partial<Contact> | null) =>
@@ -64,7 +76,11 @@ export const filterStageTaskTemplates = (
       return true;
     })
     .sort(
-      (a, b) => a.index - b.index || String(a.id).localeCompare(String(b.id)),
+      (a, b) =>
+        a.index - b.index ||
+        String(a.id).localeCompare(String(b.id), undefined, {
+          numeric: true,
+        }),
     );
 
 export const buildStageTemplateRuleKey = (
@@ -85,7 +101,7 @@ export const buildTaskFromStageTemplate = (
     company?: Company | null;
     contact?: Contact | null;
   },
-) => ({
+): StageTemplateTaskPayload => ({
   contact_id: deal.contact_ids?.[0] ?? null,
   lead_id: null,
   deal_id: deal.id,
@@ -98,12 +114,22 @@ export const buildTaskFromStageTemplate = (
 });
 
 export const hasOpenTaskForTemplate = (
-  template: Pick<StageTaskTemplate, "name" | "task_text">,
-  tasks: readonly Pick<Task, "text" | "done_date">[],
+  template: Pick<StageTaskTemplate, "name" | "task_text"> &
+    Partial<Pick<StageTaskTemplate, "task_type">>,
+  tasks: readonly (Pick<Task, "text" | "done_date"> &
+    Partial<Pick<Task, "deal_id" | "type">>)[],
   context?: StageTaskRenderContext,
 ) =>
   tasks.some((task) => {
     if (task.done_date) return false;
+    if (
+      task.deal_id != null &&
+      context?.deal.id != null &&
+      task.deal_id !== context.deal.id
+    ) {
+      return false;
+    }
+    if (task.type != null && task.type !== template.task_type) return false;
 
     const expectedTexts = [
       template.name,
