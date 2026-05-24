@@ -607,8 +607,12 @@ export const englishCrmMessages = {
       updated: "Task updated",
     },
     stage_task_templates: {
+      create_task_error: "Could not create the suggested task",
       created_task: "Suggested task created",
+      existing_task_title: "An open task already exists for this suggestion",
       suggested_next_actions: "Suggested next actions",
+      update_next_action_error:
+        "Suggested task created, but the deal next action was not updated",
     },
     tags: {
       name: "Tag |||| Tags",

@@ -610,8 +610,12 @@ export const portugueseCrmMessages = {
       updated: "Tarefa atualizada",
     },
     stage_task_templates: {
+      create_task_error: "Não foi possível criar a tarefa sugerida",
       created_task: "Tarefa sugerida criada",
+      existing_task_title: "Já existe uma tarefa aberta para esta sugestão",
       suggested_next_actions: "Próximas ações sugeridas",
+      update_next_action_error:
+        "Tarefa sugerida criada, mas a próxima ação do negócio não foi atualizada",
     },
     tags: {
       name: "Etiqueta |||| Etiquetas",

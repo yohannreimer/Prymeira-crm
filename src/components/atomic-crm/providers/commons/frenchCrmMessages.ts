@@ -613,8 +613,13 @@ export const frenchCrmMessages = {
       updated: "Tâche mise à jour",
     },
     stage_task_templates: {
+      create_task_error: "Impossible de créer la tâche suggérée",
       created_task: "Tâche suggérée créée",
+      existing_task_title:
+        "Une tâche ouverte existe déjà pour cette suggestion",
       suggested_next_actions: "Prochaines actions suggérées",
+      update_next_action_error:
+        "Tâche suggérée créée, mais la prochaine action de l'affaire n'a pas été mise à jour",
     },
     tags: {
       name: "Étiquette |||| Étiquettes",
