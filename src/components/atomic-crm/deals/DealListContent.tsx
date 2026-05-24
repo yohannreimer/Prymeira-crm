@@ -3,6 +3,7 @@ import isEqual from "lodash/isEqual";
 import {
   useDataProvider,
   useListContext,
+  useTranslate,
   useUpdate,
   type DataProvider,
 } from "ra-core";
@@ -22,6 +23,7 @@ export const DealListContent = () => {
   const { stages: pipelineStages, pipelineId } = useContext(PipelineContext);
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
+  const translate = useTranslate();
   const [updatePipeline] = useUpdate();
 
   // Use pipeline stages if available, else fall back to config dealStages
@@ -136,6 +138,17 @@ export const DealListContent = () => {
             onDelete={
               pipelineId ? () => handleDeleteStage(stage.value) : undefined
             }
+            onEditPlaybook={
+              pipelineId
+                ? () => {
+                    window.dispatchEvent(
+                      new CustomEvent("crm:edit-stage-playbook", {
+                        detail: { pipelineId, stage: stage.value },
+                      }),
+                    );
+                  }
+                : undefined
+            }
           />
         ))}
         {/* Add column button */}
@@ -145,7 +158,9 @@ export const DealListContent = () => {
               <input
                 autoFocus
                 className="w-full px-2 py-1 text-[13px] border border-primary rounded outline-none bg-background mb-1"
-                placeholder="Nome da coluna..."
+                placeholder={translate(
+                  "resources.deals.kanban.new_column_placeholder",
+                )}
                 value={newStageName}
                 onChange={(e) => setNewStageName(e.target.value)}
                 onKeyDown={(e) => {
@@ -166,7 +181,7 @@ export const DealListContent = () => {
               onClick={() => setAddingStage(true)}
               className="w-full border border-dashed border-border/50 rounded-lg py-2 px-3 text-[13px] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
             >
-              + Coluna
+              {translate("resources.deals.kanban.add_column")}
             </button>
           )}
         </div>

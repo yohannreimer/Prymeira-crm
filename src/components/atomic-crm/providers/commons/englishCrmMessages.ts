@@ -289,6 +289,13 @@ export const englishCrmMessages = {
       },
       weighted_short: "Weighted",
       weighted_short_compact: "W",
+      kanban: {
+        add_column: "+ Column",
+        edit_playbook: "Edit stage playbook",
+        empty_column: "No deals in this column",
+        new_column_placeholder: "Column name...",
+        remove_column: "Remove column",
+      },
       risk: {
         no_next_action: "No next action",
         stale: "Stale",
@@ -611,6 +618,8 @@ export const englishCrmMessages = {
       created_task: "Suggested task created",
       existing_task_title: "An open task already exists for this suggestion",
       suggested_next_actions: "Suggested next actions",
+      suggestions_count:
+        "%{smart_count} suggestion |||| %{smart_count} suggestions",
       update_next_action_error:
         "Suggested task created, but the deal next action was not updated",
     },

@@ -2,6 +2,7 @@ import { Draggable } from "@hello-pangea/dnd";
 import { AlertCircle, CalendarClock } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import {
+  useGetList,
   useLocaleState,
   useRedirect,
   RecordContextProvider,
@@ -15,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Deal } from "../types";
+import type { Deal, StageTaskTemplate } from "../types";
 import { getDealRiskState, getWeightedAmount } from "./dealCommercialUtils";
 
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
@@ -45,6 +46,19 @@ export const DealCardContent = ({
   const [locale = "en"] = useLocaleState();
   const riskState = getDealRiskState(deal);
   const weightedAmount = getWeightedAmount(deal);
+  const { data: stageTemplates = [] } = useGetList<StageTaskTemplate>(
+    "stage_task_templates",
+    {
+      filter: {
+        "pipeline_id@eq": deal.pipeline_id,
+        "stage@eq": deal.stage,
+        "enabled@eq": true,
+      },
+      pagination: { page: 1, perPage: 25 },
+      sort: { field: "index", order: "ASC" },
+    },
+    { enabled: Boolean(deal.pipeline_id) },
+  );
   const dealTypeLabel =
     dealTypes.find((type) => type.value === deal.deal_type)?.label ??
     deal.deal_type;
@@ -157,6 +171,16 @@ export const DealCardContent = ({
                 {translate("resources.deals.weighted_short_compact")}{" "}
                 {formattedWeightedAmount}
               </Badge>
+              {stageTemplates.length > 0 && (
+                <Badge
+                  variant="outline"
+                  className="h-4 text-[10px] py-0 px-1.5 font-normal"
+                >
+                  {translate("resources.stage_task_templates.suggestions_count", {
+                    smart_count: stageTemplates.length,
+                  })}
+                </Badge>
+              )}
               {riskState === "missing_next_action" && (
                 <Badge
                   variant="destructive"

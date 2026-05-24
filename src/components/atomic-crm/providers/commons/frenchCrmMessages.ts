@@ -294,6 +294,13 @@ export const frenchCrmMessages = {
       },
       weighted_short: "Pondéré",
       weighted_short_compact: "P",
+      kanban: {
+        add_column: "+ Colonne",
+        edit_playbook: "Modifier le playbook de l'étape",
+        empty_column: "Aucune affaire dans cette colonne",
+        new_column_placeholder: "Nom de la colonne...",
+        remove_column: "Supprimer la colonne",
+      },
       risk: {
         no_next_action: "Aucune prochaine action",
         stale: "Inactif",
@@ -618,6 +625,8 @@ export const frenchCrmMessages = {
       existing_task_title:
         "Une tâche ouverte existe déjà pour cette suggestion",
       suggested_next_actions: "Prochaines actions suggérées",
+      suggestions_count:
+        "%{smart_count} suggestion |||| %{smart_count} suggestions",
       update_next_action_error:
         "Tâche suggérée créée, mais la prochaine action de l'affaire n'a pas été mise à jour",
     },

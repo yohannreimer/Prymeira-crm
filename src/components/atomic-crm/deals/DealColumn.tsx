@@ -11,11 +11,13 @@ export const DealColumn = ({
   deals,
   stageLabel,
   onDelete,
+  onEditPlaybook,
 }: {
   stage: string;
   deals: Deal[];
   stageLabel?: string;
   onDelete?: () => void;
+  onEditPlaybook?: () => void;
 }) => {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const weightedAmount = deals.reduce(
@@ -43,15 +45,30 @@ export const DealColumn = ({
           <h3 className="text-[11px] font-semibold uppercase tracking-widest text-foreground/70">
             {label}
           </h3>
-          {onDelete && (
-            <button
-              onClick={onDelete}
-              className="text-muted-foreground hover:text-destructive transition-colors text-[12px] leading-none flex-shrink-0"
-              title="Remover coluna"
-            >
-              ×
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {onEditPlaybook && (
+              <button
+                type="button"
+                onClick={onEditPlaybook}
+                className="text-muted-foreground hover:text-foreground transition-colors text-[12px] leading-none flex-shrink-0"
+                title={translate("resources.deals.kanban.edit_playbook")}
+                aria-label={translate("resources.deals.kanban.edit_playbook")}
+              >
+                ⋯
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                className="text-muted-foreground hover:text-destructive transition-colors text-[12px] leading-none flex-shrink-0"
+                title={translate("resources.deals.kanban.remove_column")}
+                aria-label={translate("resources.deals.kanban.remove_column")}
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
         <p className="text-[11px] text-muted-foreground mt-0.5">
           {formatAmount(totalAmount)} · {formatAmount(weightedAmount)}{" "}
@@ -71,7 +88,7 @@ export const DealColumn = ({
           >
             {deals.length === 0 && (
               <div className="flex flex-1 items-center justify-center rounded-lg text-[12px] text-muted-foreground">
-                Sem negócios nesta coluna
+                {translate("resources.deals.kanban.empty_column")}
               </div>
             )}
             {deals.map((deal, index) => (

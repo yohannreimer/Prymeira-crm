@@ -292,6 +292,13 @@ export const portugueseCrmMessages = {
       },
       weighted_short: "Ponderado",
       weighted_short_compact: "P",
+      kanban: {
+        add_column: "+ Coluna",
+        edit_playbook: "Editar playbook da etapa",
+        empty_column: "Sem negócios nesta coluna",
+        new_column_placeholder: "Nome da coluna...",
+        remove_column: "Remover coluna",
+      },
       risk: {
         no_next_action: "Sem próxima ação",
         stale: "Parado",
@@ -614,6 +621,8 @@ export const portugueseCrmMessages = {
       created_task: "Tarefa sugerida criada",
       existing_task_title: "Já existe uma tarefa aberta para esta sugestão",
       suggested_next_actions: "Próximas ações sugeridas",
+      suggestions_count:
+        "%{smart_count} sugestão |||| %{smart_count} sugestões",
       update_next_action_error:
         "Tarefa sugerida criada, mas a próxima ação do negócio não foi atualizada",
     },
