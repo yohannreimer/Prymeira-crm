@@ -7,13 +7,20 @@ export const generateStageTaskTemplates = (db: Db): StageTaskTemplate[] => {
   const posVenda = db.pipelines.find(
     (pipeline) => pipeline.name === "Pos-venda",
   );
+
+  if (!vendas || !posVenda) {
+    throw new Error(
+      "Stage task template demo data requires Vendas and Pos-venda pipelines.",
+    );
+  }
+
   const now = new Date().toISOString();
 
   return [
     {
       id: 1,
       workspace_id: DEFAULT_WORKSPACE_ID,
-      pipeline_id: vendas?.id ?? 1,
+      pipeline_id: vendas.id,
       stage: "opportunity",
       name: "Ligar hoje",
       task_text: "Ligar para qualificar {{deal.name}}",
@@ -30,7 +37,7 @@ export const generateStageTaskTemplates = (db: Db): StageTaskTemplate[] => {
     {
       id: 2,
       workspace_id: DEFAULT_WORKSPACE_ID,
-      pipeline_id: vendas?.id ?? 1,
+      pipeline_id: vendas.id,
       stage: "proposal-sent",
       name: "Follow-up da proposta",
       task_text: "Retomar proposta de {{deal.name}}",
@@ -47,7 +54,7 @@ export const generateStageTaskTemplates = (db: Db): StageTaskTemplate[] => {
     {
       id: 3,
       workspace_id: DEFAULT_WORKSPACE_ID,
-      pipeline_id: posVenda?.id ?? 2,
+      pipeline_id: posVenda.id,
       stage: "nutrition",
       name: "Enviar material educativo",
       task_text: "Enviar material educativo para {{company.name}}",

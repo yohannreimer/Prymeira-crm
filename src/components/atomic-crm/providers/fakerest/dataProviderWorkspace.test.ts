@@ -141,6 +141,26 @@ describe("FakeRest workspace isolation", () => {
     });
   });
 
+  it("generates valid stage task template seed data", () => {
+    const db = generateData() as any;
+    const pipelineById = new Map<any, any>(
+      db.pipelines.map((pipeline: any) => [pipeline.id, pipeline]),
+    );
+
+    db.stage_task_templates.forEach((template: any) => {
+      const pipeline = pipelineById.get(template.pipeline_id);
+
+      expect(pipeline, template.name).toBeDefined();
+      expect(
+        pipeline.stages.map((stage: any) => stage.value),
+        template.name,
+      ).toContain(template.stage);
+      expect(template.workspace_id, template.name).toBe(DEFAULT_WORKSPACE_ID);
+      expect(["manual", "automatic"], template.name).toContain(template.mode);
+      expect(template.assignee, template.name).toBe("record_owner");
+    });
+  });
+
   it("filters tenant list reads to the demo workspace", async () => {
     const dataProvider = createDataProvider({
       db: createDb(),
