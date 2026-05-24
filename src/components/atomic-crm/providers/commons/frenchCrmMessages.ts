@@ -137,7 +137,6 @@ export const frenchCrmMessages = {
         genders: {
           male: "Monsieur",
           female: "Madame",
-          nonbinary: "Indéterminé",
         },
         personal_info_types: {
           work: "Pro",

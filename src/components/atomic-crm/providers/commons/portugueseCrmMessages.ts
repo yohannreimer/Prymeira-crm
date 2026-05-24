@@ -135,7 +135,6 @@ export const portugueseCrmMessages = {
         genders: {
           male: "Ele/Dele",
           female: "Ela/Dela",
-          nonbinary: "Elu/Delu",
         },
         personal_info_types: {
           work: "Trabalho",

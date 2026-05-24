@@ -1,4 +1,4 @@
-import { Mars, NonBinary, Venus } from "lucide-react";
+import { Mars, Venus } from "lucide-react";
 
 import type { Company, Contact, ContactGender } from "../types";
 
@@ -33,7 +33,6 @@ type TranslateFn = (key: string, options?: { [key: string]: any }) => string;
 export const contactGenderDefaultLabels: Record<string, string> = {
   male: "He/Him",
   female: "She/Her",
-  nonbinary: "They/Them",
 };
 
 const personalInfoTypeMap: Record<string, string> = {
@@ -52,11 +51,6 @@ export const contactGender: ContactGender[] = [
     value: "female",
     label: "resources.contacts.inputs.genders.female",
     icon: Venus,
-  },
-  {
-    value: "nonbinary",
-    label: "resources.contacts.inputs.genders.nonbinary",
-    icon: NonBinary,
   },
 ];
 

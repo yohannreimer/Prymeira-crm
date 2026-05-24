@@ -133,7 +133,6 @@ export const englishCrmMessages = {
         genders: {
           male: "He/Him",
           female: "She/Her",
-          nonbinary: "They/Them",
         },
         personal_info_types: {
           work: "Work",
