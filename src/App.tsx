@@ -1,6 +1,8 @@
 import { ClerkProvider } from "@clerk/clerk-react";
 import { CRM } from "@/components/atomic-crm/root/CRM";
 import { PrymeiraAccessGate } from "@/components/atomic-crm/prymeira/PrymeiraAccessGate";
+import { VinculaLandingPage } from "@/components/atomic-crm/landing/VinculaLandingPage";
+import { PrymeiraAccessDenied } from "@/components/atomic-crm/prymeira/PrymeiraAccessDenied";
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -44,49 +46,11 @@ function MissingClerkConfig() {
         >
           by Prymeira
         </span>
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            background: _APP_PRIMARY,
-            borderRadius: 12,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 20,
-            boxShadow: `0 8px 28px rgba(${_APP_PRIMARY_RGB},0.3)`,
-          }}
-        >
-          <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
-            <line
-              x1="3"
-              y1="5"
-              x2="17"
-              y2="5"
-              stroke="#171716"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-            />
-            <line
-              x1="5.5"
-              y1="9"
-              x2="14.5"
-              y2="9"
-              stroke="#171716"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-            />
-            <line
-              x1="8"
-              y1="13"
-              x2="12"
-              y2="13"
-              stroke="#171716"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
+        <img
+          src="/appIcon/192.png"
+          alt="Vincula"
+          style={{ width: 48, height: 48, objectFit: "contain", display: "block", marginBottom: 20 }}
+        />
         <h1
           style={{
             margin: "0 0 10px",
@@ -120,6 +84,13 @@ function MissingClerkConfig() {
 }
 
 const App = () => {
+  // Public preview routes (dev only)
+  if (window.location.pathname === "/landing") return <VinculaLandingPage />;
+  if (window.location.pathname === "/__preview_denied__")
+    return <PrymeiraAccessDenied decision={{ allowed: false, reason: "no_entitlement", product_key: "crm", status: "inactive" }} />;
+  if (window.location.pathname === "/__preview_error__")
+    return <PrymeiraAccessDenied error={new Error("Não foi possível verificar seu acesso. Tente novamente.")} />;
+
   if (!clerkPublishableKey) return <MissingClerkConfig />;
 
   return (

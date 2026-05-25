@@ -1,9 +1,8 @@
+// src/components/atomic-crm/prymeira/PrymeiraAccessDenied.tsx
 import { useEffect } from "react";
+import { Lock, AlertTriangle, ArrowLeft, RotateCcw } from "lucide-react";
 import { buildPrymeiraAccessDeniedUrl, getPrymeiraHubUrl } from "./accountApi";
 import type { PrymeiraAccessDecision } from "./types";
-
-const APP_PRIMARY = "#8b5cf6";
-const APP_PRIMARY_RGB = "139,92,246";
 
 export function PrymeiraAccessDenied(props: {
   decision?: PrymeiraAccessDecision;
@@ -13,180 +12,74 @@ export function PrymeiraAccessDenied(props: {
     ? buildPrymeiraAccessDeniedUrl(props.decision)
     : getPrymeiraHubUrl();
 
+  const isError = !!props.error;
+
+  // Always redirect to Hub — whether access was denied or an error occurred
   useEffect(() => {
-    if (props.error) return;
     if (import.meta.env.MODE === "test") return;
+    if (new URLSearchParams(window.location.search).get("preview") === "1") return;
     window.location.assign(href);
-  }, [href, props.error]);
+  }, [href]);
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background:
-          "linear-gradient(155deg, #0a0810 0%, #12091a 50%, #1a0d26 100%)",
-        fontFamily:
-          '"Area Normal","Aptos","SF Pro Display","Segoe UI Variable",system-ui,sans-serif',
-        padding: "48px 24px",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Ambient glow */}
-      <div
-        style={{
-          position: "absolute",
-          top: "40%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 560,
-          height: 560,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, rgba(${APP_PRIMARY_RGB},0.06) 0%, transparent 68%)`,
-          pointerEvents: "none",
-        }}
-      />
+    <div className="min-h-screen bg-background">
+      {/* Topbar */}
+      <header className="h-14 border-b border-border bg-card flex items-center px-6">
+        <div className="flex items-center gap-2.5">
+          <img src="/appIcon/32.png" alt="Vincula" style={{ width: 28, height: 28, objectFit: "contain", display: "block" }} />
+          <span className="text-sm font-bold text-foreground tracking-tight">
+            Vincula CRM
+          </span>
+        </div>
+      </header>
 
-      <section
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: 420,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          textAlign: "center",
-        }}
-      >
-        {/* Eyebrow */}
-        <span
-          style={{
-            marginBottom: 28,
-            fontSize: 10,
-            fontWeight: 800,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: `rgba(${APP_PRIMARY_RGB}, 0.45)`,
-          }}
-        >
-          by Prymeira
-        </span>
-
-        {/* Logo mark */}
-        <div
-          style={{
-            width: 52,
-            height: 52,
-            background: APP_PRIMARY,
-            borderRadius: 13,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 20,
-            boxShadow: `0 8px 28px rgba(${APP_PRIMARY_RGB},0.32), 0 2px 8px rgba(${APP_PRIMARY_RGB},0.18)`,
-          }}
-        >
-          <svg width="26" height="26" viewBox="0 0 20 20" fill="none">
-            <line
-              x1="3"
-              y1="5"
-              x2="17"
-              y2="5"
-              stroke="#171716"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-            />
-            <line
-              x1="5.5"
-              y1="9"
-              x2="14.5"
-              y2="9"
-              stroke="#171716"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-            />
-            <line
-              x1="8"
-              y1="13"
-              x2="12"
-              y2="13"
-              stroke="#171716"
-              strokeWidth="1.7"
-              strokeLinecap="round"
-            />
-          </svg>
+      {/* Body */}
+      <main className="max-w-[520px] mx-auto px-6" style={{ paddingTop: "clamp(56px, 12vh, 120px)" }}>
+        {/* Icon */}
+        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-muted-foreground mb-4">
+          {isError
+            ? <AlertTriangle size={20} strokeWidth={1.8} />
+            : <Lock size={20} strokeWidth={1.8} />
+          }
         </div>
 
-        {/* App name */}
-        <span
-          style={{
-            display: "block",
-            marginBottom: 20,
-            fontSize: 18,
-            fontWeight: 900,
-            letterSpacing: "-0.02em",
-            color: "#f6f2e8",
-          }}
-        >
-          Vincula CRM
-        </span>
-
-        {/* Heading */}
-        <h1
-          style={{
-            margin: "0 0 12px",
-            fontSize: 26,
-            fontWeight: 900,
-            lineHeight: 1.1,
-            letterSpacing: "-0.02em",
-            color: "#f6f2e8",
-          }}
-        >
-          {props.error ? "Erro de acesso." : "Produto bloqueado."}
-        </h1>
-
-        {/* Message */}
-        <p
-          style={{
-            margin: "0 0 32px",
-            fontSize: 15,
-            lineHeight: 1.6,
-            color: "#6a6460",
-            maxWidth: "34ch",
-          }}
-        >
-          {props.error?.message ??
-            "Sua conta está autenticada, mas a Prymeira Account ainda não liberou o Vincula CRM. Estamos levando você ao Hub para revisar o acesso."}
+        {/* Eyebrow */}
+        <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground mb-1">
+          {isError ? "Erro de acesso" : "Produto bloqueado"}
         </p>
 
-        {/* Manual fallback link */}
-        <a
-          href={href}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: 44,
-            padding: "0 24px",
-            background: APP_PRIMARY,
-            color: "#fff",
-            borderRadius: 10,
-            fontWeight: 700,
-            fontSize: 14,
-            textDecoration: "none",
-            boxShadow: `0 4px 18px rgba(${APP_PRIMARY_RGB},0.3)`,
-            fontFamily: "inherit",
-            transition: "opacity 0.15s",
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.opacity = "0.88")}
-          onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
-        >
-          Voltar ao Hub
-        </a>
-      </section>
-    </main>
+        {/* Heading */}
+        <h1 className="text-[28px] font-black tracking-tight text-foreground mb-2 leading-tight">
+          Vincula CRM
+        </h1>
+
+        {/* Description */}
+        <p className="text-muted-foreground leading-relaxed mb-6">
+          {isError
+            ? (props.error?.message ?? "Ocorreu um erro ao verificar o acesso.")
+            : "Sua conta está autenticada, mas o Vincula CRM ainda não foi liberado pela Prymeira Account. Levando você ao Hub para revisar o acesso."}
+        </p>
+
+        {/* CTA */}
+        {isError ? (
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 font-bold text-foreground hover:opacity-70 transition-opacity"
+            onClick={() => window.location.reload()}
+          >
+            <RotateCcw size={15} strokeWidth={1.9} />
+            Tentar novamente
+          </button>
+        ) : (
+          <a
+            href={href}
+            className="inline-flex items-center gap-2 font-bold text-foreground hover:opacity-70 transition-opacity"
+          >
+            <ArrowLeft size={15} strokeWidth={1.9} />
+            Voltar ao Hub
+          </a>
+        )}
+      </main>
+    </div>
   );
 }

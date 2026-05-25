@@ -27,6 +27,7 @@ import proposals from "../proposals";
 import proposalTemplates from "../proposal-templates";
 import salesGoals from "../sales-goals";
 import { ImportPage } from "../misc/ImportPage";
+import { VinculaLandingPage } from "../landing/VinculaLandingPage";
 import { getDataProvider as defaultDataProviderBuilder } from "../providers/postgres";
 import { createClerkAuthProvider } from "../providers/supabase/clerkAuthProvider";
 import { usePrymeiraAccess } from "../prymeira/PrymeiraAccessContext";
@@ -284,6 +285,9 @@ const DesktopAdmin = (
       dashboard={props.dashboard ?? Dashboard}
       {...props}
     >
+      <CustomRoutes noLayout>
+        <Route path="/landing" element={<VinculaLandingPage />} />
+      </CustomRoutes>
       <CustomRoutes>
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
