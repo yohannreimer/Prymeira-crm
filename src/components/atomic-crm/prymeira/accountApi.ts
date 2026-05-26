@@ -140,12 +140,12 @@ export async function updatePrymeiraProductMember(
 }
 
 export function buildPrymeiraAccessDeniedUrl(
-  decision: Pick<PrymeiraAccessDecision, "product_key" | "reason">,
-  returnUrl = window.location.href,
+  decision: Pick<PrymeiraAccessDecision, "product_key" | "reason" | "status">,
 ) {
-  const url = new URL("/access-denied", getPrymeiraHubUrl());
-  url.searchParams.set("product_key", decision.product_key);
-  url.searchParams.set("reason", decision.reason);
-  url.searchParams.set("return_url", returnUrl);
-  return url.toString();
+  const params = new URLSearchParams({
+    from_product: decision.product_key,
+    reason: decision.reason,
+    status: decision.status,
+  });
+  return `https://account.prymeira.com/acesso?${params.toString()}`;
 }
