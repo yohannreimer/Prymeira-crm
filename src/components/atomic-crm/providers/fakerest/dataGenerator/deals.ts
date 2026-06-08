@@ -1,83 +1,462 @@
-import { add } from "date-fns";
-import { datatype, lorem, random } from "faker/locale/en_US";
-
-import {
-  defaultDealCategories,
-  defaultDealLostReasons,
-  defaultDealTypes,
-} from "../../../root/defaultConfiguration";
 import type { Deal } from "../../../types";
 import type { Db } from "./types";
-import { randomDate } from "./utils";
+
+type DealSeed = Omit<Deal, "contact_ids" | "sales_id" | "index"> & {
+  contact_ids?: Deal["contact_ids"];
+};
+
+const deals: DealSeed[] = [
+  {
+    id: 0,
+    name: "Implantação CRM comercial",
+    company_id: 0,
+    contact_ids: [0, 1],
+    category: "website-design",
+    deal_type: "consultative",
+    probability: 78,
+    source: "Indicação",
+    lost_reason: null,
+    next_action_at: "2026-06-10T13:00:00.000Z",
+    last_activity_at: "2026-06-03T15:10:00.000Z",
+    stage: "in-negociation",
+    description:
+      "Projeto para padronizar rotina comercial das unidades Aurora com tarefas por etapa, histórico e painel executivo.",
+    amount: 184000,
+    created_at: "2026-06-01T12:00:00.000Z",
+    updated_at: "2026-06-03T15:10:00.000Z",
+    expected_closing_date: "2026-06-28",
+    pipeline_id: 1,
+  },
+  {
+    id: 1,
+    name: "Pacote executivo financeiro + CRM",
+    company_id: 1,
+    contact_ids: [2, 3],
+    category: "ui-design",
+    deal_type: "recurring",
+    probability: 62,
+    source: "Evento",
+    lost_reason: null,
+    next_action_at: "2026-06-09T10:00:00.000Z",
+    last_activity_at: "2026-06-01T09:20:00.000Z",
+    stage: "proposal-sent",
+    description:
+      "Proposta combinando visibilidade financeira e acompanhamento do relacionamento com empresas conveniadas.",
+    amount: 132000,
+    created_at: "2026-06-02T12:00:00.000Z",
+    updated_at: "2026-06-01T09:20:00.000Z",
+    expected_closing_date: "2026-06-21",
+    pipeline_id: 1,
+  },
+  {
+    id: 2,
+    name: "Playbook nacional de pré-vendas",
+    company_id: 2,
+    contact_ids: [4, 5],
+    category: "other",
+    deal_type: "consultative",
+    probability: 45,
+    source: "Prospecção ativa",
+    lost_reason: null,
+    next_action_at: "2026-06-12T16:30:00.000Z",
+    last_activity_at: "2026-05-29T12:00:00.000Z",
+    stage: "opportunity",
+    description:
+      "Mapeamento de SDRs regionais, proposta técnica e tarefas automáticas para oportunidades de energia solar.",
+    amount: 98000,
+    created_at: "2026-06-03T12:00:00.000Z",
+    updated_at: "2026-05-29T12:00:00.000Z",
+    expected_closing_date: "2026-07-15",
+    pipeline_id: 1,
+  },
+  {
+    id: 3,
+    name: "Expansão carteira recorrente",
+    company_id: 3,
+    contact_ids: [6, 7],
+    category: "other",
+    deal_type: "recurring",
+    probability: 100,
+    source: "Indicação",
+    lost_reason: null,
+    next_action_at: null,
+    last_activity_at: "2026-05-25T11:15:00.000Z",
+    stage: "won",
+    description:
+      "Conta fechada para expansão da rotina comercial e acompanhamento de clientes recorrentes do escritório.",
+    amount: 74000,
+    created_at: "2026-01-20T12:00:00.000Z",
+    updated_at: "2026-05-25T11:15:00.000Z",
+    expected_closing_date: "2026-05-25",
+    pipeline_id: 1,
+  },
+  {
+    id: 4,
+    name: "Piloto com filiais NorteLog",
+    company_id: 4,
+    contact_ids: [8, 9],
+    category: "ui-design",
+    deal_type: "consultative",
+    probability: 70,
+    source: "Indicação",
+    lost_reason: null,
+    next_action_at: "2026-06-11T12:00:00.000Z",
+    last_activity_at: "2026-05-31T15:00:00.000Z",
+    stage: "in-negociation",
+    description:
+      "Piloto operacional com duas filiais, cadência de propostas e acompanhamento de contratos anuais.",
+    amount: 156000,
+    created_at: "2026-06-04T12:00:00.000Z",
+    updated_at: "2026-05-31T15:00:00.000Z",
+    expected_closing_date: "2026-06-30",
+    pipeline_id: 1,
+  },
+  {
+    id: 5,
+    name: "CRM leve para estúdio criativo",
+    company_id: 5,
+    contact_ids: [10, 11],
+    category: "copywriting",
+    deal_type: "quick",
+    probability: 88,
+    source: "Site",
+    lost_reason: null,
+    next_action_at: "2026-06-07T09:30:00.000Z",
+    last_activity_at: "2026-05-27T11:30:00.000Z",
+    stage: "proposal-sent",
+    description:
+      "Plano inicial para organizar propostas, retornos e tarefas de projetos de branding e conteúdo.",
+    amount: 36000,
+    created_at: "2026-06-05T12:00:00.000Z",
+    updated_at: "2026-05-27T11:30:00.000Z",
+    expected_closing_date: "2026-06-14",
+    pipeline_id: 1,
+  },
+  {
+    id: 6,
+    name: "Distribuidores B2B Flor de Sal",
+    company_id: 6,
+    contact_ids: [12, 13],
+    category: "print-project",
+    deal_type: "consultative",
+    probability: 58,
+    source: "Evento",
+    lost_reason: null,
+    next_action_at: "2026-06-10T15:00:00.000Z",
+    last_activity_at: "2026-06-03T12:00:00.000Z",
+    stage: "opportunity",
+    description:
+      "Estruturação de funil para redes, distribuidores e previsão de faturamento por região.",
+    amount: 69000,
+    created_at: "2026-06-02T12:00:00.000Z",
+    updated_at: "2026-06-03T12:00:00.000Z",
+    expected_closing_date: "2026-07-03",
+    pipeline_id: 1,
+  },
+  {
+    id: 7,
+    name: "Captação de patrocinadores",
+    company_id: 7,
+    contact_ids: [14, 15],
+    category: "other",
+    deal_type: "consultative",
+    probability: 25,
+    source: "Redes sociais",
+    lost_reason: null,
+    next_action_at: "2026-06-17T10:30:00.000Z",
+    last_activity_at: "2026-05-18T11:50:00.000Z",
+    stage: "delayed",
+    description:
+      "Instituto precisa validar orçamento e governança antes de contratar uma rotina completa de CRM.",
+    amount: 42000,
+    created_at: "2026-03-18T12:00:00.000Z",
+    updated_at: "2026-05-18T11:50:00.000Z",
+    expected_closing_date: "2026-08-01",
+    pipeline_id: 1,
+  },
+  {
+    id: 8,
+    name: "Pipeline hospitalar enterprise",
+    company_id: 8,
+    contact_ids: [16, 17],
+    category: "ui-design",
+    deal_type: "recurring",
+    probability: 81,
+    source: "Indicação",
+    lost_reason: null,
+    next_action_at: "2026-06-09T14:00:00.000Z",
+    last_activity_at: "2026-06-02T09:00:00.000Z",
+    stage: "in-negociation",
+    description:
+      "Projeto para conectar prospecção hospitalar, propostas e expansão com painel de receita previsível.",
+    amount: 118000,
+    created_at: "2026-06-03T12:00:00.000Z",
+    updated_at: "2026-06-02T09:00:00.000Z",
+    expected_closing_date: "2026-06-26",
+    pipeline_id: 1,
+  },
+  {
+    id: 9,
+    name: "Assinantes recorrentes omnichannel",
+    company_id: 9,
+    contact_ids: [18, 19],
+    category: "website-design",
+    deal_type: "quick",
+    probability: 0,
+    source: "Site",
+    lost_reason: "timing",
+    next_action_at: null,
+    last_activity_at: "2026-05-19T14:15:00.000Z",
+    stage: "lost",
+    description:
+      "Cliente decidiu retomar depois do redesenho das lojas e manter planilha por mais um trimestre.",
+    amount: 28000,
+    created_at: "2026-04-01T12:00:00.000Z",
+    updated_at: "2026-05-19T14:15:00.000Z",
+    expected_closing_date: "2026-05-30",
+    pipeline_id: 1,
+  },
+  {
+    id: 10,
+    name: "Matrículas corporativas",
+    company_id: 10,
+    contact_ids: [20, 21],
+    category: "copywriting",
+    deal_type: "recurring",
+    probability: 73,
+    source: "Prospecção ativa",
+    lost_reason: null,
+    next_action_at: "2026-06-10T11:00:00.000Z",
+    last_activity_at: "2026-06-04T09:45:00.000Z",
+    stage: "proposal-sent",
+    description:
+      "Implantação para acompanhar matrículas B2B, renovações de turmas e playbook de retorno por consultor.",
+    amount: 102000,
+    created_at: "2026-06-04T12:00:00.000Z",
+    updated_at: "2026-06-04T09:45:00.000Z",
+    expected_closing_date: "2026-06-24",
+    pipeline_id: 1,
+  },
+  {
+    id: 11,
+    name: "Representantes externos Metal Forte",
+    company_id: 11,
+    contact_ids: [22, 23],
+    category: "other",
+    deal_type: "consultative",
+    probability: 66,
+    source: "Indicação",
+    lost_reason: null,
+    next_action_at: "2026-06-13T09:00:00.000Z",
+    last_activity_at: "2026-06-03T17:00:00.000Z",
+    stage: "opportunity",
+    description:
+      "Modernização da rotina de representantes com histórico, propostas e previsão por carteira regional.",
+    amount: 149000,
+    created_at: "2026-06-05T12:00:00.000Z",
+    updated_at: "2026-06-03T17:00:00.000Z",
+    expected_closing_date: "2026-07-10",
+    pipeline_id: 1,
+  },
+  {
+    id: 12,
+    name: "Captação e visitas Casa Riviera",
+    company_id: 12,
+    contact_ids: [24, 25],
+    category: "website-design",
+    deal_type: "quick",
+    probability: 36,
+    source: "Evento",
+    lost_reason: null,
+    next_action_at: "2026-06-18T16:00:00.000Z",
+    last_activity_at: "2026-05-30T12:20:00.000Z",
+    stage: "delayed",
+    description:
+      "Cliente quer testar primeiro a cadência de visitas e retornos antes de contratar CRM completo.",
+    amount: 24000,
+    created_at: "2026-04-18T12:00:00.000Z",
+    updated_at: "2026-05-30T12:20:00.000Z",
+    expected_closing_date: "2026-07-30",
+    pipeline_id: 1,
+  },
+  {
+    id: 13,
+    name: "Operação de receita Omnix",
+    company_id: 13,
+    contact_ids: [26, 27],
+    category: "ui-design",
+    deal_type: "recurring",
+    probability: 92,
+    source: "Indicação",
+    lost_reason: null,
+    next_action_at: "2026-06-08T15:00:00.000Z",
+    last_activity_at: "2026-06-05T10:20:00.000Z",
+    stage: "in-negociation",
+    description:
+      "Conta estratégica para unificar pré-venda, proposta e expansão enterprise em rotina de RevOps.",
+    amount: 168000,
+    created_at: "2026-06-05T12:00:00.000Z",
+    updated_at: "2026-06-05T10:20:00.000Z",
+    expected_closing_date: "2026-06-18",
+    pipeline_id: 1,
+  },
+  {
+    id: 14,
+    name: "Onboarding Atlas",
+    company_id: 3,
+    contact_ids: [6, 7],
+    category: "other",
+    deal_type: "recurring",
+    probability: 100,
+    source: "Expansão",
+    lost_reason: null,
+    next_action_at: "2026-06-12T10:00:00.000Z",
+    last_activity_at: "2026-06-02T10:00:00.000Z",
+    stage: "onboarding",
+    description:
+      "Conta ganha em implantação, com treinamento dos sócios e configuração de campos obrigatórios.",
+    amount: 74000,
+    created_at: "2026-05-25T12:00:00.000Z",
+    updated_at: "2026-06-02T10:00:00.000Z",
+    expected_closing_date: "2026-07-05",
+    pipeline_id: 2,
+  },
+  {
+    id: 15,
+    name: "Expansão comercial Grupo Aurora",
+    company_id: 0,
+    contact_ids: [0, 1],
+    category: "other",
+    deal_type: "recurring",
+    probability: 52,
+    source: "Conta ativa",
+    lost_reason: null,
+    next_action_at: "2026-06-21T11:30:00.000Z",
+    last_activity_at: "2026-05-30T14:10:00.000Z",
+    stage: "expansion",
+    description:
+      "Possível segundo módulo para padronizar operação em novas unidades depois do piloto comercial.",
+    amount: 96000,
+    created_at: "2026-05-30T12:00:00.000Z",
+    updated_at: "2026-05-30T14:10:00.000Z",
+    expected_closing_date: "2026-08-15",
+    pipeline_id: 2,
+  },
+  {
+    id: 16,
+    name: "Nutrição Instituto Horizonte",
+    company_id: 7,
+    contact_ids: [14, 15],
+    category: "copywriting",
+    deal_type: "consultative",
+    probability: 30,
+    source: "Conta ativa",
+    lost_reason: null,
+    next_action_at: "2026-06-26T10:00:00.000Z",
+    last_activity_at: "2026-05-18T11:50:00.000Z",
+    stage: "nutrition",
+    description:
+      "Conta em nutrição aguardando janela orçamentária para patrocínios do segundo semestre.",
+    amount: 42000,
+    created_at: "2026-05-10T12:00:00.000Z",
+    updated_at: "2026-05-18T11:50:00.000Z",
+    expected_closing_date: "2026-09-20",
+    pipeline_id: 2,
+  },
+  {
+    id: 17,
+    name: "Expansão Omnix para CS",
+    company_id: 13,
+    contact_ids: [26, 27],
+    category: "ui-design",
+    deal_type: "recurring",
+    probability: 57,
+    source: "Conta ativa",
+    lost_reason: null,
+    next_action_at: "2026-06-19T15:00:00.000Z",
+    last_activity_at: "2026-06-05T10:20:00.000Z",
+    stage: "expansion",
+    description:
+      "Possível avanço para conectar pós-venda e customer success após implantação do funil comercial.",
+    amount: 88000,
+    created_at: "2026-06-01T12:00:00.000Z",
+    updated_at: "2026-06-05T10:20:00.000Z",
+    expected_closing_date: "2026-08-05",
+    pipeline_id: 2,
+  },
+  {
+    id: 18,
+    name: "Onboarding Estúdio Maralto",
+    company_id: 5,
+    contact_ids: [10, 11],
+    category: "copywriting",
+    deal_type: "quick",
+    probability: 95,
+    source: "Conta ativa",
+    lost_reason: null,
+    next_action_at: "2026-06-14T09:00:00.000Z",
+    last_activity_at: "2026-05-27T11:30:00.000Z",
+    stage: "onboarding",
+    description:
+      "Preparação do template de propostas, tags e rotina semanal do estúdio para o piloto.",
+    amount: 36000,
+    created_at: "2026-05-28T12:00:00.000Z",
+    updated_at: "2026-05-28T12:00:00.000Z",
+    expected_closing_date: "2026-06-30",
+    pipeline_id: 2,
+  },
+  {
+    id: 19,
+    name: "Nutrição Casa Riviera",
+    company_id: 12,
+    contact_ids: [24, 25],
+    category: "website-design",
+    deal_type: "quick",
+    probability: 22,
+    source: "Conta ativa",
+    lost_reason: null,
+    next_action_at: "2026-07-01T10:30:00.000Z",
+    last_activity_at: "2026-05-30T12:20:00.000Z",
+    stage: "nutrition",
+    description:
+      "Manter relacionamento até a revisão do processo de visitas e carteiras de investidores.",
+    amount: 24000,
+    created_at: "2026-05-31T12:00:00.000Z",
+    updated_at: "2026-05-31T12:00:00.000Z",
+    expected_closing_date: "2026-09-01",
+    pipeline_id: 2,
+  },
+];
 
 export const generateDeals = (db: Db): Deal[] => {
-  const deals = Array.from(Array(50).keys()).map((id) => {
-    const company = random.arrayElement(db.companies);
-    const pipeline = random.arrayElement(db.pipelines);
-    company.nb_deals = (company.nb_deals ?? 0) + 1;
-    const contacts = random.arrayElements(
-      db.contacts.filter((contact) => contact.company_id === company.id),
-      datatype.number({ min: 1, max: 3 }),
-    );
-    const lowercaseName = lorem.words();
-    const created_at = randomDate(new Date(company.created_at)).toISOString();
-    const stage = random.arrayElement(pipeline.stages).value;
-
-    const expected_closing_date = randomDate(
-      new Date(created_at),
-      add(new Date(created_at), { months: 6 }),
-    )
-      .toISOString()
-      .split("T")[0];
-
+  const hydratedDeals = deals.map((deal) => {
+    const company = db.companies.find((item) => item.id === deal.company_id);
+    company!.nb_deals = (company!.nb_deals ?? 0) + 1;
+    const contactIds =
+      deal.contact_ids ??
+      db.contacts
+        .filter((contact) => contact.company_id === deal.company_id)
+        .map((contact) => contact.id);
     return {
-      id,
-      name: lowercaseName[0].toUpperCase() + lowercaseName.slice(1),
-      company_id: company.id,
-      contact_ids: contacts.map((contact) => contact.id),
-      category: random.arrayElement(defaultDealCategories).value,
-      deal_type: random.arrayElement(defaultDealTypes).value,
-      probability: datatype.number({ min: 5, max: 95 }),
-      source: random.arrayElement(["website", "referral", "outbound", "event"]),
-      lost_reason: null as string | null,
-      next_action_at: randomDate(new Date(created_at)).toISOString(),
-      last_activity_at: randomDate(new Date(created_at)).toISOString(),
-      stage,
-      description: lorem.paragraphs(datatype.number({ min: 1, max: 4 })),
-      amount: datatype.number(1000) * 100,
-      created_at,
-      updated_at: randomDate(new Date(created_at)).toISOString(),
-      expected_closing_date,
-      sales_id: company.sales_id!,
-      pipeline_id: pipeline.id,
+      ...deal,
+      contact_ids: contactIds,
+      sales_id: company?.sales_id ?? 0,
       index: 0,
     };
   });
-  // Compute indexes within each pipeline stage.
+
   db.pipelines.forEach((pipeline) => {
     pipeline.stages.forEach((stage) => {
-      deals
+      hydratedDeals
         .filter(
           (deal) =>
             deal.pipeline_id === pipeline.id && deal.stage === stage.value,
         )
         .forEach((deal, index) => {
-          deals[deal.id].index = index;
+          hydratedDeals[deal.id as number].index = index;
         });
     });
   });
-  const vendas = db.pipelines.find((pipeline) => pipeline.name === "Vendas");
-  deals.forEach((deal) => {
-    if (deal.pipeline_id !== vendas?.id) {
-      return;
-    }
-    if (deal.stage === "lost") {
-      deal.lost_reason = random.arrayElement(defaultDealLostReasons).value;
-      deal.probability = 0;
-    }
-    if (deal.stage === "won") {
-      deal.probability = 100;
-    }
-  });
-  return deals;
+
+  return hydratedDeals;
 };

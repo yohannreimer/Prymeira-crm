@@ -11,7 +11,7 @@ const DEFAULT_STAGES = [
 ];
 
 const POS_VENDA_STAGES = [
-  { value: "onboarding", label: "Onboarding" },
+  { value: "onboarding", label: "Implantação" },
   { value: "nutrition", label: "Nutrição" },
   { value: "expansion", label: "Expansão" },
 ];

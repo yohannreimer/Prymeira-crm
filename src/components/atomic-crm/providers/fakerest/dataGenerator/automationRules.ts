@@ -36,7 +36,7 @@ export const generateAutomationRules = (): AutomationRule[] => [
     params: {
       dueInDays: 1,
       taskType: "follow-up",
-      taskText: "Definir proximo passo: {{deal.name}}",
+      taskText: "Definir próximo passo: {{deal.name}}",
       assignee: "record_owner",
     },
     created_at: now,
@@ -67,7 +67,7 @@ export const generateAutomationRules = (): AutomationRule[] => [
     rule_key: "proposal.sent-follow-up",
     name: "Proposta enviada",
     description:
-      "Cria follow-up depois que uma proposta e marcada como enviada.",
+      "Cria follow-up depois que uma proposta é marcada como enviada.",
     enabled: true,
     trigger_resource: "proposals",
     trigger_event: "updated",

@@ -1,14 +1,14 @@
 import type { Db } from "./types";
 
 const tags = [
-  { id: 0, name: "football-fan", color: "#eddcd2" },
-  { id: 1, name: "holiday-card", color: "#fff1e6" },
-  { id: 2, name: "influencer", color: "#fde2e4" },
-  { id: 3, name: "manager", color: "#fad2e1" },
-  { id: 4, name: "musician", color: "#c5dedd" },
-  { id: 5, name: "vip", color: "#dbe7e4" },
+  { id: 0, name: "decisor", color: "#dbeafe" },
+  { id: 1, name: "contato quente", color: "#fee2e2" },
+  { id: 2, name: "financeiro", color: "#dcfce7" },
+  { id: 3, name: "operações", color: "#fef3c7" },
+  { id: 4, name: "evento", color: "#ede9fe" },
+  { id: 5, name: "prioridade", color: "#ffe4e6" },
+  { id: 6, name: "upsell", color: "#cffafe" },
+  { id: 7, name: "implantação", color: "#e0f2fe" },
 ];
 
-export const generateTags = (_: Db) => {
-  return [...tags];
-};
+export const generateTags = (_: Db) => [...tags];

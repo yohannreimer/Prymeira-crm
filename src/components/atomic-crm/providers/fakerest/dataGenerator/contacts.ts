@@ -1,101 +1,556 @@
-import {
-  company as fakerCompany,
-  internet,
-  lorem,
-  name,
-  phone,
-  random,
-} from "faker/locale/en_US";
-
-import { defaultNoteStatuses } from "../../../root/defaultConfiguration";
-import { contactGender } from "../../../contacts/contactModel";
-import type { Company, Contact } from "../../../types";
+import type { Contact } from "../../../types";
 import type { Db } from "./types";
-import { randomDate, weightedBoolean } from "./utils";
 
-const maxContacts = {
-  1: 1,
-  10: 4,
-  50: 12,
-  250: 25,
-  500: 50,
-};
+type ContactSeed = Omit<
+  Required<Contact>,
+  "company_name" | "nb_tasks" | "sales_id"
+>;
 
-const getRandomContactDetailsType = () =>
-  random.arrayElement(["Work", "Home", "Other"]) as "Work" | "Home" | "Other";
+const contacts: ContactSeed[] = [
+  {
+    id: 0,
+    first_name: "Helena",
+    last_name: "Mourão",
+    gender: "female",
+    title: "Diretora Comercial",
+    company_id: 0,
+    email_jsonb: [{ email: "helena.mourao@grupoaurora.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 11 98841-1200", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-08-20T09:15:00.000Z",
+    last_seen: "2026-05-30T14:10:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1, 5],
+    background:
+      "Responsável por consolidar a área comercial do grupo e reduzir follow-ups perdidos entre unidades.",
+    linkedin_url: "https://www.linkedin.com/in/helena-mourao",
+  },
+  {
+    id: 1,
+    first_name: "Caio",
+    last_name: "Braga",
+    gender: "male",
+    title: "Gerente de Operações",
+    company_id: 0,
+    email_jsonb: [{ email: "caio.braga@grupoaurora.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 11 97762-0188", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-09-02T10:00:00.000Z",
+    last_seen: "2026-05-24T16:45:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [3, 7],
+    background:
+      "Acompanha a integração com ERP e quer indicadores simples para os gerentes regionais.",
+    linkedin_url: null,
+  },
+  {
+    id: 2,
+    first_name: "Patrícia",
+    last_name: "Duarte",
+    gender: "female",
+    title: "Coordenadora de Relacionamento",
+    company_id: 1,
+    email_jsonb: [{ email: "patricia.duarte@redevitta.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 31 99612-4450", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-09-10T11:00:00.000Z",
+    last_seen: "2026-06-01T09:20:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1, 2],
+    background:
+      "Busca visibilidade de pacientes corporativos, renovações e tarefas de atendimento.",
+    linkedin_url: "https://www.linkedin.com/in/patricia-duarte",
+  },
+  {
+    id: 3,
+    first_name: "Eduardo",
+    last_name: "Santos",
+    gender: "male",
+    title: "Diretor Financeiro",
+    company_id: 1,
+    email_jsonb: [{ email: "eduardo.santos@redevitta.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 31 98808-3020", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-10-02T15:15:00.000Z",
+    last_seen: "2026-05-28T13:40:00.000Z",
+    has_newsletter: false,
+    status: "warm",
+    tags: [2, 5],
+    background:
+      "Avalia impacto em cobrança recorrente e relatórios executivos antes de liberar contrato.",
+    linkedin_url: null,
+  },
+  {
+    id: 4,
+    first_name: "Renata",
+    last_name: "Pires",
+    gender: "female",
+    title: "Diretora de Expansão",
+    company_id: 2,
+    email_jsonb: [{ email: "renata.pires@lumenenergia.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 41 99911-7400", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-10-18T12:30:00.000Z",
+    last_seen: "2026-05-29T12:00:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1, 6],
+    background:
+      "Quer organizar pré-vendas por região e padronizar propostas de energia solar.",
+    linkedin_url: "https://www.linkedin.com/in/renata-pires",
+  },
+  {
+    id: 5,
+    first_name: "Bruno",
+    last_name: "Macedo",
+    gender: "male",
+    title: "Engenheiro Comercial",
+    company_id: 2,
+    email_jsonb: [{ email: "bruno.macedo@lumenenergia.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 41 98790-1414", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-11-04T09:45:00.000Z",
+    last_seen: "2026-05-18T10:35:00.000Z",
+    has_newsletter: false,
+    status: "warm",
+    tags: [3, 7],
+    background:
+      "Mapeia dados técnicos das propostas e precisa de tarefas automáticas por etapa do funil.",
+    linkedin_url: null,
+  },
+  {
+    id: 6,
+    first_name: "Sofia",
+    last_name: "Mendes",
+    gender: "female",
+    title: "Sócia Diretora",
+    company_id: 3,
+    email_jsonb: [{ email: "sofia.mendes@atlascontabil.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 21 99140-2203", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-11-09T14:00:00.000Z",
+    last_seen: "2026-05-25T11:15:00.000Z",
+    has_newsletter: true,
+    status: "in-contract",
+    tags: [0, 2, 6],
+    background:
+      "Já validou o fluxo comercial e está negociando expansão para carteira de clientes recorrentes.",
+    linkedin_url: "https://www.linkedin.com/in/sofia-mendes",
+  },
+  {
+    id: 7,
+    first_name: "Marcelo",
+    last_name: "Alves",
+    gender: "male",
+    title: "Gerente de Parcerias",
+    company_id: 3,
+    email_jsonb: [{ email: "marcelo.alves@atlascontabil.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 21 98444-7751", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-12-01T09:20:00.000Z",
+    last_seen: "2026-05-15T17:05:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [4, 6],
+    background:
+      "Trouxe o contato após evento de parceiros e quer testar playbook para indicações.",
+    linkedin_url: null,
+  },
+  {
+    id: 8,
+    first_name: "Vanessa",
+    last_name: "Farias",
+    gender: "female",
+    title: "Diretora de Contas",
+    company_id: 4,
+    email_jsonb: [{ email: "vanessa.farias@nortelog.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 92 99102-2801", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-12-05T10:10:00.000Z",
+    last_seen: "2026-05-31T15:00:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 3, 5],
+    background:
+      "Patrocina a implantação para centralizar oportunidades de filiais e contratos anuais.",
+    linkedin_url: "https://www.linkedin.com/in/vanessa-farias",
+  },
+  {
+    id: 9,
+    first_name: "Otávio",
+    last_name: "Leal",
+    gender: "male",
+    title: "Coordenador de Filiais",
+    company_id: 4,
+    email_jsonb: [{ email: "otavio.leal@nortelog.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 92 98402-1140", type: "Work" }],
+    avatar: {},
+    first_seen: "2025-12-12T13:00:00.000Z",
+    last_seen: "2026-05-21T10:10:00.000Z",
+    has_newsletter: false,
+    status: "warm",
+    tags: [3, 7],
+    background:
+      "Será usuário-chave no piloto com duas filiais e lista de tarefas por operação.",
+    linkedin_url: null,
+  },
+  {
+    id: 10,
+    first_name: "Lívia",
+    last_name: "Ramos",
+    gender: "female",
+    title: "Fundadora",
+    company_id: 5,
+    email_jsonb: [{ email: "livia@maralto.studio", type: "Work" }],
+    phone_jsonb: [{ number: "+55 48 99111-1910", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-01-05T11:30:00.000Z",
+    last_seen: "2026-05-27T11:30:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1],
+    background:
+      "Quer um CRM leve para não perder o momento certo de propostas de marca e conteúdo.",
+    linkedin_url: "https://www.linkedin.com/in/livia-ramos",
+  },
+  {
+    id: 11,
+    first_name: "Davi",
+    last_name: "Moreira",
+    gender: "male",
+    title: "Produtor Executivo",
+    company_id: 5,
+    email_jsonb: [{ email: "davi@maralto.studio", type: "Work" }],
+    phone_jsonb: [{ number: "+55 48 98812-3304", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-01-08T15:30:00.000Z",
+    last_seen: "2026-05-13T09:30:00.000Z",
+    has_newsletter: false,
+    status: "cold",
+    tags: [3],
+    background:
+      "Participa da operação dos projetos e avalia se tarefas do funil reduzem retrabalho.",
+    linkedin_url: null,
+  },
+  {
+    id: 12,
+    first_name: "Isadora",
+    last_name: "Gomes",
+    gender: "female",
+    title: "Gerente Nacional de Vendas",
+    company_id: 6,
+    email_jsonb: [{ email: "isadora.gomes@flordesal.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 85 99907-4433", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-01-18T08:50:00.000Z",
+    last_seen: "2026-06-03T12:00:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1, 4],
+    background:
+      "Precisa organizar abordagem a distribuidores e mostrar previsão mensal para diretoria.",
+    linkedin_url: "https://www.linkedin.com/in/isadora-gomes",
+  },
+  {
+    id: 13,
+    first_name: "Felipe",
+    last_name: "Tavares",
+    gender: "male",
+    title: "Analista Comercial",
+    company_id: 6,
+    email_jsonb: [{ email: "felipe.tavares@flordesal.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 85 98744-9002", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-01-26T10:40:00.000Z",
+    last_seen: "2026-05-20T15:25:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [7],
+    background:
+      "Será responsável por atualizar oportunidades durante o piloto comercial.",
+    linkedin_url: null,
+  },
+  {
+    id: 14,
+    first_name: "Carolina",
+    last_name: "Neves",
+    gender: "female",
+    title: "Diretora Institucional",
+    company_id: 7,
+    email_jsonb: [{ email: "carolina.neves@institutohorizonte.org.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 61 99640-8181", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-02-01T09:00:00.000Z",
+    last_seen: "2026-05-18T11:50:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [0, 4],
+    background:
+      "Quer organizar patrocinadores por etapa de relacionamento e histórico de conversas.",
+    linkedin_url: "https://www.linkedin.com/in/carolina-neves",
+  },
+  {
+    id: 15,
+    first_name: "Gustavo",
+    last_name: "Ribeiro",
+    gender: "male",
+    title: "Coordenador de Captação",
+    company_id: 7,
+    email_jsonb: [{ email: "gustavo.ribeiro@institutohorizonte.org.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 61 98445-2220", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-02-06T14:20:00.000Z",
+    last_seen: "2026-05-11T10:00:00.000Z",
+    has_newsletter: false,
+    status: "cold",
+    tags: [4],
+    background:
+      "Ainda compara planilhas internas com automação de tarefas para novos parceiros.",
+    linkedin_url: null,
+  },
+  {
+    id: 16,
+    first_name: "Mônica",
+    last_name: "Barcelos",
+    gender: "female",
+    title: "CEO",
+    company_id: 8,
+    email_jsonb: [{ email: "monica.barcelos@conectasaude.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 51 99144-5550", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-02-10T13:10:00.000Z",
+    last_seen: "2026-06-02T09:00:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1, 6],
+    background:
+      "Procura uma visão executiva de pipeline, propostas e expansão por hospital.",
+    linkedin_url: "https://www.linkedin.com/in/monica-barcelos",
+  },
+  {
+    id: 17,
+    first_name: "Henrique",
+    last_name: "Lopes",
+    gender: "male",
+    title: "Gerente de Produto",
+    company_id: 8,
+    email_jsonb: [{ email: "henrique.lopes@conectasaude.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 51 98880-6600", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-02-15T10:10:00.000Z",
+    last_seen: "2026-05-22T16:35:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [3, 7],
+    background:
+      "Avalia integração futura com atendimento e quer entender permissões por equipe.",
+    linkedin_url: null,
+  },
+  {
+    id: 18,
+    first_name: "Aline",
+    last_name: "Queiroz",
+    gender: "female",
+    title: "Sócia Operacional",
+    company_id: 9,
+    email_jsonb: [{ email: "aline@armazemurbano.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 11 98440-1009", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-02-20T11:30:00.000Z",
+    last_seen: "2026-05-19T14:15:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [0, 2],
+    background:
+      "Quer conectar relacionamento de assinantes com indicadores de vendas recorrentes.",
+    linkedin_url: "https://www.linkedin.com/in/aline-queiroz",
+  },
+  {
+    id: 19,
+    first_name: "Igor",
+    last_name: "Matos",
+    gender: "male",
+    title: "Supervisor de Lojas",
+    company_id: 9,
+    email_jsonb: [{ email: "igor.matos@armazemurbano.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 11 97770-6622", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-03-01T09:25:00.000Z",
+    last_seen: "2026-05-14T12:25:00.000Z",
+    has_newsletter: false,
+    status: "cold",
+    tags: [3],
+    background:
+      "Vai validar se o processo cabe na rotina das lojas sem aumentar burocracia.",
+    linkedin_url: null,
+  },
+  {
+    id: 20,
+    first_name: "Mariana",
+    last_name: "Seabra",
+    gender: "female",
+    title: "Diretora de Matrículas",
+    company_id: 10,
+    email_jsonb: [{ email: "mariana.seabra@zenitheducacao.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 81 99190-1122", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-03-08T10:40:00.000Z",
+    last_seen: "2026-06-04T09:45:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1, 5],
+    background:
+      "Quer melhorar conversão B2B de turmas corporativas e acompanhar propostas por consultor.",
+    linkedin_url: "https://www.linkedin.com/in/mariana-seabra",
+  },
+  {
+    id: 21,
+    first_name: "Daniel",
+    last_name: "Fonseca",
+    gender: "male",
+    title: "Coordenador Pedagógico",
+    company_id: 10,
+    email_jsonb: [{ email: "daniel.fonseca@zenitheducacao.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 81 98775-3400", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-03-12T14:10:00.000Z",
+    last_seen: "2026-05-26T15:15:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [7],
+    background:
+      "Participa para mapear a jornada depois do fechamento, principalmente implantação de turmas.",
+    linkedin_url: null,
+  },
+  {
+    id: 22,
+    first_name: "Roberta",
+    last_name: "Campos",
+    gender: "female",
+    title: "Diretora Industrial",
+    company_id: 11,
+    email_jsonb: [{ email: "roberta.campos@metalforte.ind.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 19 99123-7700", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-03-20T09:10:00.000Z",
+    last_seen: "2026-06-03T17:00:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1, 3],
+    background:
+      "Quer visibilidade de representantes externos, orçamentos e retomadas de contas estratégicas.",
+    linkedin_url: "https://www.linkedin.com/in/roberta-campos",
+  },
+  {
+    id: 23,
+    first_name: "André",
+    last_name: "Vasconcelos",
+    gender: "male",
+    title: "Gerente de Representantes",
+    company_id: 11,
+    email_jsonb: [{ email: "andre.vasconcelos@metalforte.ind.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 19 98121-4343", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-03-24T16:00:00.000Z",
+    last_seen: "2026-05-23T10:10:00.000Z",
+    has_newsletter: false,
+    status: "warm",
+    tags: [3, 7],
+    background:
+      "Vai conduzir o piloto com três representantes e medir tempo de resposta.",
+    linkedin_url: null,
+  },
+  {
+    id: 24,
+    first_name: "Bianca",
+    last_name: "Teixeira",
+    gender: "female",
+    title: "Broker Principal",
+    company_id: 12,
+    email_jsonb: [{ email: "bianca@casariviera.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 13 99606-8800", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-04-04T10:20:00.000Z",
+    last_seen: "2026-05-30T12:20:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [0, 4],
+    background:
+      "Procura centralizar visitas, captação de imóveis e recorrência com investidores.",
+    linkedin_url: "https://www.linkedin.com/in/bianca-teixeira",
+  },
+  {
+    id: 25,
+    first_name: "Murilo",
+    last_name: "Barros",
+    gender: "male",
+    title: "Consultor de Investimentos",
+    company_id: 12,
+    email_jsonb: [{ email: "murilo.barros@casariviera.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 13 98860-1000", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-04-08T09:00:00.000Z",
+    last_seen: "2026-05-12T16:00:00.000Z",
+    has_newsletter: false,
+    status: "cold",
+    tags: [7],
+    background:
+      "Quer automatizar retornos de visitas, mas ainda precisa ver a rotina na prática.",
+    linkedin_url: null,
+  },
+  {
+    id: 26,
+    first_name: "Tatiane",
+    last_name: "Freitas",
+    gender: "female",
+    title: "Vice-presidente de Receita",
+    company_id: 13,
+    email_jsonb: [{ email: "tatiane.freitas@omnixtech.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 11 99612-9200", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-04-22T11:00:00.000Z",
+    last_seen: "2026-06-05T10:20:00.000Z",
+    has_newsletter: true,
+    status: "hot",
+    tags: [0, 1, 6],
+    background:
+      "Quer unificar CRM, propostas e expansão de contas estratégicas em uma operação mais previsível.",
+    linkedin_url: "https://www.linkedin.com/in/tatiane-freitas",
+  },
+  {
+    id: 27,
+    first_name: "Leandro",
+    last_name: "Cunha",
+    gender: "male",
+    title: "Revenue Operations",
+    company_id: 13,
+    email_jsonb: [{ email: "leandro.cunha@omnixtech.com.br", type: "Work" }],
+    phone_jsonb: [{ number: "+55 11 98770-5050", type: "Work" }],
+    avatar: {},
+    first_seen: "2026-04-25T15:35:00.000Z",
+    last_seen: "2026-06-01T17:20:00.000Z",
+    has_newsletter: true,
+    status: "warm",
+    tags: [2, 3, 7],
+    background:
+      "Vai validar regras de automação, campos obrigatórios e qualidade das previsões.",
+    linkedin_url: null,
+  },
+];
 
-export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
-  const nbAvailblePictures = 223;
-  let numberOfContacts = 0;
-
-  return Array.from(Array(size).keys()).map((id) => {
-    const has_avatar =
-      weightedBoolean(25) && numberOfContacts < nbAvailblePictures;
-    const gender = random.arrayElement(contactGender).value;
-    const first_name = name.firstName(gender as any);
-    const last_name = name.lastName();
-    const email_jsonb = [
-      {
-        email: internet.email(first_name, last_name),
-        type: getRandomContactDetailsType(),
-      },
-    ];
-    const phone_jsonb = [
-      {
-        number: phone.phoneNumber(),
-        type: getRandomContactDetailsType(),
-      },
-      {
-        number: phone.phoneNumber(),
-        type: getRandomContactDetailsType(),
-      },
-    ];
-    const avatar = {
-      src: has_avatar
-        ? "https://marmelab.com/posters/avatar-" +
-          (223 - numberOfContacts) +
-          ".jpeg"
-        : undefined,
-    };
-    const title = fakerCompany.bsAdjective();
-
-    if (has_avatar) {
-      numberOfContacts++;
+export const generateContacts = (db: Db): Required<Contact>[] =>
+  contacts.map((contact) => {
+    const company = db.companies.find((item) => item.id === contact.company_id);
+    if (company) {
+      company.nb_contacts = (company.nb_contacts ?? 0) + 1;
     }
-
-    // choose company with people left to know
-    let company: Company;
-    do {
-      company = random.arrayElement(db.companies);
-    } while ((company.nb_contacts ?? 0) >= maxContacts[company.size]);
-    company.nb_contacts = (company.nb_contacts ?? 0) + 1;
-
-    const first_seen = randomDate(new Date(company.created_at)).toISOString();
-    const last_seen = first_seen;
-
     return {
-      id,
-      first_name,
-      last_name,
-      gender,
-      title: title.charAt(0).toUpperCase() + title.substr(1),
-      company_id: company.id,
-      company_name: company.name,
-      email_jsonb,
-      phone_jsonb,
-      background: lorem.sentence(),
-      acquisition: random.arrayElement(["inbound", "outbound"]),
-      avatar,
-      first_seen: first_seen,
-      last_seen: last_seen,
-      has_newsletter: weightedBoolean(30),
-      status: random.arrayElement(defaultNoteStatuses).value,
-      tags: random
-        .arrayElements(db.tags, random.arrayElement([0, 0, 0, 1, 1, 2]))
-        .map((tag) => tag.id), // finalize
-      sales_id: company.sales_id!,
+      ...contact,
+      company_name: company?.name ?? "",
+      sales_id: company?.sales_id ?? 0,
       nb_tasks: 0,
-      linkedin_url: null,
     };
-  });
-};
+  }) as Required<Contact>[];

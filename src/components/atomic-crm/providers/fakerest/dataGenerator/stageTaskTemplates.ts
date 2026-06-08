@@ -10,7 +10,7 @@ export const generateStageTaskTemplates = (db: Db): StageTaskTemplate[] => {
 
   if (!vendas || !posVenda) {
     throw new Error(
-      "Stage task template demo data requires Vendas and Pos-venda pipelines.",
+      "Os modelos de tarefa do demo precisam dos funis Vendas e Pos-venda.",
     );
   }
 
@@ -24,7 +24,7 @@ export const generateStageTaskTemplates = (db: Db): StageTaskTemplate[] => {
       stage: "opportunity",
       name: "Ligar agora",
       task_text:
-        "Ligar para qualificar {{deal.name}}: entender dor, urgencia, orcamento e proximo passo.",
+        "Ligar para qualificar {{deal.name}}: entender dor, urgência, orçamento e próximo passo.",
       task_type: "call",
       due_in_days: 0,
       mode: "manual",
@@ -42,7 +42,7 @@ export const generateStageTaskTemplates = (db: Db): StageTaskTemplate[] => {
       stage: "proposal-sent",
       name: "Cobrar proposta",
       task_text:
-        "Confirmar recebimento da proposta de {{deal.name}} e alinhar duvidas para avancar.",
+        "Confirmar recebimento da proposta de {{deal.name}} e alinhar dúvidas para avançar.",
       task_type: "follow-up",
       due_in_days: 1,
       mode: "manual",
@@ -58,9 +58,9 @@ export const generateStageTaskTemplates = (db: Db): StageTaskTemplate[] => {
       workspace_id: DEFAULT_WORKSPACE_ID,
       pipeline_id: vendas.id,
       stage: "in-negociation",
-      name: "Marcar decisao",
+      name: "Marcar decisão",
       task_text:
-        "Agendar reuniao de decisao de {{deal.name}} com proximos passos e responsaveis.",
+        "Agendar reunião de decisão de {{deal.name}} com próximos passos e responsáveis.",
       task_type: "meeting",
       due_in_days: 2,
       mode: "manual",
