@@ -1,4 +1,5 @@
 import type { Meta } from "@storybook/react-vite";
+import { Route, Routes } from "react-router";
 
 import { ContactCreate } from "./ContactCreate";
 import { buildContact, StoryWrapper } from "@/test/StoryWrapper";
@@ -37,7 +38,9 @@ export const ContactCreateBasic = ({
     dataProvider={dataProvider}
     silent={silent}
   >
-    <ContactCreate />
+    <Routes>
+      <Route path="/contacts/create" element={<ContactCreate />} />
+    </Routes>
   </StoryWrapper>
 );
 
@@ -62,6 +65,8 @@ export const ContactCreateBasicWithError = () => (
       },
     }}
   >
-    <ContactCreate />
+    <Routes>
+      <Route path="/contacts/create" element={<ContactCreate />} />
+    </Routes>
   </StoryWrapper>
 );

@@ -33,6 +33,7 @@ export default defineConfig({
       "**/node_modules/**",
       "doc/**",
       "supabase/**",
+      "server/**",
       ".supabase-e2e/**",
       "e2e/**/*.spec.{ts,tsx}",
     ],

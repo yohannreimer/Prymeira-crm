@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createPrymeiraSupabaseHttpClient } from "./dataProvider";
+import { setSupabaseAccessTokenProvider } from "./supabase";
 
-const fetchJson = vi.fn().mockResolvedValue({ json: {} });
-const getSupabaseAccessToken = vi.fn();
+const mocks = vi.hoisted(() => ({
+  fetchJson: vi.fn().mockResolvedValue({ json: {} }),
+}));
 
 vi.mock("ra-core", async (importOriginal) => {
   const actual = await importOriginal<typeof import("ra-core")>();
@@ -9,34 +12,25 @@ vi.mock("ra-core", async (importOriginal) => {
     ...actual,
     fetchUtils: {
       ...actual.fetchUtils,
-      fetchJson,
+      fetchJson: mocks.fetchJson,
     },
-  };
-});
-
-vi.mock("./supabase", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./supabase")>();
-  return {
-    ...actual,
-    getSupabaseAccessToken,
   };
 });
 
 describe("createPrymeiraSupabaseHttpClient", () => {
   beforeEach(() => {
-    fetchJson.mockClear();
-    getSupabaseAccessToken.mockReset();
+    mocks.fetchJson.mockClear();
+    setSupabaseAccessTokenProvider(null);
   });
 
   it("sends the Clerk JWT as the PostgREST bearer token", async () => {
-    getSupabaseAccessToken.mockResolvedValue("clerk-jwt");
-    const { createPrymeiraSupabaseHttpClient } = await import("./dataProvider");
+    setSupabaseAccessTokenProvider(async () => "clerk-jwt");
 
     await createPrymeiraSupabaseHttpClient("sb_publishable_test")(
       "https://example.supabase.co/rest/v1/contacts",
     );
 
-    const [, options] = fetchJson.mock.calls[0]!;
+    const [, options] = mocks.fetchJson.mock.calls[0]!;
     expect(options.headers.get("apikey")).toBe("sb_publishable_test");
     expect(options.headers.get("Authorization")).toBe("Bearer clerk-jwt");
     expect(options.user).toEqual({
@@ -46,14 +40,13 @@ describe("createPrymeiraSupabaseHttpClient", () => {
   });
 
   it("does not send the publishable key as a bearer token", async () => {
-    getSupabaseAccessToken.mockResolvedValue(null);
-    const { createPrymeiraSupabaseHttpClient } = await import("./dataProvider");
+    setSupabaseAccessTokenProvider(async () => null);
 
     await createPrymeiraSupabaseHttpClient("sb_publishable_test")(
       "https://example.supabase.co/rest/v1/contacts",
     );
 
-    const [, options] = fetchJson.mock.calls[0]!;
+    const [, options] = mocks.fetchJson.mock.calls[0]!;
     expect(options.headers.get("apikey")).toBe("sb_publishable_test");
     expect(options.headers.get("Authorization")).toBeNull();
     expect(options.user).toBeUndefined();

@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   vincula_postgres:
     image: postgres:16-alpine
@@ -28,23 +26,14 @@ services:
         condition: on-failure
 
   vincula_api:
-    image: node:22-alpine
-    working_dir: /app
-    command:
-      - sh
-      - -lc
-      - |
-        set -e
-        apk add --no-cache git
-        git clone --depth 1 --branch main https://github.com/yohannreimer/Prymeira-crm.git /app
-        echo "Starting Vincula API release $${CRM_RELEASE}"
-        git rev-parse --short HEAD
-        npm ci --omit=dev --ignore-scripts
-        node server/index.js
+    image: ${VINCULA_API_IMAGE:-vincula-crm-api:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     environment:
-      CRM_RELEASE: "2026-05-24-remove-neutral-pronouns"
       NODE_ENV: production
       PORT: 3001
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://vincula.prymeiradigital.com.br}
       CRM_POSTGRES_PASSWORD: ${CRM_POSTGRES_PASSWORD:?set CRM_POSTGRES_PASSWORD}
       PGHOST: vincula_postgres
       PGPORT: 5432
@@ -82,34 +71,24 @@ services:
         - traefik.http.services.vincula-api.loadbalancer.server.port=3001
 
   prymeira-crm:
-    image: node:22-alpine
-    working_dir: /app
-    command:
-      - sh
-      - -lc
-      - |
-        set -e
-        apk add --no-cache git
-        git clone --depth 1 --branch main https://github.com/yohannreimer/Prymeira-crm.git /app
-        echo "Starting Vincula web release $${CRM_RELEASE}"
-        git rev-parse --short HEAD
-        npm ci
-        npm run build
-        npx vite preview --host 0.0.0.0 --port 80
+    image: ${VINCULA_WEB_IMAGE:-vincula-crm-web:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
+        VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:?set VITE_CLERK_PUBLISHABLE_KEY}
+        VITE_CRM_API_URL: ${VITE_CRM_API_URL:-/api}
+        VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION: ${VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION:-false}
+        VITE_GOOGLE_WORKPLACE_DOMAIN: ${VITE_GOOGLE_WORKPLACE_DOMAIN:-}
+        VITE_INBOUND_EMAIL: ${VITE_INBOUND_EMAIL:-}
+        VITE_IS_DEMO: ${VITE_IS_DEMO:-false}
+        VITE_PRYMEIRA_ACCOUNT_API_URL: ${VITE_PRYMEIRA_ACCOUNT_API_URL:?set VITE_PRYMEIRA_ACCOUNT_API_URL}
+        VITE_PRYMEIRA_HUB_URL: ${VITE_PRYMEIRA_HUB_URL:?set VITE_PRYMEIRA_HUB_URL}
+        VITE_PRYMEIRA_PRODUCT_KEY: ${VITE_PRYMEIRA_PRODUCT_KEY:-crm}
     environment:
-      CRM_RELEASE: "2026-05-24-remove-neutral-pronouns"
-      NODE_OPTIONS: ${NODE_OPTIONS:---max-old-space-size=1536}
-      VITE_APP_URL: ${VITE_APP_URL:?set VITE_APP_URL}
-      VITE_ATTACHMENTS_BUCKET: ${VITE_ATTACHMENTS_BUCKET:-attachments}
-      VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:?set VITE_CLERK_PUBLISHABLE_KEY}
-      VITE_CRM_API_URL: ${VITE_CRM_API_URL:-/api}
-      VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION: ${VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION:-false}
-      VITE_GOOGLE_WORKPLACE_DOMAIN: ${VITE_GOOGLE_WORKPLACE_DOMAIN:-}
-      VITE_INBOUND_EMAIL: ${VITE_INBOUND_EMAIL:-}
-      VITE_IS_DEMO: ${VITE_IS_DEMO:-false}
-      VITE_PRYMEIRA_ACCOUNT_API_URL: ${VITE_PRYMEIRA_ACCOUNT_API_URL:?set VITE_PRYMEIRA_ACCOUNT_API_URL}
-      VITE_PRYMEIRA_HUB_URL: ${VITE_PRYMEIRA_HUB_URL:?set VITE_PRYMEIRA_HUB_URL}
-      VITE_PRYMEIRA_PRODUCT_KEY: ${VITE_PRYMEIRA_PRODUCT_KEY:-crm}
+      NGINX_ENTRYPOINT_QUIET_LOGS: "1"
     networks:
       - network_swarm_public
     expose:

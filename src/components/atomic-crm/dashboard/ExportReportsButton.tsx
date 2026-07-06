@@ -9,10 +9,35 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { summarizeDeals } from "../deals/dealCommercialUtils";
 import { summarizeLeads } from "./commercialDashboardUtils";
 import type { Deal, Lead, Proposal } from "../types";
-import * as XLSX from "xlsx";
 import { useDashboardScope } from "./useDashboardScope";
 
 const PAGE_SIZE = 1000;
+const CSV_FORMULA_PREFIX = /^[=+\-@\t\r]/;
+
+const escapeCsvCell = (value: unknown) => {
+  const text = value == null ? "" : String(value);
+  const safeText = CSV_FORMULA_PREFIX.test(text) ? `'${text}` : text;
+  return `"${safeText.replace(/"/g, '""')}"`;
+};
+
+const toCsvSection = (title: string, rows: unknown[][]) =>
+  [`# ${title}`, ...rows.map((row) => row.map(escapeCsvCell).join(","))].join(
+    "\n",
+  );
+
+const downloadCsvReport = (sections: string[]) => {
+  const blob = new Blob([`\uFEFF${sections.join("\n\n")}`], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `relatorio-crm-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
 
 export const ExportReportsButton = () => {
   const [locale = "pt-BR"] = useLocaleState();
@@ -62,9 +87,6 @@ export const ExportReportsButton = () => {
     const leadSummary = summarizeLeads(leads ?? []);
     const dealSummary = summarizeDeals(deals ?? []);
 
-    const wb = XLSX.utils.book_new();
-
-    // Sheet 1: KPIs
     const kpiData = [
       ["Métrica", "Valor"],
       ["Negócios abertos", dealSummary.openCount],
@@ -73,9 +95,7 @@ export const ExportReportsButton = () => {
       ["Valor ganho", formatDealAmount(dealSummary.wonAmount)],
       ["Valor perdido", formatDealAmount(dealSummary.lostAmount)],
     ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kpiData), "KPIs");
 
-    // Sheet 2: Funil de conversão
     const wonDeals = (deals ?? []).filter((d) => d.stage === "won").length;
     const funnelData = [
       ["Etapa", "Total", "Taxa de conversão"],
@@ -102,13 +122,7 @@ export const ExportReportsButton = () => {
           : "—",
       ],
     ];
-    XLSX.utils.book_append_sheet(
-      wb,
-      XLSX.utils.aoa_to_sheet(funnelData),
-      "Funil",
-    );
 
-    // Sheet 3: Leads
     const leadData = [
       ["Nome", "Empresa", "Status", "Temperatura", "Fonte"],
       ...(leads ?? []).map((l) => [
@@ -119,13 +133,7 @@ export const ExportReportsButton = () => {
         l.source ?? "",
       ]),
     ];
-    XLSX.utils.book_append_sheet(
-      wb,
-      XLSX.utils.aoa_to_sheet(leadData),
-      "Leads",
-    );
 
-    // Sheet 4: Negócios
     const dealData = [
       ["Nome", "Estágio", "Valor", "Responsável"],
       ...(deals ?? []).map((d) => [
@@ -135,13 +143,7 @@ export const ExportReportsButton = () => {
         d.sales_id ?? "",
       ]),
     ];
-    XLSX.utils.book_append_sheet(
-      wb,
-      XLSX.utils.aoa_to_sheet(dealData),
-      "Negócios",
-    );
 
-    // Sheet 5: Propostas
     const proposalData = [
       ["Título", "Número", "Status", "Total", "Validade"],
       ...(proposals ?? []).map((p) => [
@@ -152,16 +154,14 @@ export const ExportReportsButton = () => {
         p.valid_until ?? "",
       ]),
     ];
-    XLSX.utils.book_append_sheet(
-      wb,
-      XLSX.utils.aoa_to_sheet(proposalData),
-      "Propostas",
-    );
 
-    XLSX.writeFile(
-      wb,
-      `relatorio-crm-${new Date().toISOString().slice(0, 10)}.xlsx`,
-    );
+    downloadCsvReport([
+      toCsvSection("KPIs", kpiData),
+      toCsvSection("Funil", funnelData),
+      toCsvSection("Leads", leadData),
+      toCsvSection("Negócios", dealData),
+      toCsvSection("Propostas", proposalData),
+    ]);
   };
 
   return (
@@ -172,7 +172,7 @@ export const ExportReportsButton = () => {
       className="gap-1.5 text-[12px]"
     >
       <Download className="h-3.5 w-3.5" />
-      Exportar Excel
+      Exportar CSV
     </Button>
   );
 };

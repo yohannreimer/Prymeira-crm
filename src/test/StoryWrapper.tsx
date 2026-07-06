@@ -16,7 +16,7 @@ export const createTestAuthProvider = (): AuthProvider => ({
   checkAuth: async () => undefined,
   checkError: async () => undefined,
   getIdentity: async () => ({
-    avatar: DEFAULT_USER.avatar.src,
+    avatar: DEFAULT_USER.avatar?.src,
     fullName: `${DEFAULT_USER.first_name} ${DEFAULT_USER.last_name}`,
     id: DEFAULT_USER.id,
   }),

@@ -3,6 +3,17 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import pg from "pg";
+import {
+  applyCorsHeaders,
+  bodyLimitForPath,
+  buildCorsHeaders,
+  decodeJwtPayload,
+  filterSalesUpdatePayload,
+  isAdminAccess,
+  readJsonBody,
+  requireWriteAccess,
+  workspaceReferenceRules,
+} from "./security.js";
 
 const { Pool, types } = pg;
 
@@ -237,11 +248,8 @@ const error = (res, status, message, details) =>
   json(res, status, { error: { message, details } });
 
 const readBody = async (req) => {
-  const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  const raw = Buffer.concat(chunks).toString("utf8");
-  if (!raw) return {};
-  return JSON.parse(raw);
+  const pathname = new URL(req.url || "/", "http://localhost").pathname;
+  return readJsonBody(req, bodyLimitForPath(pathname));
 };
 
 const isIdentifier = (value) => /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value);
@@ -276,10 +284,28 @@ const getBearerToken = (req) => {
   return match?.[1] || null;
 };
 
-const checkAccess = async (token) => {
-  const cached = accessCache.get(token);
-  if (cached && cached.expiresAt > Date.now()) return cached.value;
+const readAccountProductsAccess = async (token) => {
+  const response = await fetch(`${ACCOUNT_API_URL}/me/products`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) return null;
 
+  const payload = await response.json().catch(() => null);
+  const product = payload?.products?.find(
+    (item) => item?.product_key === PRODUCT_KEY,
+  );
+  if (!product?.allowed || !product.workspace_id) return null;
+
+  return {
+    workspaceId: product.workspace_id,
+    workspaceRole: product.workspace_role || "member",
+    productRole: product.product_role || "member",
+    email: payload?.customer?.email || null,
+    name: payload?.customer?.name || null,
+  };
+};
+
+const readAccountAccessCheck = async (token) => {
   const response = await fetch(
     `${ACCOUNT_API_URL}/access-check?product_key=${encodeURIComponent(
       PRODUCT_KEY,
@@ -297,10 +323,42 @@ const checkAccess = async (token) => {
     throw err;
   }
 
-  const value = {
+  return {
     workspaceId: payload.workspace_id,
     workspaceRole: payload.workspace_role || "member",
     productRole: payload.product_role || "member",
+    email: null,
+    name: null,
+  };
+};
+
+const checkAccess = async (token) => {
+  const cached = accessCache.get(token);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const jwtPayload = decodeJwtPayload(token);
+  const accountAccess =
+    (await readAccountProductsAccess(token).catch(() => null)) ??
+    (await readAccountAccessCheck(token));
+  const value = {
+    workspaceId: accountAccess.workspaceId,
+    workspaceRole: accountAccess.workspaceRole,
+    productRole: accountAccess.productRole,
+    clerkUserId: typeof jwtPayload.sub === "string" ? jwtPayload.sub : null,
+    email:
+      accountAccess.email ||
+      (typeof jwtPayload.email === "string"
+        ? jwtPayload.email
+        : typeof jwtPayload.primary_email_address === "string"
+          ? jwtPayload.primary_email_address
+          : null),
+    name:
+      accountAccess.name ||
+      (typeof jwtPayload.name === "string"
+        ? jwtPayload.name
+        : typeof jwtPayload.full_name === "string"
+          ? jwtPayload.full_name
+          : null),
   };
   accessCache.set(token, { value, expiresAt: Date.now() + 30_000 });
   return value;
@@ -726,10 +784,62 @@ const validateStageTaskTemplateWrite = async (
   }
 };
 
+const normalizeIdArray = (value, fieldName) => {
+  const rawItems = Array.isArray(value) ? value : [value];
+  const ids = rawItems
+    .filter((item) => item !== null && item !== undefined && item !== "")
+    .map((item) => Number(item));
+  if (ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+    const err = new Error(`${fieldName} must contain valid ids`);
+    err.status = 400;
+    throw err;
+  }
+  return ids;
+};
+
+const ensureWorkspaceReference = async (
+  auth,
+  table,
+  fieldName,
+  value,
+) => {
+  if (value === null || value === undefined || value === "") return;
+  const ids = normalizeIdArray(value, fieldName);
+  if (!ids.length) return;
+
+  const { rows } = await pool.query(
+    `select id from ${tableName(table)} where workspace_id = $1 and id = any($2::bigint[])`,
+    [auth.workspaceId, ids],
+  );
+  const found = new Set(rows.map((row) => Number(row.id)));
+  const missing = ids.filter((id) => !found.has(id));
+  if (missing.length > 0) {
+    const err = new Error(`${fieldName} must reference records in this workspace`);
+    err.status = 400;
+    throw err;
+  }
+};
+
+const validateWorkspaceReferences = async (auth, resource, payload) => {
+  const rules = workspaceReferenceRules[resource];
+  if (!rules) return;
+
+  for (const [fieldName, table] of Object.entries(rules.single || {})) {
+    if (!hasOwn(payload, fieldName)) continue;
+    await ensureWorkspaceReference(auth, table, fieldName, payload[fieldName]);
+  }
+
+  for (const [fieldName, table] of Object.entries(rules.array || {})) {
+    if (!hasOwn(payload, fieldName)) continue;
+    await ensureWorkspaceReference(auth, table, fieldName, payload[fieldName]);
+  }
+};
+
 const validateWriteData = async (auth, resource, payload, options = {}) => {
   if (resource === "stage_task_templates") {
     await validateStageTaskTemplateWrite(auth, payload, options);
   }
+  await validateWorkspaceReferences(auth, resource, payload);
 };
 
 const filterWritableColumns = async (table, payload) => {
@@ -772,6 +882,7 @@ const parameterForColumn = (index, cast) =>
   cast ? `$${index}::${cast}` : `$${index}`;
 
 const insertRecord = async (auth, resource, data) => {
+  requireWriteAccess(auth, resource, "insert");
   const table = ensureResource(resource, "write");
   const payload = await filterWritableColumns(
     table,
@@ -796,13 +907,42 @@ const insertRecord = async (auth, resource, data) => {
   return { data: normalizeRow(rows[0]) };
 };
 
+const ensureCanUpdateSalesRecord = async (auth, id) => {
+  if (isAdminAccess(auth)) return;
+  if (!auth.clerkUserId) {
+    const err = new Error("Not authorized");
+    err.status = 403;
+    throw err;
+  }
+
+  const { rowCount } = await pool.query(
+    `select 1
+     from public.sales
+     where id = $1 and workspace_id = $2 and clerk_user_id = $3 and disabled = false
+     limit 1`,
+    [id, auth.workspaceId, auth.clerkUserId],
+  );
+  if (!rowCount) {
+    const err = new Error("Not authorized");
+    err.status = 403;
+    throw err;
+  }
+};
+
 const updateRecord = async (auth, resource, id, data) => {
+  requireWriteAccess(auth, resource, "update");
   const table = ensureResource(resource, "write");
-  const payload = await filterWritableColumns(
+  if (resource === "sales") {
+    await ensureCanUpdateSalesRecord(auth, id);
+  }
+  let payload = await filterWritableColumns(
     table,
     sanitizeWriteData(resource, data, auth),
   );
   delete payload.workspace_id;
+  if (resource === "sales") {
+    payload = filterSalesUpdatePayload(auth, payload);
+  }
   await validateWriteData(auth, resource, payload);
   const columns = Object.keys(payload).filter(isIdentifier);
   if (!columns.length) return getRecord(auth, resource, id);
@@ -835,6 +975,7 @@ const updateRecord = async (auth, resource, id, data) => {
 };
 
 const deleteRecord = async (auth, resource, id) => {
+  requireWriteAccess(auth, resource, "delete");
   const table = ensureResource(resource, "write");
   const values = [id];
   let where = "where id = $1";
@@ -868,11 +1009,28 @@ const ensureWorkspaceDefaults = async (client, workspaceId) => {
 };
 
 const syncCurrentSale = async (auth, body) => {
+  if (!auth.clerkUserId) {
+    const err = new Error("Invalid Clerk token identity");
+    err.status = 401;
+    throw err;
+  }
+  if (body.clerk_user_id && body.clerk_user_id !== auth.clerkUserId) {
+    const err = new Error("Cannot sync another user");
+    err.status = 403;
+    throw err;
+  }
+
   const client = await pool.connect();
   try {
     await client.query("begin");
     await ensureWorkspaceDefaults(client, auth.workspaceId);
-    const fullName = body.name || body.email || "";
+    const trustedEmail = auth.email || body.email;
+    if (!trustedEmail) {
+      const err = new Error("Missing Clerk email");
+      err.status = 400;
+      throw err;
+    }
+    const fullName = auth.name || body.name || trustedEmail || "";
     const [firstName, ...rest] = fullName.split(" ");
     const first_name = body.first_name || firstName || "Usuario";
     const last_name = body.last_name || rest.join(" ") || " ";
@@ -901,10 +1059,10 @@ const syncCurrentSale = async (auth, body) => {
       returning *`,
       [
         auth.workspaceId,
-        body.clerk_user_id,
+        auth.clerkUserId,
         first_name,
         last_name,
-        body.email,
+        trustedEmail,
         administrator,
         auth.workspaceRole,
         auth.productRole,
@@ -932,10 +1090,10 @@ const syncCurrentSale = async (auth, body) => {
       returning *`,
             [
               auth.workspaceId,
-              body.clerk_user_id,
+              auth.clerkUserId,
               first_name,
               last_name,
-              body.email,
+              trustedEmail,
               administrator,
               auth.workspaceRole,
               auth.productRole,
@@ -967,6 +1125,7 @@ const getConfiguration = async (auth) => {
 };
 
 const updateConfiguration = async (auth, config) => {
+  requireWriteAccess(auth, "configuration", "update");
   const { rows } = await pool.query(
     `insert into public.configuration (workspace_id, config)
      values ($1, $2::jsonb)
@@ -979,11 +1138,7 @@ const updateConfiguration = async (auth, config) => {
 
 const handleApi = async (req, res) => {
   if (req.method === "OPTIONS") {
-    res.writeHead(204, {
-      "access-control-allow-origin": "*",
-      "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-      "access-control-allow-headers": "authorization,content-type",
-    });
+    res.writeHead(204, buildCorsHeaders(req.headers.origin));
     res.end();
     return;
   }
@@ -1037,7 +1192,7 @@ await waitForDatabase();
 await runMigrations();
 
 const server = createServer(async (req, res) => {
-  res.setHeader("access-control-allow-origin", "*");
+  applyCorsHeaders(req, res);
   try {
     await handleApi(req, res);
   } catch (err) {
